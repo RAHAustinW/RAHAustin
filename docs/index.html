@@ -4,9 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>RAH Hub</title>
+<title>RAH Operations Hub</title>
 
-<!-- Google Font -->
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700&display=swap" rel="stylesheet">
 
 <style>
@@ -62,14 +61,14 @@ header {
     margin-top: 4px;
 }
 
-/* Section title */
+/* Titles */
 .section-title {
     font-size: 18px;
     font-weight: 600;
     margin-bottom: 10px;
 }
 
-/* Bottom nav */
+/* Navbar */
 .navbar {
     position: fixed;
     bottom: 0;
@@ -94,7 +93,6 @@ header {
     font-weight: 600;
 }
 
-/* Icons */
 .icon {
     display: block;
     font-size: 18px;
@@ -118,63 +116,11 @@ header {
 <div id="home" class="screen active fade">
 <header>🏠 RAH Operations Hub</header>
 
-<div class="section-title">Main Sections</div>
-
-<div class="card">
-<a href="#">📱 The App</a>
-<p class="desc">Usage, download, onboarding.</p>
-</div>
-
-<div class="card">
-<a href="#">📊 Home Care Pulse</a>
-<p class="desc">Login, training, insights.</p>
-</div>
-
-<div class="card">
-<a href="#">📁 Caregiver Management</a>
-<p class="desc">Deactivation & documentation.</p>
-</div>
-
-<div class="card">
-<a href="#">🏆 CG of the Month</a>
-<p class="desc">Process and schedule.</p>
-</div>
-
-<div class="card">
-<a href="#">🧾 Forms & Trackers</a>
-<p class="desc">TORFs, trackers.</p>
-</div>
-
-<div class="card">
-<a href="#">📚 SOPs</a>
-<p class="desc">Operational procedures.</p>
-</div>
-
-<div class="card">
-<a href="#">🔗 Helpful Links</a>
-<p class="desc">Tools and resources.</p>
-</div>
-
-</div>
-
-<!-- APP -->
-<div id="app" class="screen fade">
-<header>📱 The App</header>
-
-<div class="card">
-<a href="#">How it Works</a>
-<p class="desc">Step-by-step guide.</p>
-</div>
-
-<div class="card">
-<a href="#">Download</a>
-<p class="desc">Install instructions.</p>
-</div>
-
-<div class="card">
-<a href="#">Add Users</a>
-<p class="desc">Onboarding caregivers.</p>
-</div>
+<div class="card"><a href="#" onclick="showScreen('hcp', this)">📊 Home Care Pulse</a><p class="desc">Training, login & certification</p></div>
+<div class="card"><a href="#" onclick="showScreen('forms', this)">🧾 Forms & Tracking</a><p class="desc">Daily forms and TORF</p></div>
+<div class="card"><a href="#" onclick="showScreen('payroll', this)">💼 Payroll & HR</a><p class="desc">Paycor access</p></div>
+<div class="card"><a href="#" onclick="showScreen('docs', this)">📄 Documents</a><p class="desc">Signatures & forms</p></div>
+<div class="card"><a href="#" onclick="showScreen('training', this)">🎥 Training Videos</a><p class="desc">Caregiver training</p></div>
 
 </div>
 
@@ -183,47 +129,113 @@ header {
 <header>📊 Home Care Pulse</header>
 
 <div class="card">
-<a href="#">First Login</a>
-<p class="desc">Setup guide.</p>
+<a href="https://learn.homecarepulse.com" target="_blank">HCP Learning Portal</a>
+<p class="desc">Login: use email as username & password</p>
 </div>
 
 <div class="card">
-<a href="#">Training</a>
-<p class="desc">Schedule & sessions.</p>
-</div>
-
-</div>
-
-<!-- LINKS -->
-<div id="links" class="screen fade">
-<header>🔗 Helpful Links</header>
-
-<div class="card">
-<a href="#">HCP Flyer</a>
-<p class="desc">Resources.</p>
+<a href="#">Caregiver Certification Series</a>
+<p class="desc">11 modules (1 per week)</p>
 </div>
 
 <div class="card">
-<a href="#">Important Tools</a>
-<p class="desc">Daily platforms.</p>
+<p class="desc">
+Module Schedule:<br>
+• Patient Rights – 04/03<br>
+• HIPAA – 04/10<br>
+• ADLs – 04/17<br>
+• IADLs – 04/24<br>
+• Abuse – 05/01<br>
+• Neglect – 05/08<br>
+• Safety – 05/15<br>
+• Disasters – 05/22<br>
+• Documentation – 05/29<br>
+• Client Care – 06/05
+</p>
+</div>
+
+</div>
+
+<!-- FORMS -->
+<div id="forms" class="screen fade">
+<header>🧾 Forms & Tracking</header>
+
+<div class="card">
+<a href="https://forms.gle/5ABHyB3oq2RV7zMb6" target="_blank">Daily Visit Tracking Form</a>
+<p class="desc">SVs, Intros, ISPUs, Intakes & meetings</p>
+</div>
+
+<div class="card">
+<a href="#" target="_blank">Time Off Request Form (TORF)</a>
+<p class="desc">Submit requests here</p>
+</div>
+
+<div class="card">
+<p class="desc">
+TORF Rules:<br>
+• 15 days notice<br>
+• 30 days vacation<br>
+• 1 staff per office<br>
+• Approval required
+</p>
+</div>
+
+</div>
+
+<!-- PAYROLL -->
+<div id="payroll" class="screen fade">
+<header>💼 Payroll</header>
+
+<div class="card">
+<a href="https://hcm.paycor.com/authentication/signin" target="_blank">Paycor</a>
+<p class="desc">Payroll & caregiver payments</p>
+</div>
+
+</div>
+
+<!-- DOCS -->
+<div id="docs" class="screen fade">
+<header>📄 Documents & Signatures</header>
+
+<div class="card">
+<a href="https://app.signnow.com/webapp/documents/4ca03d7255004b28a262886fea5bc4aa93092d97" target="_blank">SignNow</a>
+<p class="desc">Create and send documents</p>
+</div>
+
+</div>
+
+<!-- TRAINING -->
+<div id="training" class="screen fade">
+<header>🎥 Training Videos</header>
+
+<div class="card">
+<a href="#">Hoyer Lift Training</a>
+<p class="desc">Manual & electric lift usage</p>
+</div>
+
+<div class="card">
+<a href="https://youtu.be/IFUW7He43_g" target="_blank">Slide Board Transfers</a>
+<p class="desc">Safe transfer technique</p>
+</div>
+
+<div class="card">
+<a href="https://youtu.be/r0azePlFx5c" target="_blank">Gait Belt Training 1</a>
+<p class="desc">Proper usage</p>
+</div>
+
+<div class="card">
+<a href="https://youtu.be/Z6Jt_8EifT0" target="_blank">Gait Belt Training 2</a>
+<p class="desc">Advanced handling</p>
 </div>
 
 </div>
 
 <!-- NAVBAR -->
 <div class="navbar">
-<div class="nav-btn active" onclick="showScreen('home', this)">
-<span class="icon">🏠</span>Home
-</div>
-<div class="nav-btn" onclick="showScreen('app', this)">
-<span class="icon">📱</span>App
-</div>
-<div class="nav-btn" onclick="showScreen('hcp', this)">
-<span class="icon">📊</span>HCP
-</div>
-<div class="nav-btn" onclick="showScreen('links', this)">
-<span class="icon">🔗</span>Links
-</div>
+<div class="nav-btn active" onclick="showScreen('home', this)"><span class="icon">🏠</span>Home</div>
+<div class="nav-btn" onclick="showScreen('hcp', this)"><span class="icon">📊</span>HCP</div>
+<div class="nav-btn" onclick="showScreen('forms', this)"><span class="icon">🧾</span>Forms</div>
+<div class="nav-btn" onclick="showScreen('training', this)"><span class="icon">🎥</span>Training</div>
 </div>
 
 <script>
