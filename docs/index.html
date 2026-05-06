@@ -6,11 +6,21 @@
 
 <title>RAH Hub</title>
 
+<!-- Google Font -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;500;700&display=swap" rel="stylesheet">
+
 <style>
 body {
     margin: 0;
-    font-family: 'Segoe UI', sans-serif;
-    background: #f3f4f6;
+    font-family: 'Inter', sans-serif;
+    background: #f9fafb;
+}
+
+/* Header */
+header {
+    font-size: 20px;
+    font-weight: 700;
+    padding: 15px;
 }
 
 /* Screens */
@@ -24,34 +34,42 @@ body {
     display: block;
 }
 
-/* Header */
-header {
-    font-size: 20px;
-    font-weight: bold;
-    margin-bottom: 15px;
-}
-
 /* Cards */
 .card {
     background: white;
-    padding: 15px;
-    border-radius: 12px;
-    margin-bottom: 10px;
-    box-shadow: 0px 3px 8px rgba(0,0,0,0.05);
+    padding: 16px;
+    border-radius: 14px;
+    margin-bottom: 12px;
+    box-shadow: 0px 4px 12px rgba(0,0,0,0.05);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0px 6px 18px rgba(0,0,0,0.08);
 }
 
 .card a {
     text-decoration: none;
     color: #2563eb;
-    font-weight: bold;
+    font-weight: 600;
+    font-size: 16px;
 }
 
 .desc {
     font-size: 13px;
-    color: #555;
+    color: #6b7280;
+    margin-top: 4px;
 }
 
-/* Bottom Nav */
+/* Section title */
+.section-title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+/* Bottom nav */
 .navbar {
     position: fixed;
     bottom: 0;
@@ -59,19 +77,37 @@ header {
     background: white;
     display: flex;
     justify-content: space-around;
-    border-top: 1px solid #ddd;
+    border-top: 1px solid #e5e7eb;
+    box-shadow: 0px -2px 10px rgba(0,0,0,0.05);
 }
 
 .nav-btn {
     padding: 10px;
     text-align: center;
     font-size: 12px;
+    color: #6b7280;
     cursor: pointer;
 }
 
 .nav-btn.active {
     color: #2563eb;
-    font-weight: bold;
+    font-weight: 600;
+}
+
+/* Icons */
+.icon {
+    display: block;
+    font-size: 18px;
+}
+
+/* Animation */
+.fade {
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from {opacity: 0;}
+    to {opacity: 1;}
 }
 </style>
 </head>
@@ -79,43 +115,60 @@ header {
 <body>
 
 <!-- HOME -->
-<div id="home" class="screen active">
-<header>🏠 RAH Hub</header>
+<div id="home" class="screen active fade">
+<header>🏠 RAH Operations Hub</header>
+
+<div class="section-title">Main Sections</div>
 
 <div class="card">
-<a href="#">The App</a>
-<p class="desc">How it works, download, onboarding.</p>
+<a href="#">📱 The App</a>
+<p class="desc">Usage, download, onboarding.</p>
 </div>
 
 <div class="card">
-<a href="#">Home Care Pulse</a>
+<a href="#">📊 Home Care Pulse</a>
 <p class="desc">Login, training, insights.</p>
 </div>
 
 <div class="card">
-<a href="#">Caregiver Management</a>
+<a href="#">📁 Caregiver Management</a>
 <p class="desc">Deactivation & documentation.</p>
 </div>
 
 <div class="card">
-<a href="#">Forms & SOPs</a>
-<p class="desc">TORFs, trackers, SOPs.</p>
+<a href="#">🏆 CG of the Month</a>
+<p class="desc">Process and schedule.</p>
+</div>
+
+<div class="card">
+<a href="#">🧾 Forms & Trackers</a>
+<p class="desc">TORFs, trackers.</p>
+</div>
+
+<div class="card">
+<a href="#">📚 SOPs</a>
+<p class="desc">Operational procedures.</p>
+</div>
+
+<div class="card">
+<a href="#">🔗 Helpful Links</a>
+<p class="desc">Tools and resources.</p>
 </div>
 
 </div>
 
-<!-- APP SECTION -->
-<div id="app" class="screen">
+<!-- APP -->
+<div id="app" class="screen fade">
 <header>📱 The App</header>
 
 <div class="card">
 <a href="#">How it Works</a>
-<p class="desc">Step-by-step explanation.</p>
+<p class="desc">Step-by-step guide.</p>
 </div>
 
 <div class="card">
 <a href="#">Download</a>
-<p class="desc">Install guide.</p>
+<p class="desc">Install instructions.</p>
 </div>
 
 <div class="card">
@@ -126,24 +179,24 @@ header {
 </div>
 
 <!-- HCP -->
-<div id="hcp" class="screen">
+<div id="hcp" class="screen fade">
 <header>📊 Home Care Pulse</header>
 
 <div class="card">
 <a href="#">First Login</a>
-<p class="desc">Setup instructions.</p>
+<p class="desc">Setup guide.</p>
 </div>
 
 <div class="card">
 <a href="#">Training</a>
-<p class="desc">Schedule and sessions.</p>
+<p class="desc">Schedule & sessions.</p>
 </div>
 
 </div>
 
 <!-- LINKS -->
-<div id="links" class="screen">
-<header>🔗 Links</header>
+<div id="links" class="screen fade">
+<header>🔗 Helpful Links</header>
 
 <div class="card">
 <a href="#">HCP Flyer</a>
@@ -151,18 +204,26 @@ header {
 </div>
 
 <div class="card">
-<a href="#">Tools</a>
-<p class="desc">Important platforms.</p>
+<a href="#">Important Tools</a>
+<p class="desc">Daily platforms.</p>
 </div>
 
 </div>
 
 <!-- NAVBAR -->
 <div class="navbar">
-<div class="nav-btn active" onclick="showScreen('home', this)">Home</div>
-<div class="nav-btn" onclick="showScreen('app', this)">App</div>
-<div class="nav-btn" onclick="showScreen('hcp', this)">HCP</div>
-<div class="nav-btn" onclick="showScreen('links', this)">Links</div>
+<div class="nav-btn active" onclick="showScreen('home', this)">
+<span class="icon">🏠</span>Home
+</div>
+<div class="nav-btn" onclick="showScreen('app', this)">
+<span class="icon">📱</span>App
+</div>
+<div class="nav-btn" onclick="showScreen('hcp', this)">
+<span class="icon">📊</span>HCP
+</div>
+<div class="nav-btn" onclick="showScreen('links', this)">
+<span class="icon">🔗</span>Links
+</div>
 </div>
 
 <script>
