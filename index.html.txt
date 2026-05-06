@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>RAH Hub</title>
+
+<style>
+body {
+    margin: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background: #f3f4f6;
+}
+
+/* Screens */
+.screen {
+    display: none;
+    padding: 15px;
+    padding-bottom: 80px;
+}
+
+.active {
+    display: block;
+}
+
+/* Header */
+header {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 15px;
+}
+
+/* Cards */
+.card {
+    background: white;
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 10px;
+    box-shadow: 0px 3px 8px rgba(0,0,0,0.05);
+}
+
+.card a {
+    text-decoration: none;
+    color: #2563eb;
+    font-weight: bold;
+}
+
+.desc {
+    font-size: 13px;
+    color: #555;
+}
+
+/* Bottom Nav */
+.navbar {
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    background: white;
+    display: flex;
+    justify-content: space-around;
+    border-top: 1px solid #ddd;
+}
+
+.nav-btn {
+    padding: 10px;
+    text-align: center;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.nav-btn.active {
+    color: #2563eb;
+    font-weight: bold;
+}
+</style>
+</head>
+
+<body>
+
+<!-- HOME -->
+<div id="home" class="screen active">
+<header>🏠 RAH Hub</header>
+
+<div class="card">
+<a href="#">The App</a>
+<p class="desc">How it works, download, onboarding.</p>
+</div>
+
+<div class="card">
+<a href="#">Home Care Pulse</a>
+<p class="desc">Login, training, insights.</p>
+</div>
+
+<div class="card">
+<a href="#">Caregiver Management</a>
+<p class="desc">Deactivation & documentation.</p>
+</div>
+
+<div class="card">
+<a href="#">Forms & SOPs</a>
+<p class="desc">TORFs, trackers, SOPs.</p>
+</div>
+
+</div>
+
+<!-- APP SECTION -->
+<div id="app" class="screen">
+<header>📱 The App</header>
+
+<div class="card">
+<a href="#">How it Works</a>
+<p class="desc">Step-by-step explanation.</p>
+</div>
+
+<div class="card">
+<a href="#">Download</a>
+<p class="desc">Install guide.</p>
+</div>
+
+<div class="card">
+<a href="#">Add Users</a>
+<p class="desc">Onboarding caregivers.</p>
+</div>
+
+</div>
+
+<!-- HCP -->
+<div id="hcp" class="screen">
+<header>📊 Home Care Pulse</header>
+
+<div class="card">
+<a href="#">First Login</a>
+<p class="desc">Setup instructions.</p>
+</div>
+
+<div class="card">
+<a href="#">Training</a>
+<p class="desc">Schedule and sessions.</p>
+</div>
+
+</div>
+
+<!-- LINKS -->
+<div id="links" class="screen">
+<header>🔗 Links</header>
+
+<div class="card">
+<a href="#">HCP Flyer</a>
+<p class="desc">Resources.</p>
+</div>
+
+<div class="card">
+<a href="#">Tools</a>
+<p class="desc">Important platforms.</p>
+</div>
+
+</div>
+
+<!-- NAVBAR -->
+<div class="navbar">
+<div class="nav-btn active" onclick="showScreen('home', this)">Home</div>
+<div class="nav-btn" onclick="showScreen('app', this)">App</div>
+<div class="nav-btn" onclick="showScreen('hcp', this)">HCP</div>
+<div class="nav-btn" onclick="showScreen('links', this)">Links</div>
+</div>
+
+<script>
+function showScreen(id, el) {
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+
+    document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+    el.classList.add('active');
+}
+</script>
+
+</body>
+</html>
