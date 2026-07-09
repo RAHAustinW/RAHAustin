@@ -6,186 +6,78 @@
 <title>RAH Hub — Right at Home Central Texas</title>
 <style>
   :root{
-    --teal:#008996;
-    --teal-dark:#00646E;
-    --teal-tint:#E4F3F4;
-    --orange:#E76727;
-    --orange-tint:#FDEEE6;
-    --ink:#1D2327;
-    --ink-soft:#5B6469;
-    --line:#E2E6E8;
-    --bg:#F6F8F9;
-    --card:#FFFFFF;
-    --mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
-    --sans: 'Segoe UI', -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
+    --teal:#008996; --teal-dark:#00646E; --teal-tint:#E4F3F4;
+    --orange:#E76727; --orange-tint:#FDEEE6;
+    --ink:#1D2327; --ink-soft:#5B6469; --ink-mute:#8A9296;
+    --line:#E2E6E8; --bg:#F6F8F9; --card:#FFFFFF;
+    --mono:'SFMono-Regular',Consolas,'Liberation Mono',Menlo,monospace;
+    --sans:'Segoe UI',-apple-system,BlinkMacSystemFont,Helvetica,Arial,sans-serif;
   }
   *{box-sizing:border-box;}
-  body{
-    margin:0;
-    font-family:var(--sans);
-    background:var(--bg);
-    color:var(--ink);
-    line-height:1.5;
-  }
+  body{ margin:0; font-family:var(--sans); background:var(--bg); color:var(--ink); line-height:1.5; }
 
-  /* Top bar */
-  .topbar{
-    background:var(--card);
-    border-bottom:1px solid var(--line);
-    padding:14px 32px;
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-  }
-  .topbar img{
-    height:36px;
-    display:block;
-  }
-  .topbar .staff-badge{
-    font-size:12px;
-    font-weight:600;
-    color:var(--teal-dark);
-    background:var(--teal-tint);
-    padding:6px 12px;
-    border-radius:20px;
-    letter-spacing:0.02em;
-  }
+  .topbar{ background:var(--card); border-bottom:1px solid var(--line); padding:14px 32px; display:flex; align-items:center; justify-content:space-between; }
+  .topbar img{ height:36px; display:block; }
+  .topbar .staff-badge{ font-size:12px; font-weight:600; color:var(--teal-dark); background:var(--teal-tint); padding:6px 12px; border-radius:20px; }
 
-  /* Hero */
-  .hero{
-    background:linear-gradient(135deg, var(--teal) 0%, var(--teal-dark) 100%);
-    padding:44px 32px 56px;
-    text-align:center;
-  }
-  .hero h1{
-    color:#fff;
-    font-size:30px;
-    font-weight:700;
-    margin:0 0 8px;
-    letter-spacing:-0.01em;
-  }
-  .hero p{
-    color:#DCF1F2;
-    font-size:15px;
-    margin:0 0 26px;
-  }
-  .search-wrap{
-    max-width:480px;
-    margin:0 auto;
-  }
-  #search{
-    width:100%;
-    padding:13px 18px;
-    border:none;
-    border-radius:10px;
-    font-size:14px;
-    font-family:var(--sans);
-    color:var(--ink);
-    box-shadow:0 6px 20px rgba(0,0,0,0.15);
-  }
-  #search:focus{
-    outline:2px solid var(--orange);
-    outline-offset:1px;
-  }
+  .hero{ background:linear-gradient(135deg, var(--teal) 0%, var(--teal-dark) 100%); padding:44px 32px 24px; text-align:center; }
+  .hero h1{ color:#fff; font-size:30px; font-weight:700; margin:0 0 8px; letter-spacing:-0.01em; }
+  .hero p{ color:#DCF1F2; font-size:15px; margin:0 0 26px; }
+  .search-wrap{ max-width:480px; margin:0 auto; }
+  #search{ width:100%; padding:13px 18px; border:none; border-radius:10px; font-size:14px; font-family:var(--sans); color:var(--ink); box-shadow:0 6px 20px rgba(0,0,0,0.15); }
+  #search:focus{ outline:2px solid var(--orange); outline-offset:1px; }
 
-  main{
-    max-width:1180px;
-    margin:-28px auto 0;
-    padding:0 32px 72px;
-    position:relative;
-    display:grid;
-    grid-template-columns:repeat(auto-fit, minmax(320px, 1fr));
-    gap:20px;
-  }
+  .tabs{ background:var(--teal-dark); padding:0 32px; display:flex; gap:4px; overflow-x:auto; }
+  .tab{ border:none; background:none; color:#BEE3E5; font-family:var(--sans); font-size:13px; font-weight:600; padding:14px 16px; cursor:pointer; border-bottom:3px solid transparent; white-space:nowrap; }
+  .tab.active{ color:#fff; border-bottom-color:var(--orange); }
+  .tab:hover{ color:#fff; }
 
-  .card{
-    background:var(--card);
-    border:1px solid var(--line);
-    border-radius:12px;
-    padding:22px 22px 16px;
-    box-shadow:0 2px 6px rgba(15,40,45,0.04);
-  }
-  .card-eyebrow{
-    font-family:var(--mono);
-    font-size:11px;
-    letter-spacing:0.06em;
-    color:var(--teal);
-    text-transform:uppercase;
-    margin:0 0 6px;
-  }
-  .card h2{
-    font-size:16px;
-    font-weight:700;
-    margin:0 0 14px;
-    color:var(--ink);
-  }
-  ul.items{
-    list-style:none;
-    margin:0;
-    padding:0;
-  }
-  ul.items li{
-    border-top:1px solid var(--line);
-  }
-  ul.items li:first-child{
-    border-top:none;
-  }
-  ul.items a{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    gap:10px;
-    padding:11px 2px;
-    text-decoration:none;
-    color:var(--ink);
-    font-size:14px;
-    font-weight:500;
-  }
-  ul.items a:hover{
-    color:var(--teal-dark);
-  }
-  ul.items .desc{
-    display:block;
-    font-weight:400;
-    font-size:12px;
-    color:var(--ink-soft);
-    margin-top:2px;
-  }
-  .tag{
-    font-family:var(--mono);
-    font-size:10px;
-    padding:3px 7px;
-    border-radius:4px;
-    white-space:nowrap;
-    flex-shrink:0;
-  }
-  .tag.tool{ background:var(--teal-tint); color:var(--teal-dark); }
+  main{ max-width:1180px; margin:0 auto; padding:36px 32px 72px; }
+
+  .type-block{ margin-bottom:44px; }
+  .type-head{ display:flex; align-items:baseline; gap:10px; margin-bottom:6px; padding-bottom:10px; border-bottom:2px solid var(--line); }
+  .type-head h2{ font-size:19px; font-weight:700; margin:0; }
+  .type-head .count{ font-family:var(--mono); font-size:12px; color:var(--ink-mute); }
+  .type-note{ font-size:12.5px; color:var(--ink-soft); margin:8px 0 18px; }
+
+  /* Paired tool+SOP cards */
+  .pair-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(300px,1fr)); gap:16px; }
+  .pair-card{ background:var(--card); border:1px solid var(--line); border-radius:12px; overflow:hidden; box-shadow:0 2px 6px rgba(15,40,45,0.03); }
+  .pair-card .tool-row{ display:flex; align-items:center; justify-content:space-between; gap:8px; padding:14px 16px; background:var(--teal-tint); text-decoration:none; color:var(--teal-dark); }
+  .pair-card .tool-row .name{ font-weight:700; font-size:14.5px; }
+  .pair-card .tool-row:hover{ background:#D6ECEE; }
+  .pair-card .sop-list{ list-style:none; margin:0; padding:6px 16px 4px; }
+  .pair-card .sop-list li{ border-top:1px solid var(--line); }
+  .pair-card .sop-list li:first-child{ border-top:none; }
+  .pair-card .sop-list a{ display:flex; justify-content:space-between; align-items:center; gap:8px; padding:9px 0; text-decoration:none; color:var(--ink); font-size:13px; }
+  .pair-card .sop-list a:hover{ color:var(--teal-dark); }
+  .pair-card .no-sop{ padding:9px 0; font-size:12px; color:var(--ink-mute); font-style:italic; }
+
+  .sop-groups{ display:grid; grid-template-columns:repeat(auto-fill, minmax(280px,1fr)); gap:22px 28px; }
+  .sop-group h3{ font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:0.04em; color:var(--teal-dark); margin:0 0 8px; }
+  .sop-group ul{ list-style:none; margin:0; padding:0; }
+  .sop-group li{ border-top:1px solid var(--line); }
+  .sop-group li:first-child{ border-top:none; }
+  .sop-group a{ display:flex; justify-content:space-between; align-items:center; gap:8px; padding:9px 2px; text-decoration:none; color:var(--ink); font-size:13.5px; }
+  .sop-group a:hover{ color:var(--teal-dark); }
+
+  .simple-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(300px,1fr)); gap:14px; }
+  .simple-card{ background:var(--card); border:1px solid var(--line); border-radius:10px; padding:16px 18px; }
+  .simple-card ul{ list-style:none; margin:0; padding:0; }
+  .simple-card li{ border-top:1px solid var(--line); }
+  .simple-card li:first-child{ border-top:none; }
+  .simple-card a{ display:flex; justify-content:space-between; align-items:center; gap:8px; padding:10px 2px; text-decoration:none; color:var(--ink); font-size:13.5px; font-weight:500; }
+  .simple-card a:hover{ color:var(--teal-dark); }
+  .simple-card .desc{ display:block; font-weight:400; font-size:11.5px; color:var(--ink-soft); margin-top:2px; }
+
+  .tag{ font-family:var(--mono); font-size:10px; padding:3px 7px; border-radius:4px; white-space:nowrap; flex-shrink:0; }
   .tag.sop{ background:#EFEDE5; color:var(--ink-soft); }
   .tag.ext{ background:var(--orange-tint); color:#B7501C; }
   .tag.pend{ background:#FBE7E4; color:#B23A24; }
 
-  footer{
-    max-width:1180px;
-    margin:0 auto;
-    padding:0 32px 48px;
-    color:var(--ink-soft);
-    font-size:12px;
-    font-family:var(--mono);
-    text-align:center;
-  }
-  .no-results{
-    display:none;
-    grid-column:1/-1;
-    text-align:center;
-    color:var(--ink-soft);
-    padding:40px 0;
-    font-size:14px;
-  }
-  @media (max-width:640px){
-    .hero{padding:32px 20px 46px;}
-    .topbar{padding:12px 20px;}
-    main{padding:0 20px 60px;}
-  }
+  footer{ max-width:1180px; margin:0 auto; padding:0 32px 48px; color:var(--ink-soft); font-size:12px; font-family:var(--mono); text-align:center; }
+  .no-results{ display:none; text-align:center; color:var(--ink-soft); padding:40px 0; font-size:14px; }
+  @media (max-width:640px){ .hero{padding:32px 20px 20px;} .topbar{padding:12px 20px;} main{padding:28px 20px 60px;} .tabs{padding:0 20px;} }
 </style>
 </head>
 <body>
@@ -203,125 +95,189 @@
   </div>
 </div>
 
+<div class="tabs" id="tabs">
+  <button class="tab active" data-filter="all">All</button>
+  <button class="tab" data-filter="toolsops">Tools &amp; SOPs</button>
+  <button class="tab" data-filter="documents">Documents</button>
+  <button class="tab" data-filter="forms">Forms &amp; Tracking</button>
+  <button class="tab" data-filter="training">Training</button>
+  <button class="tab" data-filter="external">External Systems</button>
+</div>
+
 <main id="grid">
 
-  <section class="card" data-section>
-    <p class="card-eyebrow">Learning</p>
-    <h2>Home Care Pulse</h2>
-    <ul class="items">
-      <li><a href="https://learn.homecarepulse.com" target="_blank"><span>HCP Learning Portal<span class="desc">Login: use your email as username &amp; password</span></span><span class="tag ext">external</span></a></li>
-      <li><a href="#"><span>Caregiver Certification Series<span class="desc">11 weekly modules — Patient Rights, HIPAA, ADLs &amp; more</span></span><span class="tag pend">link pending</span></a></li>
-      <li><a href="https://youtu.be/IFUW7He43_g" target="_blank"><span>Slide Board Transfers<span class="desc">Safe transfer technique</span></span><span class="tag ext">video</span></a></li>
-      <li><a href="https://youtu.be/r0azePlFx5c" target="_blank"><span>Gait Belt Training 1<span class="desc">Proper usage</span></span><span class="tag ext">video</span></a></li>
-      <li><a href="https://youtu.be/Z6Jt_8EifT0" target="_blank"><span>Gait Belt Training 2<span class="desc">Advanced handling</span></span><span class="tag ext">video</span></a></li>
-      <li><a href="#"><span>Hoyer Lift Training<span class="desc">Manual &amp; electric lift usage</span></span><span class="tag pend">link pending</span></a></li>
-    </ul>
-  </section>
+  <!-- TOOLS + SOPs PAIRED -->
+  <div class="type-block" data-type="toolsops">
+    <div class="type-head"><h2>Tools &amp; Their SOPs</h2><span class="count">7 areas</span></div>
+    <p class="type-note">Each card is one operational tool with the SOP(s) that govern how it's used.</p>
+    <div class="pair-grid" data-searchable>
 
-  <section class="card" data-section>
-    <p class="card-eyebrow">Daily operations</p>
-    <h2>Forms &amp; Time Tracking</h2>
-    <ul class="items">
-      <li><a href="https://forms.gle/5ABHyB3oq2RV7zMb6" target="_blank"><span>Daily Visit Tracking Form<span class="desc">SVs, intros, ISPUs, intakes &amp; meetings</span></span><span class="tag ext">form</span></a></li>
-      <li><a href="#"><span>Time Off Request Form (TORF)<span class="desc">15 days notice · 30 days vacation · approval required</span></span><span class="tag pend">link pending</span></a></li>
-    </ul>
-  </section>
+      <div class="pair-card">
+        <a class="tool-row" href="tools/bgc-pipeline/"><span class="name">BGC Automation Pipeline</span></a>
+        <ul class="sop-list">
+          <li><a href="sops/compliance-bgc/annual-bgc-sop.html"><span>Annual Background Check SOP</span><span class="tag sop">bilingual</span></a></li>
+        </ul>
+      </div>
 
-  <section class="card" data-section>
-    <p class="card-eyebrow">Payroll</p>
-    <h2>Payroll &amp; Documents</h2>
-    <ul class="items">
-      <li><a href="https://hcm.paycor.com/authentication/signin" target="_blank"><span>Paycor<span class="desc">Payroll &amp; caregiver payments</span></span><span class="tag ext">external</span></a></li>
-      <li><a href="https://app.signnow.com/webapp/documents/4ca03d7255004b28a262886fea5bc4aa93092d97" target="_blank"><span>SignNow<span class="desc">Create and send documents</span></span><span class="tag ext">external</span></a></li>
-    </ul>
-  </section>
+      <div class="pair-card">
+        <a class="tool-row" href="tools/audit-payroll-billing/"><span class="name">Audit Payroll and Billing Tool</span></a>
+        <ul class="sop-list">
+          <li><a href="sops/billing-payroll/sop-audit-tool.html"><span>SOP — Audit Tool</span></a></li>
+          <li><a href="sops/billing-payroll/billing-payroll-sop-2026.html"><span>Billing &amp; Payroll SOP 2026</span></a></li>
+          <li><a href="sops/billing-payroll/wellsky-dcl-automation.html"><span>WellSky DCL Automation</span></a></li>
+          <li><a href="sops/billing-payroll/ltc-weekly-claims.html"><span>LTC Claims — Weekly Claims</span></a></li>
+        </ul>
+      </div>
 
-  <section class="card" data-section>
-    <p class="card-eyebrow">Scheduling</p>
-    <h2>The RAH App</h2>
-    <ul class="items">
-      <li><a href="#"><span>How It Works<span class="desc">Step-by-step overview</span></span><span class="tag pend">link pending</span></a></li>
-      <li><a href="#"><span>Download<span class="desc">Install guide</span></span><span class="tag pend">link pending</span></a></li>
-      <li><a href="#"><span>Add Users<span class="desc">Onboarding caregivers to the app</span></span><span class="tag pend">link pending</span></a></li>
-    </ul>
-  </section>
+      <div class="pair-card">
+        <a class="tool-row" href="tools/deactivate-cg/"><span class="name">Deactivation Pipeline</span></a>
+        <ul class="sop-list">
+          <li><a href="sops/caregiver-lifecycle/sop-inactive-cgs.html"><span>SOP — Inactive Caregivers</span></a></li>
+        </ul>
+      </div>
 
-  <section class="card" data-section>
-    <p class="card-eyebrow">Compliance · 01</p>
-    <h2>Background Checks</h2>
-    <ul class="items">
-      <li><a href="tools/bgc-pipeline/"><span>BGC Automation Pipeline</span><span class="tag tool">tool</span></a></li>
-      <li><a href="sops/compliance-bgc/annual-bgc-sop.html"><span>Annual Background Check SOP<span class="desc">Bilingual</span></span><span class="tag sop">sop</span></a></li>
-    </ul>
-  </section>
+      <div class="pair-card">
+        <a class="tool-row" href="tools/inservice-automation/"><span class="name">Inservice Certification</span></a>
+        <ul class="sop-list">
+          <li><a href="sops/caregiver-lifecycle/sop-ins-001.html"><span>SOP-INS-001 — Inservice Records</span></a></li>
+        </ul>
+      </div>
 
-  <section class="card" data-section>
-    <p class="card-eyebrow">Office · 02</p>
-    <h2>Billing &amp; Payroll</h2>
-    <ul class="items">
-      <li><a href="tools/audit-payroll-billing/"><span>Audit Payroll and Billing Tool</span><span class="tag tool">tool</span></a></li>
-      <li><a href="sops/billing-payroll/sop-audit-tool.html"><span>SOP — Audit Tool</span><span class="tag sop">sop</span></a></li>
-      <li><a href="sops/billing-payroll/billing-payroll-sop-2026.html"><span>Billing &amp; Payroll SOP 2026</span><span class="tag sop">sop</span></a></li>
-      <li><a href="sops/billing-payroll/wellsky-dcl-automation.html"><span>SOP — WellSky DCL Automation</span><span class="tag sop">sop</span></a></li>
-      <li><a href="sops/billing-payroll/ltc-weekly-claims.html"><span>LTC Claims — Weekly Claims</span><span class="tag sop">sop</span></a></li>
-      <li><a href="sops/billing-payroll/tasks-sop.html"><span>Tasks SOP</span><span class="tag sop">sop</span></a></li>
-    </ul>
-  </section>
+      <div class="pair-card">
+        <a class="tool-row" href="tools/recruiting-tool/"><span class="name">Recruiting Tool</span></a>
+        <ul class="sop-list">
+          <li><a href="sops/recruiting-onboarding/hiring-demand.html"><span>SOP — Hiring Demand Tool</span></a></li>
+          <li><a href="sops/recruiting-onboarding/reclutamiento-es.html"><span>SOP — Reclutamiento</span><span class="tag sop">ES</span></a></li>
+        </ul>
+      </div>
 
-  <section class="card" data-section>
-    <p class="card-eyebrow">Office · 03</p>
-    <h2>Caregiver Lifecycle</h2>
-    <ul class="items">
-      <li><a href="tools/deactivate-cg/"><span>Deactivation Pipeline</span><span class="tag tool">tool</span></a></li>
-      <li><a href="tools/inservice-automation/"><span>Inservice Certification</span><span class="tag tool">tool</span></a></li>
-      <li><a href="sops/caregiver-lifecycle/sop-inactive-cgs.html"><span>SOP — Inactive Caregivers</span><span class="tag sop">sop</span></a></li>
-      <li><a href="sops/caregiver-lifecycle/sop-ins-001.html"><span>SOP-INS-001 — Inservice Records</span><span class="tag sop">sop</span></a></li>
-      <li><a href="sops/caregiver-lifecycle/cg-clock-in.html"><span>SOP — CG Clock In</span><span class="tag sop">sop</span></a></li>
-      <li><a href="sops/caregiver-lifecycle/retention.html"><span>Retention SOPs<span class="desc">Group of 3</span></span><span class="tag sop">sop</span></a></li>
-    </ul>
-  </section>
+      <div class="pair-card">
+        <a class="tool-row" href="tools/tasks-add-delete/"><span class="name">Tasks Add-Delete</span></a>
+        <ul class="sop-list">
+          <li><a href="sops/billing-payroll/tasks-sop.html"><span>Tasks SOP</span></a></li>
+        </ul>
+        <a class="tool-row" href="tools/care-note-compliance/" style="margin-top:2px;"><span class="name">Care Note Compliance Tool</span></a>
+        <ul class="sop-list">
+          <li><a href="sops/task-automation/sop-tasks-compliance.html"><span>SOP — Tasks Compliance</span></a></li>
+          <li><a href="sops/task-automation/sop-care-note-compliance.html"><span>SOP — Care Note Compliance Tool</span><span class="tag pend">PDF pending</span></a></li>
+        </ul>
+      </div>
 
-  <section class="card" data-section>
-    <p class="card-eyebrow">Office · 04</p>
-    <h2>Client Success</h2>
-    <ul class="items">
-      <li><a href="sops/client-success/client-hired-caregiver.html"><span>SOP — Client Hired our Caregiver</span><span class="tag sop">sop</span></a></li>
-      <li><a href="sops/client-success/client-success-team.html"><span>Client Success Team SOP</span><span class="tag sop">sop</span></a></li>
-      <li><a href="sops/client-success/inquiry-call.html"><span>Inquiry Call SOP</span><span class="tag sop">sop</span></a></li>
-    </ul>
-  </section>
+      <div class="pair-card">
+        <a class="tool-row" href="tools/bo-live-in/"><span class="name">Bo Live-in Monthly Report Tool</span></a>
+        <ul class="sop-list">
+          <li><a href="sops/reporting/continuous-care-monthly-report.html"><span>Continuous Care Monthly Report SOP</span></a></li>
+          <li><a href="sops/reporting/sop-monthly-report-tool.html"><span>SOP — Monthly Report Tool</span></a></li>
+        </ul>
+      </div>
 
-  <section class="card" data-section>
-    <p class="card-eyebrow">Office · 05</p>
-    <h2>Recruiting &amp; Onboarding</h2>
-    <ul class="items">
-      <li><a href="tools/recruiting-tool/"><span>Recruiting Tool</span><span class="tag tool">tool</span></a></li>
-      <li><a href="sops/recruiting-onboarding/hiring-demand.html"><span>SOP — Hiring Demand Tool</span><span class="tag sop">sop</span></a></li>
-      <li><a href="sops/recruiting-onboarding/reclutamiento-es.html"><span>SOP — Reclutamiento (ES)</span><span class="tag sop">sop</span></a></li>
-      <li><a href="sops/recruiting-onboarding/pes-new-hire.html"><span>SOP — PES &amp; New Hire Profile</span><span class="tag sop">sop</span></a></li>
-    </ul>
-  </section>
+    </div>
+  </div>
 
-  <section class="card" data-section>
-    <p class="card-eyebrow">Office · 06</p>
-    <h2>Task &amp; Reporting Tools</h2>
-    <ul class="items">
-      <li><a href="tools/tasks-add-delete/"><span>Tasks Add-Delete</span><span class="tag tool">tool</span></a></li>
-      <li><a href="tools/care-note-compliance/"><span>Care Note Compliance Tool</span><span class="tag tool">tool</span></a></li>
-      <li><a href="tools/bo-live-in/"><span>Bo Live-in Monthly Report Tool</span><span class="tag tool">tool</span></a></li>
-      <li><a href="sops/task-automation/sop-tasks-compliance.html"><span>SOP — Tasks Compliance</span><span class="tag sop">sop</span></a></li>
-      <li><a href="sops/reporting/continuous-care-monthly-report.html"><span>Continuous Care Monthly Report SOP</span><span class="tag sop">sop</span></a></li>
-    </ul>
-  </section>
+  <!-- DOCUMENTS (no tool attached) -->
+  <div class="type-block" data-type="documents">
+    <div class="type-head"><h2>Documents</h2><span class="count">Reference SOPs with no dedicated tool</span></div>
+    <div class="sop-groups" data-searchable>
 
-  <section class="card" data-section>
-    <p class="card-eyebrow">Office · 07</p>
-    <h2>Policies &amp; Reference</h2>
-    <ul class="items">
-      <li><a href="sops/policies/file-naming-standard.html"><span>SOP-CCM-003 — File Naming Standard</span><span class="tag pend">in review</span></a></li>
-      <li><a href="sops/policies/upcoming-holiday.html"><span>SOP — Upcoming Holiday</span><span class="tag sop">sop</span></a></li>
-    </ul>
-  </section>
+      <div class="sop-group">
+        <h3>Client Success</h3>
+        <ul>
+          <li><a href="sops/client-success/client-hired-caregiver.html"><span>Client Hired our Caregiver</span></a></li>
+          <li><a href="sops/client-success/client-success-team.html"><span>Client Success Team SOP</span></a></li>
+          <li><a href="sops/client-success/inquiry-call.html"><span>Inquiry Call SOP</span></a></li>
+        </ul>
+      </div>
+
+      <div class="sop-group">
+        <h3>Caregiver Retention</h3>
+        <ul>
+          <li><a href="sops/caregiver-lifecycle/cg-clock-in.html"><span>CG Clock In</span></a></li>
+          <li><a href="sops/caregiver-lifecycle/retention.html"><span>Retention SOPs<span class="desc">Group of 3</span></span></a></li>
+        </ul>
+      </div>
+
+      <div class="sop-group">
+        <h3>Onboarding</h3>
+        <ul>
+          <li><a href="sops/recruiting-onboarding/pes-new-hire.html"><span>PES &amp; New Hire Profile</span></a></li>
+        </ul>
+      </div>
+
+      <div class="sop-group">
+        <h3>Billing Program References</h3>
+        <ul>
+          <li><a href="sops/billing-payroll/area-agency-aging.html"><span>Area Agency on Aging SOP</span></a></li>
+          <li><a href="sops/billing-payroll/guide-program.html"><span>GUIDE Program SOP</span></a></li>
+          <li><a href="sops/billing-payroll/ltc-information.html"><span>LTC Information SOP</span></a></li>
+          <li><a href="sops/billing-payroll/va-program.html"><span>VA Program SOP</span><span class="tag pend">draft</span></a></li>
+          <li><a href="sops/billing-payroll/employee-incentive.html"><span>Employee Incentive &amp; Reimbursements</span></a></li>
+        </ul>
+      </div>
+
+      <div class="sop-group">
+        <h3>HR &amp; Administrative Policies</h3>
+        <ul>
+          <li><a href="sops/policies/file-naming-standard.html"><span>File Naming Standard</span><span class="tag pend">in review</span></a></li>
+          <li><a href="sops/policies/upcoming-holiday.html"><span>Upcoming Holiday</span></a></li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- FORMS -->
+  <div class="type-block" data-type="forms">
+    <div class="type-head"><h2>Forms &amp; Time Tracking</h2><span class="count">Daily operations</span></div>
+    <div class="simple-grid" data-searchable>
+      <div class="simple-card">
+        <ul>
+          <li><a href="https://forms.gle/5ABHyB3oq2RV7zMb6" target="_blank"><span>Daily Visit Tracking Form<span class="desc">SVs, intros, ISPUs, intakes &amp; meetings</span></span><span class="tag ext">form</span></a></li>
+          <li><a href="#"><span>Time Off Request Form (TORF)<span class="desc">15 days notice · 30 days vacation · approval required</span></span><span class="tag pend">link pending</span></a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- TRAINING -->
+  <div class="type-block" data-type="training">
+    <div class="type-head"><h2>Training &amp; Certification</h2><span class="count">Home Care Pulse</span></div>
+    <div class="simple-grid" data-searchable>
+      <div class="simple-card">
+        <ul>
+          <li><a href="https://learn.homecarepulse.com" target="_blank"><span>HCP Learning Portal<span class="desc">Login: use your email as username &amp; password</span></span><span class="tag ext">external</span></a></li>
+          <li><a href="#"><span>Caregiver Certification Series<span class="desc">11 weekly modules — Patient Rights, HIPAA, ADLs &amp; more</span></span><span class="tag pend">link pending</span></a></li>
+        </ul>
+      </div>
+      <div class="simple-card">
+        <ul>
+          <li><a href="https://youtu.be/IFUW7He43_g" target="_blank"><span>Slide Board Transfers<span class="desc">Safe transfer technique</span></span><span class="tag ext">video</span></a></li>
+          <li><a href="https://youtu.be/r0azePlFx5c" target="_blank"><span>Gait Belt Training 1<span class="desc">Proper usage</span></span><span class="tag ext">video</span></a></li>
+          <li><a href="https://youtu.be/Z6Jt_8EifT0" target="_blank"><span>Gait Belt Training 2<span class="desc">Advanced handling</span></span><span class="tag ext">video</span></a></li>
+          <li><a href="#"><span>Hoyer Lift Training<span class="desc">Manual &amp; electric lift usage</span></span><span class="tag pend">link pending</span></a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- EXTERNAL -->
+  <div class="type-block" data-type="external">
+    <div class="type-head"><h2>External Systems</h2><span class="count">Payroll, documents &amp; scheduling</span></div>
+    <div class="simple-grid" data-searchable>
+      <div class="simple-card">
+        <ul>
+          <li><a href="https://hcm.paycor.com/authentication/signin" target="_blank"><span>Paycor<span class="desc">Payroll &amp; caregiver payments</span></span><span class="tag ext">external</span></a></li>
+          <li><a href="https://app.signnow.com/webapp/documents/4ca03d7255004b28a262886fea5bc4aa93092d97" target="_blank"><span>SignNow<span class="desc">Create and send documents</span></span><span class="tag ext">external</span></a></li>
+        </ul>
+      </div>
+      <div class="simple-card">
+        <ul>
+          <li><a href="#"><span>The RAH App — How It Works<span class="desc">Step-by-step overview</span></span><span class="tag pend">link pending</span></a></li>
+          <li><a href="#"><span>The RAH App — Download<span class="desc">Install guide</span></span><span class="tag pend">link pending</span></a></li>
+          <li><a href="#"><span>The RAH App — Add Users<span class="desc">Onboarding caregivers to the app</span></span><span class="tag pend">link pending</span></a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
 
   <p class="no-results" id="noResults">No results found.</p>
 
@@ -333,37 +289,51 @@
 
 <script>
   const search = document.getElementById('search');
-  const sections = document.querySelectorAll('[data-section]');
   const noResults = document.getElementById('noResults');
+  const blocks = document.querySelectorAll('.type-block');
+  const tabs = document.querySelectorAll('.tab');
+  let activeFilter = 'all';
 
-  search.addEventListener('input', () => {
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      activeFilter = tab.dataset.filter;
+      applyFilters();
+    });
+  });
+
+  search.addEventListener('input', applyFilters);
+
+  function applyFilters(){
     const q = search.value.trim().toLowerCase();
-    let visibleCount = 0;
+    let anyVisible = false;
 
-    sections.forEach(section => {
-      const items = section.querySelectorAll('ul.items li');
-      let sectionHasMatch = false;
+    blocks.forEach(block => {
+      const typeMatch = activeFilter === 'all' || block.dataset.type === activeFilter;
+      if (!typeMatch) { block.style.display = 'none'; return; }
 
-      items.forEach(li => {
-        const text = li.textContent.toLowerCase();
-        const match = text.includes(q);
-        li.style.display = match ? '' : 'none';
-        if (match) sectionHasMatch = true;
+      const rows = block.querySelectorAll('.pair-card, .sop-group li, .simple-card li');
+      let blockHasMatch = q === '';
+
+      rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        const match = q === '' || text.includes(q);
+        row.style.display = match ? '' : 'none';
+        if (match) blockHasMatch = true;
       });
 
-      const titleMatch = section.querySelector('h2').textContent.toLowerCase().includes(q);
-      const show = q === '' || sectionHasMatch || titleMatch;
+      block.querySelectorAll('.sop-group').forEach(g => {
+        const visibleItems = g.querySelectorAll('li:not([style*="display: none"])').length;
+        g.style.display = visibleItems > 0 ? '' : 'none';
+      });
 
-      if (titleMatch && q !== '') {
-        items.forEach(li => li.style.display = '');
-      }
-
-      section.style.display = show ? '' : 'none';
-      if (show) visibleCount++;
+      block.style.display = blockHasMatch ? '' : 'none';
+      if (blockHasMatch) anyVisible = true;
     });
 
-    noResults.style.display = visibleCount === 0 ? 'block' : 'none';
-  });
+    noResults.style.display = anyVisible ? 'none' : 'block';
+  }
 </script>
 
 </body>
