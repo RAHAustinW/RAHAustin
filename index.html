@@ -1,367 +1,305 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Care Note Compliance — Right at Home</title>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.44.0/tabler-icons.min.css">
+<title>RAH Hub — Right at Home Central Texas</title>
 <style>
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:Arial,sans-serif;background:#f8f7f4;color:#1F1F1F;min-height:100vh}
-
-  header{background:#1F4E79;padding:14px 24px;display:flex;align-items:center;justify-content:space-between}
-  header .logo{color:#fff;font-size:16px;font-weight:500;letter-spacing:0.01em}
-  header .sub{color:#B5D4F4;font-size:12px;margin-top:2px}
-
-  .container{max-width:1100px;margin:0 auto;padding:24px 20px}
-
-  .upload-zone{border:1.5px dashed #B4B2A9;border-radius:12px;padding:1.5rem;text-align:center;cursor:pointer;background:#fff;transition:background 0.1s;border-color:#B4B2A9}
-  .upload-zone:hover,.upload-zone.drag{background:#F1EFE8;border-color:#185FA5}
-  .upload-zone i{font-size:28px;color:#888780;display:block;margin-bottom:6px}
-  .upload-zone p{font-size:13px;color:#888780}
-  .fname{font-size:12px;font-weight:500;color:#1F1F1F;margin-top:4px}
-
-  .filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:1rem 0}
-  .filters label{font-size:12px;color:#888780;display:block;margin-bottom:4px}
-  .filters select,.filters input[type=date]{width:100%;font-size:13px;padding:7px 10px;border:0.5px solid #B4B2A9;border-radius:8px;background:#fff;color:#1F1F1F;outline:none}
-  .filters select:focus,.filters input[type=date]:focus{border-color:#185FA5;box-shadow:0 0 0 2px #E6F1FB}
-
-  .toggle-row{display:flex;align-items:center;gap:8px;margin:0.5rem 0 1rem;font-size:13px;color:#888780}
-  .toggle-row input{width:auto;accent-color:#185FA5}
-
-  .metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px;margin-bottom:1rem}
-  .metric{background:#fff;border:0.5px solid #D3D1C7;border-radius:8px;padding:12px 14px}
-  .metric .num{font-size:20px;font-weight:500;color:#1F1F1F}
-  .metric .lbl{font-size:11px;color:#888780;margin-top:2px}
-  .metric.ok .num{color:#3B6D11}
-  .metric.warn .num{color:#854F0B}
-  .metric.danger .num{color:#A32D2D}
-
-  .tbl-wrap{overflow-x:auto;border:0.5px solid #D3D1C7;border-radius:8px;margin-bottom:0.75rem;background:#fff}
-  table{width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed}
-  th{background:#F1EFE8;padding:8px 10px;text-align:left;font-weight:500;font-size:11px;color:#888780;border-bottom:0.5px solid #D3D1C7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  td{padding:7px 10px;border-bottom:0.5px solid #F1EFE8;color:#1F1F1F;vertical-align:middle;overflow:hidden;text-overflow:ellipsis}
-  tr:last-child td{border-bottom:none}
-  tr:hover td{background:#F8F7F4}
-
-  .pill{display:inline-flex;align-items:center;padding:2px 8px;border-radius:99px;font-size:11px;font-weight:500;white-space:nowrap;margin:1px}
-  .pill-va{background:#E6F1FB;color:#0C447C}
-  .pill-ltc{background:#EEEDFE;color:#3C3489}
-  .pill-private{background:#F1EFE8;color:#444441}
-  .pill-guide{background:#EAF3DE;color:#27500A}
-  .pill-aaa{background:#FAEEDA;color:#633806}
-  .pill-nocp{background:#FCEBEB;color:#791F1F}
-  .pill-ok{background:#EAF3DE;color:#27500A}
-  .pill-warn{background:#FAEEDA;color:#854F0B}
-  .pill-danger{background:#FCEBEB;color:#A32D2D}
-  .pill-gray{background:#F1EFE8;color:#5F5E5A}
-
-  .tasks-ok{color:#3B6D11;font-weight:500}
-  .tasks-warn{color:#854F0B;font-weight:500}
-  .tasks-danger{color:#A32D2D;font-weight:500}
-  .tasks-nocp{color:#888780}
-
-  .btn-dl{background:#1F4E79;color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:13px;cursor:pointer;display:inline-flex;align-items:center;gap:6px;font-family:Arial,sans-serif}
-  .btn-dl:hover{background:#0C447C}
-
-  .footer-row{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-top:0.5rem}
-  .foot-txt{font-size:12px;color:#888780}
-
-  .err{color:#A32D2D;font-size:12px;margin-top:6px;padding:8px 12px;background:#FCEBEB;border-radius:8px}
-  .hidden{display:none}
-  .divider{border:none;border-top:0.5px solid #D3D1C7;margin:1rem 0}
-
-  .card{background:#fff;border:0.5px solid #D3D1C7;border-radius:12px;padding:20px;margin-bottom:1rem}
+  :root{
+    --paper:#F7F5F0;
+    --ink:#2B2A26;
+    --ink-soft:#6B6A62;
+    --line:#E4E0D6;
+    --teal:#0F6E56;
+    --teal-soft:#E1F0EB;
+    --coral:#B24A24;
+    --coral-soft:#F6E7DF;
+    --card:#FFFFFF;
+    --mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:var(--sans);
+    background:var(--paper);
+    color:var(--ink);
+    line-height:1.5;
+  }
+  header{
+    padding:48px 32px 28px;
+    max-width:1100px;
+    margin:0 auto;
+  }
+  .eyebrow{
+    font-family:var(--mono);
+    font-size:12px;
+    letter-spacing:0.08em;
+    color:var(--teal);
+    text-transform:uppercase;
+    margin:0 0 10px;
+  }
+  h1{
+    font-size:32px;
+    font-weight:600;
+    margin:0 0 8px;
+    letter-spacing:-0.01em;
+  }
+  .sub{
+    color:var(--ink-soft);
+    font-size:15px;
+    margin:0 0 28px;
+    max-width:620px;
+  }
+  #search{
+    width:100%;
+    max-width:420px;
+    padding:11px 14px;
+    border:1px solid var(--line);
+    border-radius:8px;
+    background:var(--card);
+    font-size:14px;
+    font-family:var(--sans);
+    color:var(--ink);
+  }
+  #search:focus{
+    outline:none;
+    border-color:var(--teal);
+  }
+  main{
+    max-width:1100px;
+    margin:0 auto;
+    padding:0 32px 64px;
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(310px, 1fr));
+    gap:20px;
+  }
+  .card{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:22px 22px 18px;
+  }
+  .card-head{
+    display:flex;
+    align-items:baseline;
+    justify-content:space-between;
+    margin-bottom:4px;
+  }
+  .card-code{
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--teal);
+    background:var(--teal-soft);
+    padding:2px 7px;
+    border-radius:4px;
+  }
+  .card h2{
+    font-size:16px;
+    font-weight:600;
+    margin:6px 0 14px;
+  }
+  ul.items{
+    list-style:none;
+    margin:0;
+    padding:0;
+  }
+  ul.items li{
+    border-top:1px solid var(--line);
+  }
+  ul.items li:first-child{
+    border-top:none;
+  }
+  ul.items a{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    padding:10px 2px;
+    text-decoration:none;
+    color:var(--ink);
+    font-size:14px;
+  }
+  ul.items a:hover{
+    color:var(--teal);
+  }
+  .tag{
+    font-family:var(--mono);
+    font-size:10px;
+    padding:2px 6px;
+    border-radius:4px;
+    white-space:nowrap;
+    flex-shrink:0;
+  }
+  .tag.tool{
+    background:var(--teal-soft);
+    color:var(--teal);
+  }
+  .tag.sop{
+    background:#EFEDE5;
+    color:var(--ink-soft);
+  }
+  .tag.pend{
+    background:var(--coral-soft);
+    color:var(--coral);
+  }
+  footer{
+    max-width:1100px;
+    margin:0 auto;
+    padding:0 32px 48px;
+    color:var(--ink-soft);
+    font-size:12px;
+    font-family:var(--mono);
+  }
+  .no-results{
+    display:none;
+    grid-column:1/-1;
+    text-align:center;
+    color:var(--ink-soft);
+    padding:40px 0;
+    font-size:14px;
+  }
 </style>
 </head>
 <body>
 
 <header>
-  <div>
-    <div class="logo"><i class="ti ti-heart-rate-monitor" style="font-size:16px;vertical-align:-2px;margin-right:6px" aria-hidden="true"></i>Right at Home — Care Note Compliance</div>
-    <div class="sub">Upload a WellSky export to generate your compliance report</div>
-  </div>
+  <p class="eyebrow">Right at Home — Central Texas</p>
+  <h1>RAH Hub</h1>
+  <p class="sub">Punto central de herramientas y SOPs para Austin West, Austin East, Marble Falls, Bastrop y San Marcos.</p>
+  <input id="search" type="text" placeholder="Buscar herramienta o SOP…" autocomplete="off">
 </header>
 
-<div class="container">
+<main id="grid">
 
-  <div class="card">
-    <div class="upload-zone" id="dropZone" onclick="document.getElementById('fi').click()">
-      <i class="ti ti-file-spreadsheet" aria-hidden="true"></i>
-      <p>Drop WellSky export here or click to upload</p>
-      <p style="font-size:11px;margin-top:2px">Supports .xls and .xlsx &nbsp;·&nbsp; Data never leaves your computer</p>
-      <div class="fname" id="fname"></div>
-    </div>
-    <input type="file" id="fi" accept=".xls,.xlsx" style="display:none">
-    <div class="err hidden" id="err"></div>
-  </div>
+  <section class="card" data-section>
+    <div class="card-head"><span class="card-code">01 · COMP</span></div>
+    <h2>Compliance &amp; Background Checks</h2>
+    <ul class="items">
+      <li><a href="tools/bgc-pipeline/"><span>BGC Automation Pipeline</span><span class="tag tool">tool</span></a></li>
+      <li><a href="sops/compliance-bgc/annual-bgc-sop.html"><span>Annual Background Check SOP (bilingüe)</span><span class="tag sop">sop</span></a></li>
+    </ul>
+  </section>
 
-  <div class="card">
-    <div class="filters">
-      <div><label>From</label><input type="date" id="f_from"></div>
-      <div><label>To</label><input type="date" id="f_to"></div>
-      <div><label>Office</label><select id="f_office"><option value="">All offices</option></select></div>
-      <div><label>Payer type</label>
-        <select id="f_payer">
-          <option value="">All types</option>
-          <option value="VA">VA</option>
-          <option value="LTC">LTC</option>
-          <option value="Private">Private</option>
-          <option value="GUIDE">GUIDE</option>
-          <option value="AAA">AAA</option>
-        </select>
-      </div>
-    </div>
-    <div class="toggle-row">
-      <input type="checkbox" id="f_issues">
-      <label for="f_issues">Show shifts with issues only</label>
-    </div>
-  </div>
+  <section class="card" data-section>
+    <div class="card-head"><span class="card-code">02 · BILL</span></div>
+    <h2>Billing &amp; Payroll</h2>
+    <ul class="items">
+      <li><a href="tools/audit-payroll-billing/"><span>Audit Payroll and Billing Tool</span><span class="tag tool">tool</span></a></li>
+      <li><a href="sops/billing-payroll/sop-audit-tool.html"><span>SOP — Audit Tool</span><span class="tag sop">sop</span></a></li>
+      <li><a href="sops/billing-payroll/billing-payroll-sop-2026.html"><span>Billing &amp; Payroll SOP 2026</span><span class="tag sop">sop</span></a></li>
+      <li><a href="sops/billing-payroll/wellsky-dcl-automation.html"><span>SOP — WellSky DCL Automation</span><span class="tag sop">sop</span></a></li>
+      <li><a href="sops/billing-payroll/ltc-weekly-claims.html"><span>LTC Claims — Submitting Weekly Claims</span><span class="tag sop">sop</span></a></li>
+      <li><a href="sops/billing-payroll/tasks-sop.html"><span>Tasks SOP</span><span class="tag sop">sop</span></a></li>
+    </ul>
+  </section>
 
-  <div id="results" class="hidden">
-    <div class="metrics" id="metrics"></div>
-    <hr class="divider">
-    <div class="tbl-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th style="width:16%">Caregiver</th>
-            <th style="width:18%">Client</th>
-            <th style="width:16%">Payer tags</th>
-            <th style="width:11%">Office</th>
-            <th style="width:8%">Date</th>
-            <th style="width:8%">Clock in</th>
-            <th style="width:8%">Clock out</th>
-            <th style="width:7%">Tasks</th>
-            <th style="width:8%">Status</th>
-          </tr>
-        </thead>
-        <tbody id="tbody"></tbody>
-      </table>
-    </div>
-    <div class="footer-row">
-      <span class="foot-txt" id="foot"></span>
-      <button class="btn-dl" id="dlBtn">
-        <i class="ti ti-download" aria-hidden="true"></i> Download Excel report
-      </button>
-    </div>
-  </div>
+  <section class="card" data-section>
+    <div class="card-head"><span class="card-code">03 · LIFE</span></div>
+    <h2>Caregiver Lifecycle</h2>
+    <ul class="items">
+      <li><a href="tools/deactivate-cg/"><span>Deactivation Pipeline (docs)</span><span class="tag tool">tool</span></a></li>
+      <li><a href="tools/inservice-automation/"><span>Inservice Certification (docs)</span><span class="tag tool">tool</span></a></li>
+      <li><a href="sops/caregiver-lifecycle/sop-inactive-cgs.html"><span>SOP — Inactive Caregivers</span><span class="tag sop">sop</span></a></li>
+      <li><a href="sops/caregiver-lifecycle/sop-ins-001.html"><span>SOP-INS-001 — Inservice Records</span><span class="tag sop">sop</span></a></li>
+      <li><a href="sops/caregiver-lifecycle/cg-clock-in.html"><span>SOP — CG Clock In</span><span class="tag sop">sop</span></a></li>
+      <li><a href="sops/caregiver-lifecycle/retention.html"><span>Retención (grupo de 3 SOPs)</span><span class="tag sop">sop</span></a></li>
+    </ul>
+  </section>
 
-</div>
+  <section class="card" data-section>
+    <div class="card-head"><span class="card-code">04 · CS</span></div>
+    <h2>Client Success</h2>
+    <ul class="items">
+      <li><a href="sops/client-success/client-hired-caregiver.html"><span>SOP — Client Hired our Caregiver</span><span class="tag sop">sop</span></a></li>
+      <li><a href="sops/client-success/client-success-team.html"><span>Client Success Team SOP</span><span class="tag sop">sop</span></a></li>
+      <li><a href="sops/client-success/inquiry-call.html"><span>Inquiry Call SOP</span><span class="tag sop">sop</span></a></li>
+    </ul>
+  </section>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <section class="card" data-section>
+    <div class="card-head"><span class="card-code">05 · REC</span></div>
+    <h2>Recruiting &amp; Onboarding</h2>
+    <ul class="items">
+      <li><a href="tools/recruiting-tool/"><span>Recruiting Tool</span><span class="tag tool">tool</span></a></li>
+      <li><a href="sops/recruiting-onboarding/hiring-demand.html"><span>SOP — Caregiver Hiring Demand Tool</span><span class="tag sop">sop</span></a></li>
+      <li><a href="sops/recruiting-onboarding/reclutamiento-es.html"><span>SOP — Reclutamiento (ES)</span><span class="tag sop">sop</span></a></li>
+      <li><a href="sops/recruiting-onboarding/pes-new-hire.html"><span>SOP — PES and New Hire Profile Completion</span><span class="tag sop">sop</span></a></li>
+    </ul>
+  </section>
+
+  <section class="card" data-section>
+    <div class="card-head"><span class="card-code">06 · TASK</span></div>
+    <h2>Task &amp; Workflow Automation</h2>
+    <ul class="items">
+      <li><a href="tools/tasks-add-delete/"><span>Tasks Add-Delete</span><span class="tag tool">tool</span></a></li>
+      <li><a href="tools/care-note-compliance/"><span>Care Note Compliance Tool</span><span class="tag tool">tool</span></a></li>
+      <li><a href="sops/task-automation/sop-tasks-compliance.html"><span>SOP — Tasks Compliance</span><span class="tag sop">sop</span></a></li>
+      <li><a href="sops/task-automation/sop-care-note-compliance.html"><span>SOP — Care Note Compliance Tool</span><span class="tag pend">pendiente PDF</span></a></li>
+    </ul>
+  </section>
+
+  <section class="card" data-section>
+    <div class="card-head"><span class="card-code">07 · REP</span></div>
+    <h2>Reporting</h2>
+    <ul class="items">
+      <li><a href="tools/bo-live-in/"><span>Bo Live-in Monthly Report Tool</span><span class="tag tool">tool</span></a></li>
+      <li><a href="sops/reporting/continuous-care-monthly-report.html"><span>Continuous Care Monthly Report SOP</span><span class="tag sop">sop</span></a></li>
+      <li><a href="sops/reporting/sop-monthly-report-tool.html"><span>SOP — Monthly Report Tool</span><span class="tag sop">sop</span></a></li>
+    </ul>
+  </section>
+
+  <section class="card" data-section>
+    <div class="card-head"><span class="card-code">08 · POL</span></div>
+    <h2>Políticas de referencia</h2>
+    <ul class="items">
+      <li><a href="sops/policies/file-naming-standard.html"><span>SOP-CCM-003 — File Naming Standard</span><span class="tag pend">en verificación</span></a></li>
+      <li><a href="sops/policies/upcoming-holiday.html"><span>SOP — Upcoming Holiday</span><span class="tag sop">sop</span></a></li>
+    </ul>
+  </section>
+
+  <p class="no-results" id="noResults">No se encontraron resultados.</p>
+
+</main>
+
+<footer>
+  RAH Hub · mantenido por Angel Pabuence · aprobado por Kate Gumbert
+</footer>
+
 <script>
-let rawData=[],allShifts=[];
-const PAYER_KEYS={VA:'pill-va',LTC:'pill-ltc',Private:'pill-private',GUIDE:'pill-guide',AAA:'pill-aaa'};
+  const search = document.getElementById('search');
+  const sections = document.querySelectorAll('[data-section]');
+  const noResults = document.getElementById('noResults');
 
-function parsePayers(tags){
-  if(!tags) return [];
-  const found=[];
-  for(const p of Object.keys(PAYER_KEYS)){
-    if(tags.includes('Pay: '+p)&&!found.includes(p)) found.push(p);
-  }
-  return found;
-}
+  search.addEventListener('input', () => {
+    const q = search.value.trim().toLowerCase();
+    let visibleCount = 0;
 
-function parseDate(v){
-  if(!v) return null;
-  if(v instanceof Date) return v;
-  const d=new Date(v);
-  return isNaN(d)?null:d;
-}
+    sections.forEach(section => {
+      const items = section.querySelectorAll('ul.items li');
+      let sectionHasMatch = false;
 
-function fmt(d){if(!d)return'';return d.toLocaleDateString('en-US',{month:'2-digit',day:'2-digit',year:'numeric'});}
-function fmtT(d){if(!d)return'';return d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:true});}
-function isoDate(d){if(!d)return'';return d.toISOString().slice(0,10);}
+      items.forEach(li => {
+        const text = li.textContent.toLowerCase();
+        const match = text.includes(q);
+        li.style.display = match ? '' : 'none';
+        if (match) sectionHasMatch = true;
+      });
 
-function buildShifts(data){
-  const map=new Map();
-  data.forEach(r=>{
-    if(r['Care Log Status']!=='Complete') return;
-    const ci=parseDate(r['Clock In']),co=parseDate(r['Clock Out']);
-    const key=[r['Caregiver'],r['Client'],r['Client Location'],String(r['Clock In']),String(r['Clock Out'])].join('||');
-    if(!map.has(key)) map.set(key,{caregiver:r['Caregiver'],client:r['Client'],office:r['Client Location'],clockIn:ci,clockOut:co,tags:r['Client Tags']||'',payers:parsePayers(r['Client Tags']||''),tasks:[]});
-    map.get(key).tasks.push({title:r['Title'],status:r['Status'],desc:r['Description']||''});
-  });
-  return [...map.values()].map(s=>{
-    const inc=s.tasks.filter(t=>t.status==='Incomplete');
-    const noCp=s.tasks.length===0;
-    const hasNotes=s.tasks.some(t=>t.desc&&t.desc.trim()&&!['AS NEEDED',''].includes(t.desc.trim().toUpperCase()));
-    return{...s,total:s.tasks.length,incomplete:inc.length,complete:s.tasks.length-inc.length,incTitles:inc.map(t=>t.title).join(', '),hasNotes,noCp};
-  });
-}
+      const titleMatch = section.querySelector('h2').textContent.toLowerCase().includes(q);
+      const show = q === '' || sectionHasMatch || titleMatch;
 
-function pctColor(p){return p>=95?'ok':p>=80?'warn':'danger';}
-
-function renderMetrics(shifts){
-  const total=shifts.length;
-  const totalT=shifts.reduce((a,s)=>a+s.total,0);
-  const totalC=shifts.reduce((a,s)=>a+s.complete,0);
-  const overallPct=totalT>0?Math.round(totalC/totalT*100):100;
-  const byPayer={};
-  shifts.forEach(s=>{
-    s.payers.forEach(p=>{
-      if(!byPayer[p]){byPayer[p]={t:0,c:0};}
-      byPayer[p].t+=s.total;byPayer[p].c+=s.complete;
-    });
-  });
-  let html=`
-    <div class="metric"><div class="num">${total}</div><div class="lbl">Shifts analyzed</div></div>
-    <div class="metric"><div class="num">${totalC.toLocaleString()}/${totalT.toLocaleString()}</div><div class="lbl">Tasks completed</div></div>
-    <div class="metric ${pctColor(overallPct)}"><div class="num">${overallPct}%</div><div class="lbl">Overall complete</div></div>`;
-  for(const [p,d] of Object.entries(byPayer)){
-    if(d.t===0) continue;
-    const pct=Math.round(d.c/d.t*100);
-    html+=`<div class="metric ${pctColor(pct)}"><div class="num">${pct}%</div><div class="lbl">${p} complete</div></div>`;
-  }
-  document.getElementById('metrics').innerHTML=html;
-}
-
-function payerPills(payers){
-  if(!payers.length) return '<span class="pill pill-gray">No payer tag</span>';
-  return payers.map(p=>`<span class="pill ${PAYER_KEYS[p]||'pill-gray'}">${p}</span>`).join('');
-}
-
-function taskDisplay(s){
-  if(s.noCp) return '<span class="tasks-nocp">—</span>';
-  const str=`${s.complete}/${s.total}`;
-  const pct=s.total>0?s.complete/s.total*100:100;
-  const cls=pct>=100?'tasks-ok':pct>=80?'tasks-warn':'tasks-danger';
-  return`<span class="${cls}">${str}</span>`;
-}
-
-function statusPill(s){
-  if(s.noCp) return'<span class="pill pill-nocp">No care plan</span>';
-  if(s.incomplete===0) return'<span class="pill pill-ok">Complete</span>';
-  const pct=s.total>0?Math.round(s.complete/s.total*100):100;
-  if(pct<80) return'<span class="pill pill-danger">Action needed</span>';
-  return'<span class="pill pill-warn">Review</span>';
-}
-
-function officeShort(o){return o?o.replace(/^\d+\w*\s*-\s*/,''):'';}
-
-function renderTable(shifts){
-  const issuesOnly=document.getElementById('f_issues').checked;
-  let display=issuesOnly?shifts.filter(s=>s.incomplete>0||s.noCp):shifts;
-  display=[...display].sort((a,b)=>{
-    const ai=(a.incomplete>0||a.noCp)?1:0,bi=(b.incomplete>0||b.noCp)?1:0;
-    if(bi!==ai) return bi-ai;
-    const av=a.payers.includes('VA')?0:1,bv=b.payers.includes('VA')?0:1;
-    if(av!==bv) return av-bv;
-    return a.caregiver.localeCompare(b.caregiver);
-  });
-  const show=display.slice(0,200);
-  document.getElementById('tbody').innerHTML=show.map(s=>`<tr>
-    <td title="${s.caregiver}" style="font-weight:${s.incomplete>0?'500':'400'}">${s.caregiver}</td>
-    <td title="${s.client}">${s.client}</td>
-    <td>${payerPills(s.payers)}</td>
-    <td title="${s.office}">${officeShort(s.office)}</td>
-    <td>${fmt(s.clockIn)}</td>
-    <td>${fmtT(s.clockIn)}</td>
-    <td>${fmtT(s.clockOut)}</td>
-    <td>${taskDisplay(s)}</td>
-    <td>${statusPill(s)}</td>
-  </tr>`).join('');
-  document.getElementById('foot').textContent=`Showing ${show.length} of ${display.length} shifts (${shifts.length} total after filters)`;
-}
-
-function applyFilters(){
-  if(!rawData.length) return;
-  const from=document.getElementById('f_from').value;
-  const to=document.getElementById('f_to').value;
-  const office=document.getElementById('f_office').value;
-  const payer=document.getElementById('f_payer').value;
-  let filtered=rawData;
-  if(from) filtered=filtered.filter(r=>{const d=parseDate(r['Clock In']);return d&&isoDate(d)>=from;});
-  if(to) filtered=filtered.filter(r=>{const d=parseDate(r['Clock In']);return d&&isoDate(d)<=to;});
-  if(office) filtered=filtered.filter(r=>r['Client Location']===office);
-  if(payer) filtered=filtered.filter(r=>(r['Client Tags']||'').includes('Pay: '+payer));
-  allShifts=buildShifts(filtered);
-  renderMetrics(allShifts);
-  renderTable(allShifts);
-  document.getElementById('results').classList.remove('hidden');
-}
-
-function handleFile(file){
-  if(!file) return;
-  document.getElementById('err').classList.add('hidden');
-  document.getElementById('fname').textContent=file.name;
-  const reader=new FileReader();
-  reader.onload=e=>{
-    try{
-      const wb=XLSX.read(e.target.result,{type:'array',cellDates:true});
-      const ws=wb.Sheets[wb.SheetNames[0]];
-      rawData=XLSX.utils.sheet_to_json(ws,{defval:''});
-      if(!rawData.length){showErr('File is empty.');return;}
-      const cols=Object.keys(rawData[0]);
-      const req=['Caregiver','Client','Client Location','Clock In','Clock Out','Care Log Status','Status','Title','Client Tags'];
-      const miss=req.filter(c=>!cols.includes(c));
-      if(miss.length){showErr('Missing columns: '+miss.join(', '));return;}
-      const offices=[...new Set(rawData.map(r=>r['Client Location']).filter(Boolean))].sort();
-      const sel=document.getElementById('f_office');
-      sel.innerHTML='<option value="">All offices</option>';
-      offices.forEach(o=>{const op=document.createElement('option');op.value=o;op.textContent=o;sel.appendChild(op);});
-      const dates=rawData.map(r=>parseDate(r['Clock In'])).filter(Boolean).sort((a,b)=>a-b);
-      if(dates.length){
-        document.getElementById('f_from').value=isoDate(dates[0]);
-        document.getElementById('f_to').value=isoDate(dates[dates.length-1]);
+      if (titleMatch && q !== '') {
+        items.forEach(li => li.style.display = '');
       }
-      applyFilters();
-    }catch(er){showErr('Error reading file: '+er.message);}
-  };
-  reader.readAsArrayBuffer(file);
-}
 
-function showErr(m){const e=document.getElementById('err');e.textContent=m;e.classList.remove('hidden');}
+      section.style.display = show ? '' : 'none';
+      if (show) visibleCount++;
+    });
 
-const dz=document.getElementById('dropZone');
-dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('drag');});
-dz.addEventListener('dragleave',()=>dz.classList.remove('drag'));
-dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('drag');handleFile(e.dataTransfer.files[0]);});
-document.getElementById('fi').addEventListener('change',e=>handleFile(e.target.files[0]));
-['f_from','f_to','f_office','f_payer','f_issues'].forEach(id=>document.getElementById(id).addEventListener('change',applyFilters));
-
-document.getElementById('dlBtn').addEventListener('click',()=>{
-  const wb=XLSX.utils.book_new();
-  const d1=[['Caregiver','Client','Payer Types','Office','Date','Clock In','Clock Out','Total Tasks','Complete','Incomplete','Has Notes','No Care Plan','Incomplete Task Names']];
-  allShifts.forEach(s=>d1.push([s.caregiver,s.client,s.payers.join(', '),s.office,fmt(s.clockIn),fmtT(s.clockIn),fmtT(s.clockOut),s.total,s.complete,s.incomplete,s.hasNotes?'Yes':'No',s.noCp?'Yes':'No',s.incTitles]));
-  const ws1=XLSX.utils.aoa_to_sheet(d1);
-  ws1['!cols']=[18,20,18,20,11,10,10,11,10,10,10,12,50].map(w=>({wch:w}));
-  XLSX.utils.book_append_sheet(wb,ws1,'All Shifts');
-
-  const cgMap=new Map();
-  allShifts.forEach(s=>{
-    if(!cgMap.has(s.caregiver)) cgMap.set(s.caregiver,{shifts:0,incShifts:0,totalT:0,totalC:0,nocp:0,payers:new Set()});
-    const r=cgMap.get(s.caregiver);
-    r.shifts++;r.totalT+=s.total;r.totalC+=s.complete;
-    if(s.incomplete>0)r.incShifts++;
-    if(s.noCp)r.nocp++;
-    s.payers.forEach(p=>r.payers.add(p));
+    noResults.style.display = visibleCount === 0 ? 'block' : 'none';
   });
-  const d2=[['Caregiver','Payer Types','Total Shifts','Shifts w/ Incomplete','No Care Plan Shifts','Total Tasks','Complete Tasks','% Complete']];
-  [...cgMap.entries()].sort((a,b)=>(b[1].totalT-b[1].totalC)-(a[1].totalT-a[1].totalC)).forEach(([cg,d])=>{
-    const pct=d.totalT>0?Math.round(d.totalC/d.totalT*100):100;
-    d2.push([cg,[...d.payers].join(', '),d.shifts,d.incShifts,d.nocp,d.totalT,d.totalC,pct+'%']);
-  });
-  const ws2=XLSX.utils.aoa_to_sheet(d2);
-  ws2['!cols']=[22,18,13,18,18,12,14,12].map(w=>({wch:w}));
-  XLSX.utils.book_append_sheet(wb,ws2,'Caregiver Summary');
-
-  const d3=[['Caregiver','Client','Payer Types','Office','Date','Clock In','Clock Out','Issue Type','# Incomplete','Incomplete Task Names']];
-  allShifts.filter(s=>s.incomplete>0||s.noCp).sort((a,b)=>{
-    const av=a.payers.includes('VA')?0:1,bv=b.payers.includes('VA')?0:1;
-    if(av!==bv)return av-bv;
-    return b.incomplete-a.incomplete;
-  }).forEach(s=>d3.push([s.caregiver,s.client,s.payers.join(', '),s.office,fmt(s.clockIn),fmtT(s.clockIn),fmtT(s.clockOut),s.noCp?'No care plan':'Incomplete tasks',s.incomplete,s.incTitles]));
-  const ws3=XLSX.utils.aoa_to_sheet(d3);
-  ws3['!cols']=[20,20,16,20,11,10,10,16,12,55].map(w=>({wch:w}));
-  XLSX.utils.book_append_sheet(wb,ws3,'Action List');
-
-  const from=document.getElementById('f_from').value||'';
-  const to=document.getElementById('f_to').value||'';
-  const label=from&&to?`${from}_to_${to}`:new Date().toISOString().slice(0,10);
-  XLSX.writeFile(wb,`care_compliance_${label}.xlsx`);
-});
 </script>
+
 </body>
 </html>
