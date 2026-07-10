@@ -1,0 +1,938 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Caregiver Hiring Demand Tool — Right at Home Central Texas</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin=""/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+
+:root{
+  --ink:#0F1B2D; --ink-2:#1B2A41; --surface:#F4F6F9; --card:#FFFFFF;
+  --line:#E2E7EF; --muted:#5B6675; --muted-2:#8A93A2;
+  --brand:#1D4E89; --brand-soft:#E8F0FA;
+  --c0:#2A9D8F; /* coverage / good */
+  --h1:#FFD166; --h2:#F3722C; --h3:#D62246; /* heat ramp lo->hi */
+  --shadow:0 1px 2px rgba(15,27,45,.06),0 8px 24px rgba(15,27,45,.06);
+  --radius:14px;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--surface);color:var(--ink);
+  font-family:'Inter',system-ui,sans-serif;font-size:15px;line-height:1.55;-webkit-font-smoothing:antialiased}
+h1,h2,h3,.num{font-family:'Space Grotesk',sans-serif}
+.mono{font-family:'IBM Plex Mono',monospace}
+.wrap{max-width:1240px;margin:0 auto;padding:0 22px}
+a{color:var(--brand);text-decoration:none}
+
+/* ---------- header ---------- */
+header.top{background:linear-gradient(160deg,var(--ink) 0%,var(--ink-2) 100%);color:#fff;padding:26px 0 30px}
+.brandrow{display:flex;align-items:center;gap:12px;font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:#A9B7CC;font-weight:600}
+.brandrow .dot{width:9px;height:9px;border-radius:2px;background:var(--h2)}
+header.top h1{margin:14px 0 6px;font-size:clamp(26px,4vw,40px);font-weight:600;letter-spacing:-.01em;line-height:1.05}
+header.top p.sub{margin:0;color:#B7C2D4;max-width:680px}
+.daterange{margin-top:6px;font-size:13px;color:#8FA0BC;font-family:'IBM Plex Mono',monospace}
+
+/* ---------- KPI strip ---------- */
+.kpis{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--line);
+  border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow);margin-top:-26px;position:relative;z-index:5}
+.kpi{background:var(--card);padding:16px 16px 14px}
+.kpi .v{font-family:'Space Grotesk';font-size:26px;font-weight:600;letter-spacing:-.02em;line-height:1}
+.kpi .l{font-size:11px;color:var(--muted);margin-top:6px;text-transform:uppercase;letter-spacing:.05em;font-weight:500}
+.kpi .s{font-size:12px;color:var(--muted-2);margin-top:2px}
+@media(max-width:980px){.kpis{grid-template-columns:repeat(3,1fr)}}
+@media(max-width:560px){.kpis{grid-template-columns:repeat(2,1fr)}}
+
+/* ---------- section ---------- */
+section{padding:46px 0 8px}
+.eyebrow{display:flex;align-items:center;gap:10px;font-size:12px;font-weight:600;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--brand)}
+.eyebrow .bar{width:26px;height:2px;background:var(--brand)}
+h2.sec{font-size:clamp(21px,2.6vw,29px);font-weight:600;letter-spacing:-.01em;margin:10px 0 6px}
+.lede{color:var(--muted);max-width:760px;margin:0 0 22px}
+
+/* ---------- map ---------- */
+.mapgrid{display:grid;grid-template-columns:1fr 322px;gap:18px}
+@media(max-width:900px){.mapgrid{grid-template-columns:1fr}}
+.mapcard{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;border:1px solid var(--line)}
+.maptoolbar{display:flex;flex-wrap:wrap;gap:6px;padding:12px 14px;border-bottom:1px solid var(--line);align-items:center}
+.maptoolbar .tlabel{font-size:12px;color:var(--muted);margin-right:4px;font-weight:500}
+.lbtn{font-family:'Inter';font-size:12.5px;font-weight:500;border:1px solid var(--line);background:#fff;
+  color:var(--ink-2);padding:6px 11px;border-radius:999px;cursor:pointer;transition:.15s}
+.lbtn:hover{border-color:var(--brand);color:var(--brand)}
+.lbtn.active{background:var(--brand);border-color:var(--brand);color:#fff}
+#map{height:520px;width:100%;background:#dfe6ee}
+.maplegend{display:flex;align-items:center;gap:14px;padding:11px 14px;border-top:1px solid var(--line);font-size:12px;color:var(--muted);flex-wrap:wrap}
+.ramp{height:9px;width:150px;border-radius:5px;background:linear-gradient(90deg,var(--h1),var(--h2),var(--h3))}
+.legbubbles{display:flex;align-items:flex-end;gap:8px}
+.legbubbles span{display:inline-block;border-radius:50%;background:#b9c4d3}
+.sidepanel{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);border:1px solid var(--line);
+  padding:16px 16px 10px;display:flex;flex-direction:column}
+.sidepanel h3{margin:0 0 2px;font-size:15px;font-weight:600}
+.sidepanel .hint{font-size:12px;color:var(--muted-2);margin:0 0 12px}
+.plist{list-style:none;margin:0;padding:0;overflow:auto;max-height:470px}
+.pitem{display:grid;grid-template-columns:26px 1fr auto;align-items:center;gap:10px;padding:9px 8px;border-radius:9px;cursor:pointer;transition:.12s}
+.pitem:hover{background:var(--brand-soft)}
+.prank{font-family:'Space Grotesk';font-weight:600;font-size:13px;color:#fff;width:24px;height:24px;border-radius:7px;display:grid;place-items:center}
+.pitem .pz{font-weight:600;font-size:14px}
+.pitem .pc{font-size:11.5px;color:var(--muted)}
+.pitem .pscore{font-family:'IBM Plex Mono';font-size:13px;font-weight:500;text-align:right}
+.pitem .pscore small{display:block;font-size:10px;color:var(--muted-2);font-weight:400}
+
+/* ---------- generic cards / tables ---------- */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+@media(max-width:860px){.grid2,.grid3{grid-template-columns:1fr}}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:20px}
+.panel h3{margin:0 0 3px;font-size:16px;font-weight:600}
+.panel .ph{font-size:12.5px;color:var(--muted);margin:0 0 16px}
+table{width:100%;border-collapse:collapse;font-size:13.5px}
+th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted-2);
+  font-weight:600;padding:0 10px 9px;border-bottom:1px solid var(--line)}
+td{padding:9px 10px;border-bottom:1px solid #EEF1F5}
+tr:last-child td{border-bottom:none}
+td.r,th.r{text-align:right;font-variant-numeric:tabular-nums}
+.tag{display:inline-block;font-size:11px;font-weight:600;padding:2px 8px;border-radius:6px;background:var(--brand-soft);color:var(--brand)}
+.barcell{position:relative}
+.barcell .fill{position:absolute;left:0;top:0;bottom:0;background:var(--brand-soft);border-radius:5px;z-index:0}
+.barcell span{position:relative;z-index:1}
+
+/* office bars */
+.offrow{display:grid;grid-template-columns:130px 1fr 70px;gap:12px;align-items:center;margin-bottom:13px}
+.offrow .on{font-weight:600;font-size:14px}
+.offrow .on small{display:block;font-weight:400;font-size:11px;color:var(--muted-2)}
+.track{height:26px;background:#F0F3F7;border-radius:7px;overflow:hidden;position:relative}
+.track .seg{height:100%;border-radius:7px;display:flex;align-items:center;padding-left:9px;color:#fff;font-size:12px;font-weight:600}
+.offrow .ov{text-align:right;font-family:'IBM Plex Mono';font-size:13px}
+
+/* DOW + bucket bars */
+.barchart{display:flex;align-items:flex-end;gap:9px;height:170px;padding-top:8px}
+.barchart .col{flex:1;display:flex;flex-direction:column;align-items:center;gap:7px;height:100%;justify-content:flex-end}
+.barchart .bar{width:100%;border-radius:6px 6px 0 0;min-height:4px;transition:.2s;position:relative}
+.barchart .bx{font-size:11px;color:var(--muted);font-weight:500}
+.barchart .bv{font-size:10.5px;color:var(--muted-2);font-family:'IBM Plex Mono'}
+
+/* heatmap */
+.heat{display:grid;grid-template-columns:54px repeat(4,1fr);gap:5px;margin-top:6px}
+.heat .hc{font-size:11px;color:var(--muted);display:flex;align-items:center;justify-content:center;height:34px}
+.heat .hd{font-size:11px;color:var(--muted);display:flex;align-items:center;font-weight:600}
+.heat .cell{height:40px;border-radius:7px;display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:600;font-family:'IBM Plex Mono';color:var(--ink)}
+
+/* recommendations */
+.recs{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+@media(max-width:860px){.recs{grid-template-columns:1fr}}
+.rec{background:var(--card);border:1px solid var(--line);border-left:4px solid var(--brand);
+  border-radius:12px;padding:17px 19px;box-shadow:var(--shadow)}
+.rec.hot{border-left-color:var(--h3)}
+.rec.warn{border-left-color:var(--h2)}
+.rec .rt{font-weight:600;font-size:15px;margin:0 0 5px;display:flex;align-items:center;gap:8px}
+.rec .rp{font-size:13.5px;color:var(--muted);margin:0}
+.rec .rp b{color:var(--ink);font-weight:600}
+.chip{font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;padding:2px 7px;border-radius:5px}
+.chip.r{background:#FBE3E8;color:var(--h3)} .chip.o{background:#FCEAD9;color:#C2571B} .chip.b{background:var(--brand-soft);color:var(--brand)}
+
+footer{margin-top:40px;background:var(--ink);color:#A9B7CC;padding:30px 0 40px;font-size:12.5px;line-height:1.7}
+footer h4{color:#fff;font-family:'Space Grotesk';font-size:14px;margin:0 0 8px}
+footer .cols{display:grid;grid-template-columns:1fr 1fr;gap:30px}
+@media(max-width:700px){footer .cols{grid-template-columns:1fr}}
+.fade{opacity:0;transform:translateY(10px);animation:fin .6s ease forwards}
+@keyframes fin{to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.fade{animation:none;opacity:1;transform:none}}
+.leaflet-popup-content{font-family:'Inter';font-size:13px;margin:11px 13px}
+.leaflet-popup-content .ppz{font-family:'Space Grotesk';font-weight:600;font-size:15px}
+.leaflet-popup-content table{font-size:12px;margin-top:6px}
+.leaflet-popup-content td{padding:2px 0;border:none}
+.leaflet-popup-content td:last-child{text-align:right;font-family:'IBM Plex Mono';padding-left:14px}
+
+
+/* ---------- uploader ---------- */
+#uploader{min-height:100vh;display:grid;place-items:center;
+  background:radial-gradient(1200px 600px at 50% -10%, #16263f 0%, var(--ink) 55%)}
+.up-wrap{max-width:640px;text-align:center;padding:48px 22px;color:#fff}
+.up-brand{display:inline-flex;align-items:center;gap:10px;font-size:12px;letter-spacing:.14em;
+  text-transform:uppercase;color:#A9B7CC;font-weight:600}
+.up-brand .dot{width:9px;height:9px;border-radius:2px;background:var(--h2)}
+.up-title{font-family:'Space Grotesk';font-size:clamp(30px,5vw,44px);font-weight:600;
+  letter-spacing:-.01em;margin:16px 0 10px}
+.up-sub{color:#B7C2D4;max-width:520px;margin:0 auto 30px;line-height:1.6}
+.dropzone{border:1.5px dashed #3a4d68;border-radius:18px;background:rgba(255,255,255,.03);
+  padding:40px 24px;cursor:pointer;transition:.18s}
+.dropzone.drag{border-color:var(--h2);background:rgba(243,114,44,.08)}
+.dz-icon{font-size:30px;color:#7d8ca6;margin-bottom:8px}
+.dz-main{font-size:17px;font-weight:500;color:#fff}
+.dz-hint{font-size:12.5px;color:#7d8ca6;margin-top:8px;font-family:'IBM Plex Mono'}
+.linkbtn{background:none;border:none;color:var(--h2);font:inherit;font-weight:600;cursor:pointer;text-decoration:underline;padding:0}
+.slots{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:24px 0 8px}
+@media(max-width:560px){.slots{grid-template-columns:1fr}}
+.slot{background:rgba(255,255,255,.04);border:1px solid #2a3a52;border-radius:11px;padding:12px 13px;text-align:left;transition:.18s}
+.slot.ok{border-color:var(--c0);background:rgba(42,157,143,.10)}
+.slot .sk{display:block;font-size:13px;font-weight:600;color:#dde4ee}
+.slot .sk em{font-style:normal;color:#7d8ca6;font-weight:400;font-size:11px}
+.slot .ss{display:block;font-size:12px;color:#8FA0BC;margin-top:3px;font-family:'IBM Plex Mono'}
+.slot.ok .ss{color:var(--c0)}
+.upmsg{min-height:20px;font-size:13px;color:#F3B27C;margin:6px 0}
+.runbtn{margin-top:14px;background:var(--brand);color:#fff;border:none;border-radius:11px;
+  padding:13px 30px;font:inherit;font-weight:600;font-size:15px;cursor:pointer;transition:.18s}
+.runbtn:disabled{opacity:.4;cursor:not-allowed}
+.runbtn:not(:disabled):hover{background:#2660a8}
+.up-foot{font-size:12px;color:#6b7a93;margin-top:22px}
+.resettop{position:sticky;top:0;z-index:50;background:rgba(15,27,45,.92);backdrop-filter:blur(6px);
+  border-bottom:1px solid rgba(255,255,255,.08);padding:10px 0}
+.resettop .wrap{display:flex;justify-content:flex-end}
+.linkbtn2{background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.16);color:#fff;
+  font:inherit;font-size:13px;font-weight:500;padding:7px 15px;border-radius:9px;cursor:pointer}
+.linkbtn2:hover{background:rgba(255,255,255,.16)}
+
+</style>
+</head>
+<body>
+
+<div id="uploader">
+  <div class="up-wrap">
+    <div class="up-brand"><span class="dot"></span> Right at Home · Central Texas</div>
+    <h1 class="up-title">Caregiver Hiring Demand</h1>
+    <p class="up-sub">Drop your WellSky exports below. The tool reads them in your browser, detects which is which, and rebuilds the full hiring analysis — every time you upload fresh exports.</p>
+    <div id="dropzone" class="dropzone">
+      <input id="fileinput" type="file" multiple accept=".xls,.xlsx" hidden>
+      <div class="dz-icon">&#8682;</div>
+      <div class="dz-main">Drop exports here or <button id="browsebtn" class="linkbtn" type="button">browse</button></div>
+      <div class="dz-hint">care logs &middot; caregivers &middot; clients &nbsp;&middot;&nbsp; .xls / .xlsx</div>
+    </div>
+    <div class="slots">
+      <div class="slot" data-k="carelogs"><span class="sk">Care logs <em>required</em></span><span class="ss">waiting&hellip;</span></div>
+      <div class="slot" data-k="caregivers"><span class="sk">Caregivers <em>required</em></span><span class="ss">waiting&hellip;</span></div>
+      <div class="slot" data-k="clients"><span class="sk">Clients <em>optional</em></span><span class="ss">waiting&hellip;</span></div>
+    </div>
+    <div id="upmsg" class="upmsg"></div>
+    <button id="runbtn" class="runbtn" type="button" disabled>Generate analysis</button>
+    <p class="up-foot">Files never leave your computer &mdash; everything runs locally in the browser.</p>
+  </div>
+</div>
+
+<div id="results" style="display:none">
+<div class="resettop"><div class="wrap"><button id="resetbtn" class="linkbtn2" type="button">&#8635; Load new exports</button></div></div>
+
+
+<header class="top">
+  <div class="wrap fade">
+    <div class="brandrow"><span class="dot"></span> Right at Home · Central Texas — 5 Offices</div>
+    <h1>Where to hire caregivers</h1>
+    <p class="sub">A demand-vs-supply read of delivered care, built to point recruiting at the right ZIP codes, days, and shift types — not just "we need more people."</p>
+    <div class="daterange" id="daterange"></div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="kpis fade" id="kpis"></div>
+</div>
+
+<!-- WHERE: MAP -->
+<section class="wrap" id="where">
+  <div class="eyebrow"><span class="bar"></span> Where · geography</div>
+  <h2 class="sec">The hiring map</h2>
+  <p class="lede">Each bubble is a ZIP we serve. <b>Size</b> = volume of care delivered there. <b>Color</b> = the metric you pick below. The default <b>Hiring priority</b> blends demand, how thin local caregiver supply is, weekend load, and caregiver-driven cancellations.</p>
+  <div class="mapgrid">
+    <div class="mapcard">
+      <div class="maptoolbar">
+        <span class="tlabel">Color by:</span>
+        <button class="lbtn active" data-metric="priority">Hiring priority</button>
+        <button class="lbtn" data-metric="demand_hours">Demand (hours)</button>
+        <button class="lbtn" data-metric="strain">Local supply gap</button>
+        <button class="lbtn" data-metric="weekend_hours">Weekend load</button>
+        <button class="lbtn" data-metric="cg_cancel_rate">Cancel rate</button>
+      </div>
+      <div id="map"></div>
+      <div class="maplegend">
+        <span id="legtitle" style="font-weight:600;color:var(--ink-2)">Hiring priority</span>
+        <span>low</span><span class="ramp"></span><span>high</span>
+        <span class="legbubbles" style="margin-left:8px">
+          <span style="width:8px;height:8px"></span><span style="width:16px;height:16px"></span><span style="width:26px;height:26px"></span>
+          &nbsp;= care volume
+        </span>
+      </div>
+    </div>
+    <div class="sidepanel">
+      <h3>Top priority ZIPs</h3>
+      <p class="hint">Click a row to fly there ↓</p>
+      <ul class="plist" id="plist"></ul>
+    </div>
+  </div>
+</section>
+
+<!-- WHERE: OFFICE -->
+<section class="wrap" id="offices">
+  <div class="eyebrow"><span class="bar"></span> Where · by office</div>
+  <h2 class="sec">Load across the five offices</h2>
+  <p class="lede">Total care delivered per office, split into weekend and overnight share. The caregiver-cancellation rate next to each is the reliability stress signal.</p>
+  <div class="panel" id="officepanel"></div>
+</section>
+
+<!-- SUB-AREA: CLIENT CITY -->
+<section class="wrap" id="subareas">
+  <div class="eyebrow"><span class="bar"></span> Where · by sub-area</div>
+  <h2 class="sec">Demand by client city</h2>
+  <p class="lede">When a report is filtered to one region, this is the finer cut: care delivered per client city, with how many active caregivers actually live there. A high bar with few local caregivers is where to recruit within the region.</p>
+  <div class="panel" id="citypanel"></div>
+</section>
+
+<!-- WHEN -->
+<section class="wrap" id="when">
+  <div class="eyebrow"><span class="bar"></span> When · days &amp; shifts</div>
+  <h2 class="sec">Which days and hours to staff for</h2>
+  <p class="lede">Bar height is demand; bar color is the caregiver-cancellation rate (redder = harder to keep staffed). The grid shows where demand actually piles up across the week.</p>
+  <div class="grid2">
+    <div class="panel">
+      <h3>Demand by day of week</h3>
+      <p class="ph">Total scheduled hours · colored by caregiver-cancel rate</p>
+      <div class="barchart" id="dowchart"></div>
+    </div>
+    <div class="panel">
+      <h3>Demand by shift window</h3>
+      <p class="ph">Overnight = starts 10pm–6am or crosses midnight</p>
+      <div class="barchart" id="bucketchart"></div>
+    </div>
+  </div>
+  <div class="panel" style="margin-top:18px">
+    <h3>When demand concentrates</h3>
+    <p class="ph">Scheduled hours, day × shift window. Darker = more hours to cover.</p>
+    <div class="heat" id="heatmap"></div>
+  </div>
+</section>
+
+<!-- WEEKEND -->
+<section class="wrap" id="weekend">
+  <div class="eyebrow"><span class="bar"></span> Weekends</div>
+  <h2 class="sec">Weekend coverage gaps</h2>
+  <p class="lede">About a fifth of all care lands on Saturday–Sunday, but weekend reliability is uneven. Two offices carry a noticeably higher weekend caregiver-cancel rate.</p>
+  <div class="panel" id="weekendpanel"></div>
+</section>
+
+<!-- CLIENTS -->
+<section class="wrap" id="clients">
+  <div class="eyebrow"><span class="bar"></span> Who · clients</div>
+  <h2 class="sec">Clients with the heaviest need</h2>
+  <p class="lede">The top consumers of care hours. High weekend or overnight share means their coverage is the most fragile and the most expensive to backfill when someone cancels.</p>
+  <div class="panel"><div style="overflow:auto"><table id="clienttable"></table></div></div>
+</section>
+
+<!-- RECS -->
+<section class="wrap" id="recs">
+  <div class="eyebrow"><span class="bar"></span> Recommendations</div>
+  <h2 class="sec">What to do with this</h2>
+  <p class="lede">Data-grounded moves, ordered by leverage. All figures cover Jan 1 – Jun 16, 2026.</p>
+  <div class="recs" id="recsgrid"></div>
+</section>
+
+<footer>
+  <div class="wrap cols">
+    <div>
+      <h4>How this was built</h4>
+      <p>Demand is measured from <b>delivered &amp; scheduled care logs</b> (27,832 shifts, Jan–Jun 2026) — actual visits, not open shifts. Hours = scheduled clock-out minus clock-in, capped at 24h. Supply is the count of <b>active caregivers</b> (310) by home ZIP. "Local supply gap" (strain) = demand hours ÷ active caregivers living in that ZIP. ZIPs geocoded to centroids; map tiles © OpenStreetMap.</p>
+    </div>
+    <div>
+      <h4>Read with these caveats</h4>
+      <p>Care logs show demand that <b>was covered</b> — true unmet need (declined referrals, open shifts) isn't in this export, so gaps are likely understated. The caregiver roster has <b>no availability data</b>, so "who can work overnights/weekends" is inferred from who actually did. To sharpen this: pull an <b>Open/Unfilled Shifts</b> export and a <b>caregiver availability</b> export next.</p>
+    </div>
+  </div>
+</footer>
+
+
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" crossorigin=""></script>
+<script>
+/* ===== Caregiver Hiring Demand — analysis engine (browser + node) ===== */
+/* Mirrors the validated Python pipeline. Pure functions; no DOM. */
+(function(global){
+'use strict';
+
+const OFFICE_MAP = {
+  "1202 - Austin West":"Austin West",
+  "1202b- Austin West (Marble Falls)":"Marble Falls",
+  "1410 - Austin East":"Austin East",
+  "1410b- Austin East (Bastrop)":"Bastrop",
+  "1355 - San Marcos":"San Marcos"
+};
+
+/* --- WellSky .xls quirk: recompute a broken/missing !ref from real cells --- */
+function fixRef(ws, XLSX){
+  const cells = Object.keys(ws).filter(k => k[0] !== '!');
+  if(!cells.length) return;
+  let minR=Infinity,minC=Infinity,maxR=-1,maxC=-1;
+  for(const addr of cells){
+    const {r,c} = XLSX.utils.decode_cell(addr);
+    if(r<minR)minR=r; if(c<minC)minC=c; if(r>maxR)maxR=r; if(c>maxC)maxC=c;
+  }
+  ws['!ref'] = XLSX.utils.encode_range({s:{r:minR,c:minC},e:{r:maxR,c:maxC}});
+}
+
+/* Parse an ArrayBuffer into row objects, overriding the declared range. */
+function parseWorkbook(buf, XLSX){
+  const wb = XLSX.read(buf, {type:'array', cellDates:true});
+  const ws = wb.Sheets[wb.SheetNames[0]];
+  fixRef(ws, XLSX);
+  return XLSX.utils.sheet_to_json(ws, {defval:null, raw:true});
+}
+
+/* Identify which export a row-set is, from its columns. */
+function detectKind(rows){
+  if(!rows || !rows.length) return null;
+  const cols = new Set(Object.keys(rows[0]));
+  if(cols.has("Actual Clock In") && cols.has("Client Zip")) return "carelogs";
+  if(cols.has("Inactive") && cols.has("Postal Code") && !cols.has("Profile Tags")) return "caregivers";
+  if(cols.has("Profile Tags") || (cols.has("Deactivated") && cols.has("Postal Code"))) return "clients";
+  return null;
+}
+
+const toDate = v => {
+  if(v && typeof v.getTime === 'function') return isNaN(v.getTime()) ? null : v;
+  if(typeof v === 'number'){ const d=new Date(Math.round((v-25569)*86400000)); return isNaN(d)?null:d; }
+  if(typeof v === 'string'){ const d = new Date(v); return isNaN(d) ? null : d; }
+  return null;
+};
+const zip5 = v => { const m = String(v==null?'':v).match(/(\d{5})/); return m ? m[1] : null; };
+const isTrue = v => v === true || String(v).trim().toLowerCase() === 'true' || v === 1;
+const allCaps = s => typeof s==='string' && s.length>0 && s === s.toUpperCase() && /[A-Z]/.test(s);
+
+function office(loc){ return OFFICE_MAP[loc] || "Unknown"; }
+function bucketOf(h, cross){
+  if(cross || h>=22 || h<6) return "Overnight";
+  if(h<12) return "Morning";
+  if(h<17) return "Afternoon";
+  return "Evening";
+}
+const round1 = n => Math.round(n*10)/10;
+
+/* ---- main ---- */
+function analyze(careRows, cgRows, clientRows, ZIPGEO){
+  ZIPGEO = ZIPGEO || {};
+  const DOW = ["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"];
+  const BUCKETS = ["Overnight","Morning","Afternoon","Evening"];
+
+  /* clean care-log shifts */
+  const shifts = [];
+  for(const r of careRows){
+    const sin = toDate(r["Scheduled Clock In"]);
+    const sout = toDate(r["Scheduled Clock Out"]);
+    if(!sin) continue;
+    let hours = sout ? (sout - sin)/3600000 : 0;
+    if(!(hours>0)) continue;
+    if(hours>24) hours = 24;
+    const dowIdx = (sin.getDay()+6)%7;          // Mon=0
+    const cross = sout ? (sout.toDateString() !== sin.toDateString()) : false;
+    const b = bucketOf(sin.getHours(), cross);
+    const st = r["Status"];
+    shifts.push({
+      hours,
+      office: office(r["Caregiver Location"]),
+      zip: zip5(r["Client Zip"]),
+      client: r["Client Name"],
+      caregiver: r["Caregiver Name"],
+      city: r["Client City"],
+      dow: DOW[dowIdx],
+      weekend: dowIdx>=5,
+      bucket: b,
+      overnight: b==="Overnight",
+      cgDisrupt: st==="Cancelled by Caregiver" || st==="Caregiver No Show"
+    });
+  }
+
+  /* active caregiver supply by zip (exclude ALL-CAPS placeholder rows) */
+  const supply = {}, supplyCity = {};
+  let activeCG = 0;
+  for(const r of (cgRows||[])){
+    if(isTrue(r["Inactive"])) continue;
+    if(allCaps(r["First Name"]) && allCaps(r["Last Name"])) continue;
+    activeCG++;
+    const z = zip5(r["Postal Code"]);
+    if(z) supply[z] = (supply[z]||0)+1;
+    const ck = r["City"]==null ? null : String(r["City"]).trim().toLowerCase();
+    if(ck) supplyCity[ck] = (supplyCity[ck]||0)+1;
+  }
+
+  /* active clients (for KPI only) */
+  let activeClients = null;
+  if(clientRows && clientRows.length){
+    activeClients = clientRows.filter(r=>!isTrue(r["Deactivated"]) &&
+      !(allCaps(r["First Name"]) && allCaps(r["Last Name"]))).length;
+  }
+
+  /* per-zip aggregation */
+  const zmap = new Map();
+  const ensure = z => { if(!zmap.has(z)) zmap.set(z,{zip:z,demand_hours:0,shifts:0,
+    clients:new Set(),caregivers:new Set(),weekend_hours:0,overnight_hours:0,cg_cancel:0,
+    _office:{},_city:{}}); return zmap.get(z); };
+  for(const s of shifts){
+    if(!s.zip) continue;
+    const a = ensure(s.zip);
+    a.demand_hours += s.hours; a.shifts++;
+    if(s.client) a.clients.add(s.client);
+    if(s.caregiver) a.caregivers.add(s.caregiver);
+    if(s.weekend) a.weekend_hours += s.hours;
+    if(s.overnight) a.overnight_hours += s.hours;
+    if(s.cgDisrupt) a.cg_cancel++;
+    a._office[s.office] = (a._office[s.office]||0)+s.hours;
+    if(s.city) a._city[s.city] = (a._city[s.city]||0)+1;
+  }
+  let zips = [...zmap.values()].map(a=>{
+    const active = supply[a.zip]||0;
+    const dominantOffice = Object.entries(a._office).sort((x,y)=>y[1]-x[1])[0];
+    const geo = ZIPGEO[a.zip];
+    return {
+      zip:a.zip, demand_hours:round1(a.demand_hours), shifts:a.shifts,
+      clients:a.clients.size, caregivers_serving:a.caregivers.size,
+      weekend_hours:round1(a.weekend_hours), overnight_hours:round1(a.overnight_hours),
+      cg_cancel:a.cg_cancel, active_cg:active,
+      cg_cancel_rate: a.shifts? a.cg_cancel/a.shifts : 0,
+      strain: a.demand_hours/(active||0.5),
+      office: dominantOffice?dominantOffice[0]:"Unknown",
+      city: mode(a._city) || "",
+      lat: geo?geo[0]:null, lng: geo?geo[1]:null
+    };
+  });
+
+  /* hiring-priority score over material zips (demand>=300) */
+  const mat = zips.filter(z=>z.demand_hours>=300);
+  const nz = (arr,key,fn)=>{ const vals=arr.map(o=>fn?fn(o[key]):o[key]);
+    const lo=Math.min(...vals),hi=Math.max(...vals),rng=hi-lo;
+    return v=> rng>0 ? ((fn?fn(v):v)-lo)/rng : 0; };
+  if(mat.length){
+    const nD = nz(mat,"demand_hours",Math.log1p);
+    const nS = nz(mat,"strain",Math.log1p);
+    const nC = nz(mat,"cg_cancel_rate");
+    const nW = nz(mat,"weekend_hours");
+    mat.forEach(z=>{ z.priority = (0.30*nD(z.demand_hours)+0.34*nS(z.strain)
+      +0.24*nC(z.cg_cancel_rate)+0.12*nW(z.weekend_hours))*100; });
+  }
+  const priority_zips = mat.filter(z=>z.lat!=null).sort((a,b)=>b.priority-a.priority);
+
+  /* office cuts */
+  const byOffice = {};
+  for(const s of shifts){
+    if(s.office==="Unknown") continue;
+    const o = byOffice[s.office] || (byOffice[s.office]={office:s.office,demand_hours:0,shifts:0,
+      clients:new Set(),caregivers:new Set(),weekend_hours:0,overnight_hours:0,cg_cancel:0,
+      wk_shifts:0,wk_cancel:0});
+    o.demand_hours+=s.hours; o.shifts++; if(s.client)o.clients.add(s.client);
+    if(s.caregiver)o.caregivers.add(s.caregiver);
+    if(s.weekend){o.weekend_hours+=s.hours;o.wk_shifts++;if(s.cgDisrupt)o.wk_cancel++;}
+    if(s.overnight)o.overnight_hours+=s.hours; if(s.cgDisrupt)o.cg_cancel++;
+  }
+  const offices = Object.values(byOffice).map(o=>({office:o.office,demand_hours:round1(o.demand_hours),
+    shifts:o.shifts,clients:o.clients.size,caregivers:o.caregivers.size,
+    weekend_hours:round1(o.weekend_hours),overnight_hours:round1(o.overnight_hours),
+    cg_cancel:o.cg_cancel,cg_cancel_rate:o.shifts?Math.round(o.cg_cancel/o.shifts*1000)/1000:0}))
+    .sort((a,b)=>b.demand_hours-a.demand_hours);
+  const weekend_office = Object.values(byOffice).map(o=>({office:o.office,
+    weekend_hours:round1(o.weekend_hours),weekend_shifts:o.wk_shifts,
+    weekend_cg_cancel_rate:o.wk_shifts?Math.round(o.wk_cancel/o.wk_shifts*1000)/1000:0,
+    weekend_share:o.demand_hours?Math.round(o.weekend_hours/o.demand_hours*1000)/10:0}))
+    .sort((a,b)=>b.weekend_hours-a.weekend_hours);
+
+  /* client-city (sub-area) cuts */
+  const byCity = {};
+  for(const s of shifts){
+    const disp = s.city && String(s.city).trim(); if(!disp) continue;
+    const key = disp.toLowerCase();
+    const c = byCity[key] || (byCity[key]={city:disp,demand_hours:0,shifts:0,
+      clients:new Set(),caregivers:new Set(),weekend_hours:0,overnight_hours:0,cg_cancel:0,wk_shifts:0,wk_cancel:0});
+    c.demand_hours+=s.hours; c.shifts++; if(s.client)c.clients.add(s.client);
+    if(s.caregiver)c.caregivers.add(s.caregiver);
+    if(s.weekend){c.weekend_hours+=s.hours;c.wk_shifts++;if(s.cgDisrupt)c.wk_cancel++;}
+    if(s.overnight)c.overnight_hours+=s.hours; if(s.cgDisrupt)c.cg_cancel++;
+  }
+  const cities = Object.entries(byCity).map(([key,c])=>({city:c.city,
+    demand_hours:round1(c.demand_hours),shifts:c.shifts,clients:c.clients.size,
+    caregivers:c.caregivers.size,weekend_hours:round1(c.weekend_hours),
+    overnight_hours:round1(c.overnight_hours),cg_cancel:c.cg_cancel,
+    cg_cancel_rate:c.shifts?Math.round(c.cg_cancel/c.shifts*1000)/1000:0,
+    weekend_cg_cancel_rate:c.wk_shifts?Math.round(c.wk_cancel/c.wk_shifts*1000)/1000:0,
+    weekend_share:c.demand_hours?Math.round(c.weekend_hours/c.demand_hours*1000)/10:0,
+    overnight_share:c.demand_hours?Math.round(c.overnight_hours/c.demand_hours*1000)/10:0,
+    active_cg: supplyCity[key]||0}))
+    .sort((a,b)=>b.demand_hours-a.demand_hours);
+
+  /* day-of-week + bucket cuts + heat */
+  const dowAgg = DOW.map(d=>{ const ds=shifts.filter(s=>s.dow===d);
+    return {day:d, demand_hours:round1(sum(ds,'hours')), shifts:ds.length,
+      cg_cancel_rate: ds.length?Math.round(mean(ds,'cgDisrupt')*1000)/1000:0,
+      overnight_hours:round1(sum(ds.filter(s=>s.overnight),'hours'))}; });
+  const bucketAgg = BUCKETS.map(b=>{ const bs=shifts.filter(s=>s.bucket===b);
+    return {bucket:b, demand_hours:round1(sum(bs,'hours')), shifts:bs.length,
+      cg_cancel_rate: bs.length?Math.round(mean(bs,'cgDisrupt')*1000)/1000:0,
+      weekend_hours:round1(sum(bs.filter(s=>s.weekend),'hours'))}; });
+  const heat = {};
+  for(const d of DOW){ heat[d]={};
+    for(const b of BUCKETS) heat[d][b]=Math.round(sum(shifts.filter(s=>s.dow===d&&s.bucket===b),'hours')); }
+
+  /* top clients */
+  const cmap = new Map();
+  for(const s of shifts){ if(!s.client) continue;
+    const c = cmap.get(s.client) || {client:s.client,hours:0,shifts:0,wk:0,on:0,cg_cancel:0,
+      office:{},city:{},zip:{}};
+    c.hours+=s.hours; c.shifts++; if(s.weekend)c.wk+=s.hours; if(s.overnight)c.on+=s.hours;
+    if(s.cgDisrupt)c.cg_cancel++; bump(c.office,s.office); bump(c.city,s.city); bump(c.zip,s.zip);
+    cmap.set(s.client,c); }
+  const clients = [...cmap.values()].sort((a,b)=>b.hours-a.hours).slice(0,20).map(c=>({
+    client:c.client, demand_hours:round1(c.hours), shifts:c.shifts,
+    office:mode(c.office), city:String(mode(c.city)||''), zip:String(mode(c.zip)||''),
+    weekend_pct:c.hours?Math.round(c.wk/c.hours*100):0,
+    overnight_pct:c.hours?Math.round(c.on/c.hours*100):0, cg_cancel:c.cg_cancel }));
+
+  /* summary */
+  const totalHours = sum(shifts,'hours');
+  const wkHours = sum(shifts.filter(s=>s.weekend),'hours');
+  const onHours = sum(shifts.filter(s=>s.overnight),'hours');
+  const cgCancel = shifts.filter(s=>s.cgDisrupt).length;
+  const dates = shifts.map(s=>null); // not needed; compute range from raw
+  let dmin=null,dmax=null;
+  for(const r of careRows){ const d=toDate(r["Scheduled Clock In"]); if(!d)continue;
+    if(!dmin||d<dmin)dmin=d; if(!dmax||d>dmax)dmax=d; }
+  const summary = {
+    total_shifts: shifts.length,
+    total_demand_hours: Math.round(totalHours),
+    date_min: dmin?dmin.toISOString().slice(0,10):'',
+    date_max: dmax?dmax.toISOString().slice(0,10):'',
+    active_caregivers: activeCG,
+    active_clients: activeClients==null?'—':activeClients,
+    n_zips: zips.filter(z=>z.lat!=null).length,
+    weekend_hours: Math.round(wkHours),
+    overnight_hours: Math.round(onHours),
+    cg_cancel: cgCancel,
+    cg_cancel_rate: shifts.length?Math.round(cgCancel/shifts.length*1000)/1000:0,
+    weekend_share: totalHours?Math.round(wkHours/totalHours*1000)/10:0,
+    overnight_share: totalHours?Math.round(onHours/totalHours*1000)/10:0
+  };
+
+  return {summary, offices, cities, dow:dowAgg, buckets:bucketAgg, heat, clients,
+          weekend_office, priority_zips, all_zips:zips};
+}
+
+/* small helpers */
+function sum(arr,k){ let s=0; for(const o of arr) s+=o[k]; return s; }
+function mean(arr,k){ if(!arr.length) return 0; let s=0; for(const o of arr) s+=o[k]?1:0; return s/arr.length; }
+function bump(obj,key){ if(key==null) return; obj[key]=(obj[key]||0)+1; }
+function mode(obj){ let best=null,bv=-1; for(const k in obj){ if(obj[k]>bv){bv=obj[k];best=k;} } return best; }
+
+const API = {analyze, parseWorkbook, detectKind, fixRef};
+if(typeof module!=='undefined' && module.exports) module.exports = API;
+global.HiringEngine = API;
+})(typeof window!=='undefined'?window:globalThis);
+
+</script>
+<script>
+function render(DATA){
+  if(window.__map){try{window.__map.remove();}catch(e){}window.__map=null;}
+const fmt = n => Math.round(n).toLocaleString();
+const fmt1 = n => (Math.round(n*10)/10).toLocaleString();
+const pct = n => (Math.round(n*1000)/10)+'%';
+
+/* ---- date range + KPIs ---- */
+const S = DATA.summary;
+document.getElementById('daterange').textContent =
+  `${S.date_min} → ${S.date_max}  ·  ${fmt(S.total_shifts)} shifts analyzed`;
+const kpis = [
+  {v:fmt(S.total_demand_hours), l:'Care hours', s:'delivered + scheduled'},
+  {v:fmt(S.total_shifts), l:'Shifts', s:'all statuses'},
+  {v:S.active_caregivers, l:'Active caregivers', s:'current roster'},
+  {v:S.active_clients, l:'Active clients', s:'current roster'},
+  {v:S.weekend_share+'%', l:'On weekends', s:fmt(S.weekend_hours)+' hrs'},
+  {v:S.overnight_share+'%', l:'Overnight', s:fmt(S.overnight_hours)+' hrs'},
+  {v:pct(S.cg_cancel_rate), l:'CG cancel rate', s:fmt(S.cg_cancel)+' shifts'},
+];
+document.getElementById('kpis').innerHTML = kpis.map(k=>
+  `<div class="kpi"><div class="v">${k.v}</div><div class="l">${k.l}</div><div class="s">${k.s}</div></div>`).join('');
+
+/* ---- heat ramp ---- */
+function hx(c){return [parseInt(c.slice(1,3),16),parseInt(c.slice(3,5),16),parseInt(c.slice(5,7),16)];}
+const H1=hx('#FFD166'),H2=hx('#F3722C'),H3=hx('#D62246');
+function ramp(t){ // 0..1
+  t=Math.max(0,Math.min(1,t)); let a,b,u;
+  if(t<0.5){a=H1;b=H2;u=t/0.5;}else{a=H2;b=H3;u=(t-0.5)/0.5;}
+  const c=a.map((x,i)=>Math.round(x+(b[i]-x)*u));
+  return `rgb(${c[0]},${c[1]},${c[2]})`;
+}
+
+/* ---- MAP ---- */
+const Z = DATA.priority_zips.filter(z=>z.lat&&z.lng);
+Z.forEach(z=>{ z.zip = String(z.zip); });
+let map=null;
+
+const metricLabels={priority:'Hiring priority',demand_hours:'Demand (hours)',
+  strain:'Local supply gap',weekend_hours:'Weekend load',cg_cancel_rate:'Cancel rate'};
+function ranges(m){const v=Z.map(z=>z[m]);return [Math.min(...v),Math.max(...v)];}
+const maxDemand=Math.max(...Z.map(z=>z.demand_hours));
+function radius(z){return 6+Math.sqrt(z.demand_hours/maxDemand)*28;}
+
+let layer=null, markers={};
+function popupHTML(z){
+  return `<div class="ppz">${z.zip} · ${z.city}</div>
+   <div style="color:#5B6675;font-size:12px;margin-bottom:2px">${z.office} office</div>
+   <table>
+     <tr><td>Priority score</td><td>${Math.round(z.priority)}/100</td></tr>
+     <tr><td>Care hours</td><td>${fmt(z.demand_hours)}</td></tr>
+     <tr><td>Active CG living here</td><td>${z.active_cg}</td></tr>
+     <tr><td>Distinct CG serving</td><td>${z.caregivers_serving}</td></tr>
+     <tr><td>Clients</td><td>${z.clients}</td></tr>
+     <tr><td>Weekend hours</td><td>${fmt(z.weekend_hours)}</td></tr>
+     <tr><td>Overnight hours</td><td>${fmt(z.overnight_hours)}</td></tr>
+     <tr><td>CG cancel rate</td><td>${pct(z.cg_cancel_rate)}</td></tr>
+   </table>`;
+}
+function draw(metric){
+  layer.clearLayers(); markers={};
+  const [lo,hi]=ranges(metric);
+  Z.forEach(z=>{
+    const t=hi>lo?(z[metric]-lo)/(hi-lo):0.5;
+    const m=L.circleMarker([z.lat,z.lng],{
+      radius:radius(z), fillColor:ramp(t), color:'#fff', weight:1.5, fillOpacity:.85
+    }).bindPopup(popupHTML(z));
+    m.addTo(layer); markers[z.zip]=m;
+  });
+  document.getElementById('legtitle').textContent=metricLabels[metric];
+}
+try{
+  if(typeof L==='undefined') throw new Error('Leaflet unavailable');
+  map=L.map('map',{scrollWheelZoom:false}).setView([30.25,-97.9],9);
+  window.__map=map;
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',{
+    attribution:'© OpenStreetMap © CARTO', maxZoom:19}).addTo(map);
+  layer=L.layerGroup().addTo(map);
+  draw('priority');
+  document.querySelectorAll('.lbtn').forEach(b=>b.addEventListener('click',()=>{
+    document.querySelectorAll('.lbtn').forEach(x=>x.classList.remove('active'));
+    b.classList.add('active'); draw(b.dataset.metric);
+  }));
+}catch(e){
+  document.getElementById('map').innerHTML='<div style="display:grid;place-items:center;height:100%;padding:30px;text-align:center;color:#5B6675;font-size:14px">The map needs an internet connection to load. Everything else on this page works offline — use the priority list and tables below.</div>';
+  var lg=document.querySelector('.maplegend'); if(lg) lg.style.display='none';
+}
+
+/* ---- priority side list ---- */
+const topZips=[...Z].sort((a,b)=>b.priority-a.priority).slice(0,16);
+const pmax=Math.max(...topZips.map(z=>z.priority)),pmin=Math.min(...topZips.map(z=>z.priority));
+document.getElementById('plist').innerHTML=topZips.map((z,i)=>{
+  const t=(z.priority-pmin)/(pmax-pmin||1);
+  return `<li class="pitem" data-zip="${z.zip}">
+    <span class="prank" style="background:${ramp(t)}">${i+1}</span>
+    <span><span class="pz">${z.zip}</span> &nbsp;<span class="pc">${z.city}</span><br>
+      <span class="pc">${z.office} · ${z.active_cg} local CG</span></span>
+    <span class="pscore">${Math.round(z.priority)}<small>${fmt(z.demand_hours)} h</small></span>
+  </li>`;}).join('');
+document.querySelectorAll('.pitem').forEach(it=>it.addEventListener('click',()=>{
+  const z=Z.find(x=>x.zip===it.dataset.zip);
+  if(!map) return;
+  map.flyTo([z.lat,z.lng],11,{duration:.8});
+  setTimeout(()=>markers[z.zip]&&markers[z.zip].openPopup(),650);
+}));
+
+/* ---- office panel ---- */
+const offs=DATA.offices, omax=Math.max(...offs.map(o=>o.demand_hours));
+document.getElementById('officepanel').innerHTML = offs.map(o=>{
+  const w=(o.weekend_hours/o.demand_hours), n=(o.overnight_hours/o.demand_hours);
+  const width=(o.demand_hours/omax*100);
+  return `<div class="offrow">
+    <div class="on">${o.office}<small>${o.clients} clients · ${o.caregivers} CG served</small></div>
+    <div class="track"><div class="seg" style="width:${width}%;background:var(--brand)">
+       ${fmt(o.demand_hours)} hrs &nbsp;·&nbsp; wknd ${pct(w)} · o/n ${pct(n)}</div></div>
+    <div class="ov" style="color:${o.cg_cancel_rate>0.1?'var(--h3)':o.cg_cancel_rate>0.085?'var(--h2)':'var(--c0)'}">
+       ${pct(o.cg_cancel_rate)}<br><span style="font-size:10px;color:var(--muted-2)">cancel</span></div>
+  </div>`;}).join('');
+
+/* ---- client-city (sub-area) panel ---- */
+(function(){
+  const all=DATA.cities||[];
+  const cap=12, show=all.slice(0,cap), rest=all.slice(cap);
+  const cmax=Math.max(1,...show.map(c=>c.demand_hours));
+  const restHrs=rest.reduce((s,c)=>s+c.demand_hours,0);
+  const barColor=c=> c.active_cg===0?'var(--h3)': c.active_cg<=2?'var(--h2)':'var(--brand)';
+  let html=show.map(c=>{
+    const w=(c.weekend_hours/c.demand_hours)||0, n=(c.overnight_hours/c.demand_hours)||0;
+    const width=(c.demand_hours/cmax*100);
+    const cgColor=c.active_cg===0?'var(--h3)':c.active_cg<=2?'var(--h2)':'var(--c0)';
+    return `<div class="offrow">
+      <div class="on">${c.city}<small style="color:${cgColor}">${c.active_cg} local CG · ${c.clients} clients</small></div>
+      <div class="track"><div class="seg" style="width:${width}%;background:${barColor(c)}">
+         ${fmt(c.demand_hours)} hrs &nbsp;·&nbsp; wknd ${pct(w)} · o/n ${pct(n)}</div></div>
+      <div class="ov" style="color:${c.cg_cancel_rate>0.1?'var(--h3)':c.cg_cancel_rate>0.085?'var(--h2)':'var(--c0)'}">
+         ${pct(c.cg_cancel_rate)}<br><span style="font-size:10px;color:var(--muted-2)">cancel</span></div>
+    </div>`;}).join('');
+  if(rest.length) html+=`<div style="font-size:12.5px;color:var(--muted-2);margin-top:6px">+ ${rest.length} more sub-area${rest.length>1?'s':''} (${fmt(restHrs)} hrs)</div>`;
+  const legend='<p class="ph" style="margin:0 0 14px">Bar color = local caregiver supply: <b style="color:var(--h3)">none</b> · <b style="color:var(--h2)">1–2</b> · <b style="color:var(--brand)">3+</b>. Right column = caregiver-cancel rate.</p>';
+  document.getElementById('citypanel').innerHTML = all.length ? legend+html
+    : '<p style="color:var(--muted)">No client-city data in this export.</p>';
+})();
+function barChart(el,rows,labelKey,valKey,rateKey,sublabel){
+  const mx=Math.max(...rows.map(r=>r[valKey]));
+  const rlo=Math.min(...rows.map(r=>r[rateKey])),rhi=Math.max(...rows.map(r=>r[rateKey]));
+  document.getElementById(el).innerHTML=rows.map(r=>{
+    const h=(r[valKey]/mx*100), t=rhi>rlo?(r[rateKey]-rlo)/(rhi-rlo):0.5;
+    return `<div class="col">
+      <div class="bv">${fmt(r[valKey])}</div>
+      <div class="bar" style="height:${h}%;background:${ramp(t)}" title="cancel ${pct(r[rateKey])}"></div>
+      <div class="bx">${r[labelKey].slice(0,sublabel||3)}</div>
+    </div>`;}).join('');
+}
+barChart('dowchart',DATA.dow,'day','demand_hours','cg_cancel_rate',3);
+barChart('bucketchart',DATA.buckets,'bucket','demand_hours','cg_cancel_rate',9);
+
+/* ---- heatmap ---- */
+const buckets=['Overnight','Morning','Afternoon','Evening'];
+const days=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+let hmax=0; days.forEach(d=>buckets.forEach(b=>hmax=Math.max(hmax,DATA.heat[d][b])));
+let html=`<div class="hd"></div>`+buckets.map(b=>`<div class="hc">${b}</div>`).join('');
+days.forEach(d=>{
+  html+=`<div class="hd">${d.slice(0,3)}</div>`;
+  buckets.forEach(b=>{
+    const v=DATA.heat[d][b], t=v/hmax;
+    const bg=`rgba(29,78,137,${0.06+t*0.84})`;
+    const col=t>0.5?'#fff':'var(--ink)';
+    html+=`<div class="cell" style="background:${bg};color:${col}">${fmt(v)}</div>`;
+  });
+});
+document.getElementById('heatmap').innerHTML=html;
+
+/* ---- weekend panel ---- */
+const wk=DATA.weekend_office, wmax=Math.max(...wk.map(w=>w.weekend_hours));
+document.getElementById('weekendpanel').innerHTML=
+  `<table><tr><th>Office</th><th class="r">Weekend hrs</th><th class="r">Weekend shifts</th>
+   <th class="r">Weekend share</th><th class="r">Weekend cancel rate</th></tr>`+
+  wk.map(w=>`<tr>
+     <td><b>${w.office}</b></td>
+     <td class="r barcell"><div class="fill" style="width:${w.weekend_hours/wmax*100}%"></div><span>${fmt(w.weekend_hours)}</span></td>
+     <td class="r">${fmt(w.weekend_shifts)}</td>
+     <td class="r">${w.weekend_share}%</td>
+     <td class="r" style="font-weight:600;color:${w.weekend_cg_cancel_rate>0.11?'var(--h3)':w.weekend_cg_cancel_rate>0.09?'var(--h2)':'var(--c0)'}">${pct(w.weekend_cg_cancel_rate)}</td>
+   </tr>`).join('')+`</table>`;
+
+/* ---- client table ---- */
+const cl=DATA.clients, clmax=Math.max(...cl.map(c=>c.demand_hours));
+document.getElementById('clienttable').innerHTML=
+  `<tr><th>#</th><th>Client</th><th>Office</th><th>City</th><th class="r">Care hrs</th>
+   <th class="r">Weekend</th><th class="r">Overnight</th><th class="r">CG cancels</th></tr>`+
+  cl.map((c,i)=>`<tr>
+     <td style="color:var(--muted-2)">${i+1}</td>
+     <td><b>${c.client}</b></td>
+     <td><span class="tag">${c.office}</span></td>
+     <td>${c.city}</td>
+     <td class="r barcell"><div class="fill" style="width:${c.demand_hours/clmax*100}%"></div><span>${fmt(c.demand_hours)}</span></td>
+     <td class="r">${c.weekend_pct}%</td>
+     <td class="r">${c.overnight_pct}%</td>
+     <td class="r">${c.cg_cancel}</td>
+   </tr>`).join('');
+
+/* ---- recommendations (regenerated from whatever data was uploaded) ---- */
+const recs=[];
+// 1. Local-supply gaps: zero resident active caregivers, highest demand
+const zeroLocal=Z.filter(z=>z.active_cg===0).sort((a,b)=>b.demand_hours-a.demand_hours);
+if(zeroLocal.length){
+  const zg=zeroLocal.slice(0,6);
+  const grp={}; zg.forEach(x=>grp[x.office]=(grp[x.office]||0)+1);
+  const topOff=Object.entries(grp).sort((a,b)=>b[1]-a[1])[0][0];
+  recs.push({cls:'hot',chip:['r','Highest leverage'],t:'Recruit in the local-supply gaps',
+    p:`These high-demand ZIPs have <b>zero active caregivers living in them</b> — care is delivered by staff commuting in, which inflates travel and makes coverage brittle: <b>${zg.map(x=>x.zip+' ('+x.city+')').join(', ')}</b>. Most sit in the <b>${topOff}</b> territory. Local recruiting here cuts mileage and single-caregiver dependence.`});
+}
+// 2. Volume anchor: single largest-demand ZIP
+const big=[...Z].sort((a,b)=>b.demand_hours-a.demand_hours)[0];
+if(big){
+  const heavy=[]; if(big.overnight_hours>big.demand_hours*0.25)heavy.push('overnight');
+  if(big.weekend_hours>big.demand_hours*0.25)heavy.push('weekend');
+  recs.push({cls:'hot',chip:['r','Volume anchor'],t:`Build a stable bench in ${big.city} (${big.zip})`,
+    p:`The single largest demand center at <b>${fmt(big.demand_hours)} hours</b>, served by ${big.caregivers_serving} distinct caregivers${heavy.length?' and heavy on '+heavy.join(' and '):''}. A stable, locally-based bench reduces reliance on rotating fill-ins.`});
+}
+// 3. Fragile thin-supply anchors
+const fragile=Z.filter(z=>z.demand_hours>=1500&&z.active_cg>0&&z.active_cg<=6)
+  .sort((a,b)=>(b.demand_hours/b.active_cg)-(a.demand_hours/a.active_cg)).slice(0,3);
+if(fragile.length) recs.push({cls:'warn',chip:['o','Fragile coverage'],t:'Shore up thin-supply anchors',
+  p:`<b>${fragile.map(x=>x.city+' ('+x.zip+')').join('</b>, <b>')}</b> each carry heavy hours on just a handful of local caregivers (${fragile.map(x=>x.active_cg).join(', ')} respectively). One departure dents coverage — add 1–2 resilience hires each.`});
+// 4. Shift profile
+const bk=[...DATA.buckets].sort((a,b)=>b.demand_hours-a.demand_hours);
+const onB=DATA.buckets.find(b=>b.bucket==='Overnight')||{cg_cancel_rate:0};
+const worstB=[...DATA.buckets].filter(b=>b.shifts>0).sort((a,b)=>b.cg_cancel_rate-a.cg_cancel_rate)[0]||bk[0];
+recs.push({cls:'warn',chip:['o','Shift profile'],t:'Hire for the hard-to-staff windows',
+  p:`<b>${bk[0].bucket}</b> carries the most volume (${fmt(bk[0].demand_hours)} hrs). Overnight runs ${onB.cg_cancel_rate<=0.08?'the most reliable':'a notable'} cancel rate (${pct(onB.cg_cancel_rate)}), while <b>${worstB.bucket}</b> shifts cancel most (${pct(worstB.cg_cancel_rate)}). Weekends are <b>${DATA.summary.weekend_share}%</b> of all hours — screen new hires for genuine weekend availability.`});
+// 5. Weekend office focus
+const wkBad=[...wk].filter(w=>w.weekend_shifts>0).sort((a,b)=>b.weekend_cg_cancel_rate-a.weekend_cg_cancel_rate).slice(0,2);
+const wkVol=[...wk].sort((a,b)=>b.weekend_hours-a.weekend_hours)[0];
+if(wkBad.length&&wkVol) recs.push({cls:'',chip:['b','Office focus'],t:'Weekend reliability hotspots',
+  p:`<b>${wkBad.map(w=>w.office+' ('+pct(w.weekend_cg_cancel_rate)+')').join('</b> and <b>')}</b> run the highest weekend caregiver-cancel rates, while <b>${wkVol.office}</b> carries the largest weekend volume (${fmt(wkVol.weekend_hours)} hrs). Point weekend-available recruiting at these first.`});
+// 6. caveat
+recs.push({cls:'',chip:['b','Next data pull'],t:'Sharpen before committing headcount',
+  p:`This view is built on care that <b>got covered</b>, so true unmet need is understated. Add an <b>Open/Unfilled Shifts</b> export and a <b>caregiver availability</b> export to separate real shortages from scheduling friction.`});
+document.getElementById('recsgrid').innerHTML=recs.map(r=>`
+  <div class="rec ${r.cls}">
+    <div class="rt"><span class="chip ${r.chip[0]}">${r.chip[1]}</span> ${r.t}</div>
+    <p class="rp">${r.p}</p>
+  </div>`).join('');
+
+}
+
+
+const ZIPGEO = {"73301":[30.3264,-97.7713],"73344":[30.3264,-97.7713],"73960":[36.5055,-101.7829],"75001":[32.96,-96.8385],"75002":[33.0934,-96.6454],"75006":[32.9657,-96.8825],"75007":[33.0033,-96.882],"75009":[33.3103,-96.7673],"75010":[33.0304,-96.8777],"75011":[32.9537,-96.8903],"75013":[33.1186,-96.6773],"75014":[32.7673,-96.7776],"75015":[32.8987,-96.9722],"75016":[32.8987,-96.9722],"75017":[32.7673,-96.7776],"75019":[32.9673,-96.9805],"75020":[33.745,-96.5496],"75021":[33.7169,-96.5235],"75022":[33.0268,-97.1193],"75023":[33.055,-96.7365],"75024":[33.0752,-96.7843],"75025":[33.0784,-96.7291],"75026":[33.0198,-96.6989],"75027":[33.2074,-97.1163],"75028":[33.0383,-97.0745],"75029":[33.0462,-96.9942],"75030":[32.9029,-96.5639],"75032":[32.886,-96.4095],"75033":[33.2559,-96.8853],"75034":[33.1499,-96.8241],"75035":[33.1377,-96.7524],"75036":[33.1499,-96.8241],"75037":[32.78,-96.8],"75038":[32.8653,-96.9905],"75039":[32.8697,-96.9389],"75040":[32.9227,-96.6248],"75041":[32.8794,-96.6411],"75042":[32.9185,-96.6775],"75043":[32.8565,-96.5999],"75044":[32.9522,-96.6654],"75045":[32.9137,-96.6271],"75046":[32.9126,-96.6389],"75047":[32.9126,-96.6389],"75048":[32.9643,-96.6012],"75049":[32.9126,-96.6389],"75050":[32.7649,-97.0112],"75051":[32.7115,-97.0069],"75052":[32.6605,-97.0311],"75053":[32.746,-96.9978],"75054":[32.5907,-97.0405],"75056":[33.094,-96.8836],"75057":[33.0532,-96.9999],"75058":[33.4495,-96.7341],"75059":[32.8023,-96.9597],"75060":[32.8023,-96.9597],"75061":[32.8267,-96.9633],"75062":[32.8479,-96.974],"75063":[32.9247,-96.9598],"75064":[32.9247,-96.9598],"75065":[33.1219,-97.0237],"75067":[33.0198,-96.9925],"75068":[33.1768,-96.9583],"75069":[33.1976,-96.6153],"75070":[33.1976,-96.6153],"75071":[33.1976,-96.6153],"75072":[33.1976,-96.6153],"75074":[33.0277,-96.6777],"75075":[33.025,-96.7397],"75076":[33.8095,-96.6906],"75077":[33.0775,-97.0704],"75078":[33.2362,-96.7954],"75080":[32.966,-96.7452],"75081":[32.9462,-96.7058],"75082":[32.9865,-96.686],"75083":[32.7673,-96.7776],"75085":[32.7673,-96.7776],"75086":[33.0198,-96.6989],"75087":[32.9492,-96.4418],"75088":[32.9031,-96.5472],"75089":[32.9346,-96.5544],"75090":[33.6435,-96.6075],"75091":[33.6357,-96.6089],"75092":[33.6372,-96.6184],"75093":[33.0299,-96.7889],"75094":[33.0148,-96.6189],"75097":[33.3512,-96.6646],"75098":[33.0041,-96.5394],"75099":[32.9546,-97.015],"75101":[32.2731,-96.703],"75102":[32.1014,-96.6251],"75103":[32.5143,-95.9047],"75104":[32.5885,-96.9438],"75105":[32.2954,-96.3887],"75106":[32.5885,-96.9561],"75109":[31.9937,-96.4199],"75110":[32.0868,-96.4762],"75114":[32.6279,-96.4558],"75115":[32.6041,-96.8653],"75116":[32.6587,-96.9114],"75117":[32.7003,-95.878],"75118":[32.5996,-96.3027],"75119":[32.3321,-96.6224],"75120":[32.3347,-96.6335],"75121":[33.0875,-96.4186],"75123":[32.5899,-96.8569],"75124":[32.2965,-96.0137],"75125":[32.5223,-96.6643],"75126":[32.7491,-96.4598],"75127":[32.677,-95.7899],"75132":[32.9415,-96.3814],"75134":[32.6161,-96.783],"75135":[33.0683,-96.2391],"75137":[32.6347,-96.9113],"75138":[32.7673,-96.7776],"75140":[32.6635,-95.7064],"75141":[32.6396,-96.707],"75142":[32.546,-96.2852],"75143":[32.2486,-96.2161],"75144":[32.1275,-96.2298],"75146":[32.5914,-96.7728],"75147":[32.3685,-96.0685],"75148":[32.1705,-96.006],"75149":[32.7678,-96.6082],"75150":[32.8154,-96.6307],"75151":[32.0624,-96.4735],"75152":[32.4387,-96.6794],"75153":[32.1196,-96.3327],"75154":[32.5185,-96.8071],"75155":[32.2258,-96.4606],"75156":[32.2972,-96.1184],"75157":[32.4626,-96.4533],"75158":[32.4818,-96.3925],"75159":[32.6525,-96.558],"75160":[32.7515,-96.2831],"75161":[32.7332,-96.195],"75163":[32.1383,-96.0831],"75164":[33.0612,-96.3072],"75165":[32.3808,-96.8374],"75166":[33.0139,-96.4377],"75167":[32.3773,-96.9162],"75168":[32.3749,-96.7166],"75169":[32.7283,-96.0079],"75172":[32.5981,-96.6838],"75173":[33.0593,-96.3877],"75180":[32.7287,-96.6228],"75181":[32.7272,-96.5669],"75182":[32.797,-96.5616],"75185":[32.7403,-96.5618],"75187":[32.7673,-96.7776],"75189":[32.9628,-96.3648],"75201":[32.7904,-96.8044],"75202":[32.7781,-96.8054],"75203":[32.746,-96.807],"75204":[32.8038,-96.7851],"75205":[32.826,-96.7843],"75206":[32.831,-96.7692],"75207":[32.7939,-96.8319],"75208":[32.7492,-96.8389],"75209":[32.8456,-96.826],"75210":[32.7699,-96.743],"75211":[32.7319,-96.9057],"75212":[32.7829,-96.8714],"75214":[32.8248,-96.7498],"75215":[32.7582,-96.7623],"75216":[32.7086,-96.7955],"75217":[32.7244,-96.6755],"75218":[32.8463,-96.6972],"75219":[32.8132,-96.8142],"75220":[32.8681,-96.8622],"75221":[32.8147,-96.7877],"75222":[32.7673,-96.7776],"75223":[32.7942,-96.7475],"75224":[32.7114,-96.8387],"75225":[32.8628,-96.7918],"75226":[32.7887,-96.7676],"75227":[32.7672,-96.6836],"75228":[32.825,-96.6784],"75229":[32.8958,-96.8588],"75230":[32.8999,-96.7897],"75231":[32.8756,-96.7495],"75232":[32.6647,-96.8384],"75233":[32.7046,-96.8725],"75234":[32.9245,-96.8938],"75235":[32.8252,-96.8388],"75236":[32.69,-96.9177],"75237":[32.659,-96.8765],"75238":[32.877,-96.708],"75240":[32.9374,-96.7872],"75241":[32.6722,-96.7774],"75242":[32.7673,-96.7776],"75243":[32.9103,-96.7285],"75244":[32.9322,-96.8353],"75245":[32.82,-96.83],"75246":[32.7948,-96.7697],"75247":[32.8152,-96.8703],"75248":[32.9682,-96.7942],"75249":[32.636,-96.9493],"75250":[32.7673,-96.7776],"75251":[32.9189,-96.7751],"75252":[32.9968,-96.7921],"75253":[32.6833,-96.5964],"75254":[32.9503,-96.819],"75258":[32.8,-96.88],"75260":[32.7673,-96.7776],"75261":[32.7673,-96.7776],"75262":[32.7673,-96.7776],"75263":[32.7673,-96.7776],"75264":[32.7673,-96.7776],"75265":[32.7673,-96.7776],"75266":[32.7673,-96.7776],"75267":[32.7673,-96.7776],"75270":[32.7813,-96.8019],"75275":[32.7673,-96.7776],"75277":[32.7673,-96.7776],"75283":[32.7673,-96.7776],"75284":[32.7673,-96.7776],"75285":[32.7673,-96.7776],"75286":[32.78,-96.8],"75287":[33.0005,-96.8314],"75301":[32.7673,-96.7776],"75303":[32.7673,-96.7776],"75310":[32.78,-96.8],"75312":[32.7673,-96.7776],"75313":[32.7673,-96.7776],"75315":[32.7673,-96.7776],"75320":[32.7673,-96.7776],"75323":[32.96,-96.8],"75326":[32.7673,-96.7776],"75334":[32.67,-96.61],"75336":[32.7673,-96.7776],"75339":[32.7673,-96.7776],"75340":[32.76,-96.86],"75342":[32.7673,-96.7776],"75343":[32.76,-96.86],"75344":[32.78,-96.79],"75353":[32.78,-96.8],"75354":[32.7673,-96.7776],"75355":[32.7673,-96.7776],"75356":[32.7673,-96.7776],"75357":[32.7673,-96.7776],"75358":[32.7942,-96.7652],"75359":[32.7673,-96.7776],"75360":[32.7673,-96.7776],"75363":[32.93,-96.79],"75364":[32.78,-96.8],"75367":[32.7673,-96.7776],"75368":[32.7673,-96.7776],"75370":[32.7673,-96.7776],"75371":[32.7673,-96.7776],"75372":[32.7673,-96.7776],"75373":[32.7673,-96.7776],"75374":[32.7673,-96.7776],"75376":[32.7673,-96.7776],"75378":[32.7673,-96.7776],"75379":[32.7673,-96.7776],"75380":[32.7673,-96.7776],"75381":[32.7673,-96.7776],"75382":[32.7673,-96.7776],"75386":[32.78,-96.87],"75387":[32.78,-96.8],"75388":[32.78,-96.8],"75389":[32.7673,-96.7776],"75390":[32.7673,-96.7776],"75391":[32.7673,-96.7776],"75392":[32.7673,-96.7776],"75393":[32.7673,-96.7776],"75394":[32.7673,-96.7776],"75395":[32.7673,-96.7776],"75396":[32.78,-96.8],"75397":[32.7673,-96.7776],"75398":[32.7673,-96.7776],"75401":[33.1854,-96.1304],"75402":[33.1047,-96.0927],"75403":[33.2185,-96.0487],"75404":[33.0563,-96.081],"75407":[33.1555,-96.4981],"75409":[33.3445,-96.5639],"75410":[32.7652,-95.5971],"75411":[33.8643,-95.6111],"75412":[33.8361,-95.1487],"75413":[33.43,-96.1662],"75414":[33.6178,-96.4237],"75415":[33.4768,-95.7689],"75416":[33.6945,-95.3823],"75417":[33.4699,-95.1937],"75418":[33.5806,-96.1836],"75420":[33.1155,-95.7345],"75421":[33.6246,-95.6888],"75422":[33.151,-95.9439],"75423":[33.2649,-96.2076],"75424":[33.3061,-96.3901],"75425":[33.869,-95.5711],"75426":[33.6236,-95.0461],"75428":[33.2493,-95.9097],"75429":[33.2377,-95.9089],"75431":[33.0107,-95.4734],"75432":[33.3812,-95.6623],"75433":[33.1118,-95.7945],"75434":[33.409,-95.3711],"75435":[33.5221,-95.3654],"75436":[33.6627,-95.2385],"75437":[33.2648,-95.4423],"75438":[33.5647,-96.0619],"75439":[33.5819,-96.2735],"75440":[32.875,-95.7418],"75441":[33.4291,-95.6518],"75442":[33.1659,-96.3686],"75443":[33.4697,-96.1111],"75444":[32.7299,-95.5636],"75446":[33.5985,-95.9109],"75447":[33.7612,-96.1193],"75448":[33.3034,-95.8018],"75449":[33.4245,-95.9455],"75450":[33.4116,-95.4551],"75451":[32.9763,-95.1079],"75452":[33.3796,-96.2475],"75453":[32.9916,-95.9434],"75454":[33.2841,-96.574],"75455":[33.1733,-94.9695],"75456":[33.1568,-94.9683],"75457":[33.1702,-95.2181],"75458":[33.2427,-96.2916],"75459":[33.5311,-96.6777],"75460":[33.6581,-95.5379],"75461":[33.6609,-95.5555],"75462":[33.6805,-95.4905],"75468":[33.5702,-95.3908],"75469":[33.4196,-95.8262],"75470":[33.6098,-95.7891],"75471":[33.0519,-95.3851],"75472":[32.9007,-95.8903],"75473":[33.7779,-95.5307],"75474":[32.8983,-96.1261],"75475":[33.4846,-96.2541],"75476":[33.7098,-96.1452],"75477":[33.5429,-95.7416],"75478":[33.1767,-95.3433],"75479":[33.6066,-96.3502],"75480":[33.0478,-95.1962],"75481":[33.3334,-95.374],"75482":[33.1345,-95.5922],"75483":[33.1384,-95.6011],"75485":[33.3627,-96.4635],"75486":[33.7589,-95.6807],"75487":[33.3344,-95.0497],"75488":[33.7979,-96.0449],"75489":[33.5193,-96.4843],"75490":[33.4235,-96.3398],"75491":[33.519,-96.451],"75492":[33.5633,-96.002],"75493":[33.1673,-95.1119],"75494":[32.9146,-95.2726],"75495":[33.4292,-96.5486],"75496":[33.3605,-96.0691],"75497":[32.9257,-95.5311],"75501":[33.4113,-94.1774],"75503":[33.4669,-94.0774],"75504":[33.4251,-94.0477],"75505":[33.4624,-94.0715],"75507":[33.4251,-94.0477],"75550":[33.5535,-94.8992],"75551":[33.109,-94.1646],"75554":[33.5339,-94.7867],"75555":[32.966,-94.1404],"75556":[33.1339,-94.0647],"75558":[33.2432,-94.8747],"75559":[33.5087,-94.6163],"75560":[33.1758,-94.3467],"75561":[33.5253,-94.2657],"75562":[32.9468,-94.2539],"75563":[33.0048,-94.3605],"75564":[32.8718,-94.2729],"75565":[32.951,-94.0809],"75566":[33.1735,-94.5424],"75567":[33.3409,-94.3175],"75568":[33.1912,-94.6891],"75569":[33.4344,-94.1219],"75570":[33.4619,-94.4375],"75571":[33.1808,-94.7639],"75572":[33.1557,-94.1537],"75573":[33.358,-94.2571],"75574":[33.3359,-94.552],"75599":[33.4251,-94.0477],"75601":[32.5178,-94.7303],"75602":[32.4724,-94.7101],"75603":[32.4264,-94.7117],"75604":[32.5251,-94.799],"75605":[32.5547,-94.7767],"75606":[32.5007,-94.7405],"75607":[32.5112,-94.7835],"75608":[32.5701,-94.8481],"75615":[32.5112,-94.7835],"75630":[32.8485,-94.5795],"75631":[32.2452,-94.4555],"75633":[32.1544,-94.3527],"75636":[33.024,-94.8249],"75637":[32.1027,-94.4935],"75638":[33.0313,-94.7359],"75639":[32.2543,-94.1356],"75640":[32.7698,-94.7032],"75641":[32.3874,-94.583],"75642":[32.3685,-94.183],"75643":[32.0334,-94.38],"75644":[32.7246,-94.9714],"75645":[32.6044,-94.8491],"75647":[32.5559,-94.932],"75650":[32.5073,-94.5333],"75651":[32.6579,-94.4652],"75652":[32.2131,-94.7834],"75653":[32.1532,-94.7994],"75654":[32.126,-94.7488],"75656":[33.0168,-94.6228],"75657":[32.8059,-94.3655],"75658":[32.1959,-94.9065],"75659":[32.5075,-94.1106],"75660":[32.5826,-94.7535],"75661":[32.6205,-94.2001],"75662":[32.3836,-94.8653],"75663":[32.387,-94.8951],"75666":[32.3532,-94.9055],"75667":[31.9508,-94.866],"75668":[32.9252,-94.7049],"75669":[32.0449,-94.5381],"75670":[32.5338,-94.3619],"75671":[32.5449,-94.3674],"75672":[32.5165,-94.3251],"75680":[32.0028,-94.7129],"75681":[31.9125,-94.6235],"75682":[32.2542,-94.9322],"75683":[32.7856,-94.7514],"75684":[32.269,-94.9529],"75685":[32.3579,-94.0913],"75686":[32.9623,-94.9603],"75687":[32.1518,-94.9554],"75688":[32.554,-94.2394],"75689":[32.1826,-94.9355],"75691":[32.3266,-94.596],"75692":[32.5184,-94.1355],"75693":[32.5383,-94.8622],"75694":[32.6537,-94.3427],"75701":[32.3254,-95.2922],"75702":[32.362,-95.3117],"75703":[32.2768,-95.3031],"75704":[32.3738,-95.407],"75705":[32.3766,-95.1252],"75706":[32.4441,-95.331],"75707":[32.3038,-95.1927],"75708":[32.419,-95.2106],"75709":[32.3078,-95.3956],"75710":[32.3475,-95.3065],"75711":[32.3513,-95.3011],"75712":[32.4112,-95.2899],"75713":[32.4112,-95.2899],"75750":[32.2418,-95.0639],"75751":[32.1935,-95.8432],"75752":[32.2151,-95.79],"75754":[32.4126,-95.6371],"75755":[32.6168,-95.088],"75756":[32.304,-95.6],"75757":[32.1095,-95.3342],"75758":[32.2572,-95.5393],"75759":[32.0415,-95.42],"75760":[31.7978,-94.8539],"75762":[32.2079,-95.3948],"75763":[32.0535,-95.5163],"75764":[31.891,-95.1455],"75765":[32.6439,-95.222],"75766":[31.9618,-95.2703],"75770":[32.1608,-95.5927],"75771":[32.5062,-95.4006],"75772":[31.8008,-95.3001],"75773":[32.6661,-95.487],"75778":[32.3257,-95.7737],"75779":[31.8668,-95.4958],"75780":[31.9807,-95.0938],"75782":[32.0797,-95.5938],"75783":[32.8049,-95.4302],"75784":[31.8859,-95.0118],"75785":[31.8136,-95.0965],"75788":[31.8254,-94.9189],"75789":[32.1117,-95.1155],"75790":[32.5283,-95.6545],"75791":[32.222,-95.2266],"75792":[32.4662,-95.1246],"75797":[32.5765,-95.1313],"75798":[32.4112,-95.2899],"75799":[32.4112,-95.2899],"75801":[31.7588,-95.6342],"75802":[31.7621,-95.6308],"75803":[31.7571,-95.6545],"75831":[31.4121,-95.9904],"75832":[31.9571,-95.9747],"75833":[31.272,-95.9213],"75834":[31.258,-95.0399],"75835":[31.3208,-95.3928],"75838":[31.4873,-96.2387],"75839":[31.648,-95.5551],"75840":[31.7361,-96.1572],"75844":[31.4972,-95.4447],"75845":[31.0651,-95.0969],"75846":[31.3739,-96.1918],"75847":[31.3384,-95.1541],"75848":[31.7666,-96.3303],"75849":[31.3952,-95.4741],"75850":[31.1421,-95.9284],"75851":[31.0564,-95.5501],"75852":[30.9806,-95.7089],"75853":[31.8766,-95.7327],"75855":[31.5849,-95.8491],"75856":[31.1953,-95.2469],"75858":[31.3916,-95.1397],"75859":[31.8885,-96.2988],"75860":[31.6328,-96.2778],"75861":[31.7929,-95.8998],"75862":[30.942,-95.3403],"75865":[31.0288,-95.033],"75880":[31.8354,-95.8389],"75882":[31.7942,-95.662],"75884":[31.8354,-95.8389],"75886":[31.8354,-95.8389],"75901":[31.27,-94.6469],"75902":[31.3623,-94.7611],"75903":[31.2766,-94.5676],"75904":[31.3489,-94.8327],"75915":[31.3382,-94.7291],"75925":[31.6103,-95.0762],"75926":[31.2269,-94.9812],"75928":[30.6876,-93.7665],"75929":[31.2952,-94.2156],"75930":[31.3391,-93.9993],"75931":[31.0922,-93.9684],"75932":[31.0099,-93.6585],"75933":[30.5741,-93.8334],"75934":[30.9,-94.7547],"75935":[31.7865,-94.1869],"75936":[30.9447,-94.5554],"75937":[31.5119,-94.4302],"75938":[30.9007,-94.3916],"75939":[31.0408,-94.8124],"75941":[31.195,-94.7729],"75942":[30.8183,-94.4288],"75943":[31.6578,-94.8696],"75944":[31.3601,-94.4064],"75946":[31.8111,-94.5266],"75948":[31.3161,-93.7905],"75949":[31.2837,-94.5662],"75951":[30.8673,-93.9977],"75954":[31.944,-94.0608],"75956":[30.6583,-93.8984],"75958":[31.6427,-94.4141],"75959":[31.4324,-93.8457],"75960":[30.9179,-94.8544],"75961":[31.5611,-94.5],"75962":[31.6995,-94.6074],"75963":[31.6046,-94.6641],"75964":[31.6737,-94.6932],"75965":[31.7195,-94.6168],"75966":[30.8351,-93.7497],"75968":[31.2418,-93.9754],"75969":[31.4291,-94.8254],"75972":[31.5152,-94.1326],"75973":[31.7131,-93.9698],"75974":[31.9408,-94.2488],"75975":[31.8841,-94.3967],"75976":[31.4885,-94.9399],"75977":[31.0414,-93.8039],"75978":[31.5037,-94.525],"75979":[30.7752,-94.4155],"75980":[31.1569,-94.3871],"75990":[30.7752,-94.4155],"76001":[32.6289,-97.1517],"76002":[32.6255,-97.0784],"76003":[32.7417,-97.2253],"76004":[32.7357,-97.1081],"76005":[32.7714,-97.2915],"76006":[32.7785,-97.0834],"76007":[32.7714,-97.2915],"76008":[32.7004,-97.6039],"76009":[32.4395,-97.213],"76010":[32.7204,-97.0826],"76011":[32.7582,-97.1003],"76012":[32.754,-97.1348],"76013":[32.7199,-97.1442],"76014":[32.6954,-97.0876],"76015":[32.6931,-97.1347],"76016":[32.6889,-97.1905],"76017":[32.6555,-97.1599],"76018":[32.6548,-97.092],"76019":[32.7357,-97.1081],"76020":[32.9035,-97.5412],"76021":[32.8536,-97.1358],"76022":[32.8297,-97.1454],"76023":[33.0594,-97.5868],"76028":[32.5316,-97.309],"76031":[32.3485,-97.3311],"76033":[32.3509,-97.4103],"76034":[32.8872,-97.146],"76035":[32.5343,-97.6158],"76036":[32.5814,-97.3703],"76039":[32.8582,-97.0832],"76040":[32.8264,-97.0972],"76041":[32.2486,-96.8232],"76043":[32.2298,-97.7629],"76044":[32.4282,-97.5349],"76048":[32.425,-97.7742],"76049":[32.4488,-97.7285],"76050":[32.2704,-97.1792],"76051":[32.9328,-97.0808],"76052":[32.9557,-97.3372],"76053":[32.8211,-97.1756],"76054":[32.8558,-97.1755],"76055":[32.1636,-97.146],"76058":[32.4663,-97.4011],"76059":[32.3937,-97.3287],"76060":[32.6432,-97.2139],"76061":[32.5065,-97.1875],"76063":[32.5773,-97.1416],"76064":[32.2993,-97.0271],"76065":[32.4757,-96.9936],"76066":[32.7457,-97.9561],"76067":[32.8085,-98.1128],"76068":[32.8085,-98.1128],"76070":[32.2713,-97.6567],"76071":[33.007,-97.4923],"76073":[33.0826,-97.6974],"76077":[32.2812,-97.7065],"76078":[33.054,-97.4817],"76082":[32.966,-97.6836],"76084":[32.433,-97.1087],"76085":[32.7676,-97.7516],"76086":[32.7549,-97.7899],"76087":[32.7495,-97.6894],"76088":[32.8478,-97.8606],"76092":[32.9485,-97.1524],"76093":[32.2532,-97.3678],"76094":[32.7714,-97.2915],"76095":[32.844,-97.1431],"76096":[32.7714,-97.2915],"76097":[32.5421,-97.3208],"76098":[32.8957,-97.5636],"76099":[32.9343,-97.0781],"76101":[32.7714,-97.2915],"76102":[32.7589,-97.328],"76103":[32.747,-97.2604],"76104":[32.7256,-97.3184],"76105":[32.7233,-97.269],"76106":[32.7968,-97.356],"76107":[32.7392,-97.3852],"76108":[32.7822,-97.4969],"76109":[32.7002,-97.3789],"76110":[32.7065,-97.3375],"76111":[32.7824,-97.3003],"76112":[32.7493,-97.2181],"76113":[32.7714,-97.2915],"76114":[32.7796,-97.3928],"76115":[32.6796,-97.3336],"76116":[32.723,-97.4483],"76117":[32.8087,-97.2709],"76118":[32.8013,-97.1952],"76119":[32.6914,-97.2675],"76120":[32.7639,-97.1781],"76121":[32.7714,-97.2915],"76122":[32.7714,-97.2915],"76123":[32.6254,-97.3658],"76124":[32.7714,-97.2915],"76126":[32.64,-97.5448],"76127":[32.7766,-97.4293],"76129":[32.7714,-97.2915],"76130":[32.7714,-97.2915],"76131":[32.8632,-97.3377],"76132":[32.6711,-97.4056],"76133":[32.6526,-97.3758],"76134":[32.6469,-97.3325],"76135":[32.8248,-97.4519],"76136":[32.7714,-97.2915],"76137":[32.8664,-97.2891],"76140":[32.6192,-97.2735],"76147":[32.7714,-97.2915],"76148":[32.8621,-97.2508],"76150":[32.7714,-97.2915],"76155":[32.8247,-97.0503],"76161":[32.7714,-97.2915],"76162":[32.7714,-97.2915],"76163":[32.7714,-97.2915],"76164":[32.7811,-97.3546],"76166":[32.7539,-97.3362],"76177":[32.9448,-97.3124],"76179":[32.9074,-97.4257],"76180":[32.84,-97.225],"76181":[32.7714,-97.2915],"76182":[32.8828,-97.2098],"76185":[32.7714,-97.2915],"76190":[32.8314,-97.3033],"76191":[32.7714,-97.2915],"76192":[32.7714,-97.2915],"76193":[32.7714,-97.2915],"76195":[32.7254,-97.3208],"76196":[32.7714,-97.2915],"76197":[32.7714,-97.2915],"76198":[32.7714,-97.2915],"76199":[32.7714,-97.2915],"76201":[33.2289,-97.1314],"76202":[33.2255,-97.1085],"76203":[33.2148,-97.1331],"76204":[33.2074,-97.1163],"76205":[33.1903,-97.1282],"76206":[33.1694,-97.1506],"76207":[33.2285,-97.1813],"76208":[33.2117,-97.0612],"76209":[33.2346,-97.1131],"76210":[33.1428,-97.0727],"76225":[33.3698,-97.6885],"76226":[33.1062,-97.16],"76227":[33.292,-96.9879],"76228":[33.5879,-98.1574],"76230":[33.5568,-97.8373],"76233":[33.558,-96.9014],"76234":[33.2351,-97.574],"76238":[33.4965,-97.3859],"76239":[33.5398,-97.5848],"76240":[33.6547,-97.1583],"76241":[33.6104,-97.0369],"76244":[32.931,-97.2843],"76245":[33.8343,-96.8403],"76246":[33.407,-97.4716],"76247":[33.0734,-97.3093],"76248":[32.9276,-97.2489],"76249":[33.2734,-97.2675],"76250":[33.636,-97.2214],"76251":[33.6639,-97.7282],"76252":[33.6595,-97.3624],"76253":[33.6178,-97.309],"76255":[33.7982,-97.727],"76258":[33.371,-96.9446],"76259":[33.1774,-97.2848],"76261":[33.8164,-97.944],"76262":[33.0211,-97.2127],"76263":[33.4674,-97.4534],"76264":[33.731,-96.84],"76265":[33.744,-97.5568],"76266":[33.3563,-97.1814],"76267":[33.378,-97.3922],"76268":[33.6304,-96.7692],"76270":[33.4539,-97.7709],"76271":[33.4675,-96.9097],"76272":[33.5022,-97.2311],"76273":[33.659,-96.879],"76299":[32.99,-97.23],"76301":[33.9053,-98.4976],"76302":[33.8643,-98.494],"76305":[33.9995,-98.3938],"76306":[33.9519,-98.5145],"76307":[33.9137,-98.4934],"76308":[33.8633,-98.534],"76309":[33.8931,-98.5343],"76310":[33.8581,-98.5755],"76311":[33.9847,-98.5039],"76351":[33.5562,-98.6249],"76352":[33.674,-98.23],"76354":[34.086,-98.5708],"76357":[34.0728,-98.1839],"76360":[34.0362,-98.9155],"76363":[33.4748,-99.5258],"76364":[34.0806,-99.0323],"76365":[33.8196,-98.26],"76366":[33.8162,-98.6951],"76367":[33.9423,-98.6745],"76369":[33.8579,-98.8081],"76370":[33.4533,-98.9297],"76371":[33.4561,-99.6326],"76372":[33.1901,-98.7446],"76373":[34.1295,-99.1429],"76374":[33.3601,-98.7427],"76377":[34.0132,-98.2323],"76379":[33.6535,-98.465],"76380":[33.5914,-99.2587],"76384":[34.1491,-99.303],"76385":[34.1554,-99.2663],"76388":[33.3249,-99.6664],"76389":[33.5796,-98.4376],"76401":[32.2214,-98.2224],"76402":[32.2153,-98.208],"76424":[32.7532,-98.9099],"76426":[33.187,-97.781],"76427":[33.1615,-98.3874],"76429":[32.6886,-98.659],"76430":[32.719,-99.3196],"76431":[33.3193,-97.8031],"76432":[31.7882,-98.8311],"76433":[32.2884,-98.0539],"76435":[32.2701,-98.8348],"76436":[31.8949,-98.1842],"76437":[32.38,-98.9865],"76439":[32.6187,-97.9267],"76442":[31.9116,-98.6082],"76443":[32.1482,-99.1872],"76444":[32.1087,-98.5489],"76445":[32.2819,-98.5673],"76446":[32.0909,-98.3455],"76448":[32.3994,-98.8071],"76449":[32.9242,-98.337],"76450":[33.0993,-98.5832],"76452":[31.7629,-98.3695],"76453":[32.5478,-98.3632],"76454":[32.2234,-98.6834],"76455":[31.8468,-98.4017],"76457":[31.9597,-98.0249],"76458":[33.2347,-98.1681],"76459":[33.2636,-98.3931],"76460":[33.2689,-98.5024],"76461":[32.2446,-98.3775],"76462":[32.5072,-97.9536],"76463":[32.5381,-98.4219],"76464":[32.5549,-99.1656],"76465":[32.3882,-98.1673],"76466":[32.4421,-98.7342],"76467":[32.2707,-97.9075],"76468":[31.9874,-98.4298],"76469":[32.374,-99.1957],"76470":[32.4681,-98.6747],"76471":[32.128,-98.9859],"76472":[32.5979,-98.1797],"76474":[31.932,-98.768],"76475":[32.5945,-98.4995],"76476":[32.3772,-97.8802],"76481":[33.0052,-98.6892],"76483":[33.1794,-99.1838],"76484":[32.7673,-98.2987],"76485":[32.8721,-97.8667],"76486":[33.034,-98.0692],"76487":[32.968,-97.8472],"76490":[32.9555,-98.021],"76491":[33.0741,-99.0546],"76501":[31.0895,-97.3343],"76502":[31.071,-97.3898],"76503":[31.054,-97.3203],"76504":[31.0917,-97.3648],"76505":[31.09,-97.36],"76508":[31.0363,-97.492],"76511":[30.7991,-97.4263],"76513":[31.0723,-97.472],"76518":[30.8858,-97.1241],"76519":[30.9736,-96.9642],"76520":[30.8527,-96.9766],"76522":[31.2029,-97.9301],"76523":[30.7857,-97.275],"76524":[31.3088,-97.2774],"76525":[31.4388,-98.0535],"76526":[31.2956,-97.5822],"76527":[30.8076,-97.7812],"76528":[31.4177,-97.833],"76530":[30.7398,-97.4451],"76531":[31.6781,-98.1131],"76533":[31.0496,-97.4936],"76534":[30.88,-97.3857],"76537":[30.8119,-97.5942],"76538":[31.5599,-97.8456],"76539":[31.0887,-98.0099],"76540":[31.1171,-97.7278],"76541":[31.1164,-97.7278],"76542":[31.0376,-97.6809],"76543":[31.1172,-97.6651],"76544":[31.1349,-97.7756],"76545":[31.11,-97.72],"76546":[31.11,-97.72],"76547":[31.1171,-97.7278],"76548":[31.0286,-97.6115],"76549":[31.0065,-97.841],"76550":[31.068,-98.1834],"76554":[30.9863,-97.3586],"76556":[30.7304,-96.8807],"76557":[31.2533,-97.41],"76558":[31.3514,-97.6444],"76559":[31.0833,-97.5941],"76561":[31.4438,-97.5501],"76564":[31.1952,-97.3486],"76565":[31.6732,-98.3256],"76566":[31.4841,-97.9903],"76567":[30.6583,-97.0079],"76569":[30.955,-97.2228],"76570":[31.0922,-96.9755],"76571":[30.9494,-97.533],"76573":[30.8155,-97.5142],"76574":[30.5708,-97.4094],"76577":[30.6082,-97.1764],"76578":[30.592,-97.2893],"76579":[31.1759,-97.2852],"76596":[31.3902,-97.7993],"76597":[31.3902,-97.7993],"76598":[31.3902,-97.7993],"76599":[31.4706,-97.7347],"76621":[31.8916,-97.0671],"76622":[31.8589,-97.2258],"76623":[32.2054,-96.79],"76624":[31.661,-96.9882],"76626":[32.0758,-96.701],"76627":[32.1052,-97.3652],"76628":[32.0457,-96.9606],"76629":[31.156,-96.6697],"76630":[31.3267,-97.2342],"76631":[31.9907,-96.9837],"76632":[31.31,-97.09],"76633":[31.6717,-97.333],"76634":[31.7918,-97.5203],"76635":[31.7438,-96.6577],"76636":[32.1595,-97.2591],"76637":[31.7486,-97.8113],"76638":[31.5598,-97.39],"76639":[31.8974,-96.7085],"76640":[31.6725,-97.1138],"76641":[32.0275,-96.7684],"76642":[31.5357,-96.5234],"76643":[31.4582,-97.1966],"76644":[31.8593,-97.3797],"76645":[32.0149,-97.1198],"76648":[31.8436,-96.8],"76649":[31.9722,-97.8793],"76650":[31.9921,-96.8714],"76651":[32.1785,-96.8823],"76652":[32.1035,-97.5421],"76653":[31.3147,-96.6195],"76654":[31.7316,-97.0178],"76655":[31.4093,-97.2302],"76656":[31.1925,-97.0581],"76657":[31.4343,-97.4034],"76660":[31.924,-96.8907],"76661":[31.3036,-96.8889],"76664":[31.5458,-96.8381],"76665":[31.929,-97.6443],"76666":[32.0275,-96.8981],"76667":[31.6784,-96.4952],"76670":[32.1482,-96.9612],"76671":[32.0195,-97.5608],"76673":[31.7575,-96.8944],"76676":[31.8551,-96.9372],"76678":[31.6591,-96.8094],"76679":[31.9483,-96.5856],"76680":[31.1871,-96.7998],"76681":[31.9018,-96.4373],"76682":[31.5002,-96.9476],"76684":[31.7173,-97.1188],"76685":[31.3601,-97.0108],"76686":[31.7504,-96.5416],"76687":[31.4083,-96.5024],"76689":[31.6599,-97.4935],"76690":[32.0593,-97.7514],"76691":[31.7754,-97.1258],"76692":[31.9713,-97.3463],"76693":[31.7865,-96.4202],"76701":[31.5525,-97.1396],"76702":[31.5475,-97.1443],"76703":[31.5536,-97.2032],"76704":[31.5773,-97.1241],"76705":[31.6403,-97.0963],"76706":[31.5171,-97.1198],"76707":[31.5527,-97.1588],"76708":[31.5765,-97.1786],"76710":[31.535,-97.1899],"76711":[31.5175,-97.1547],"76712":[31.5051,-97.2311],"76714":[31.5536,-97.2032],"76715":[31.5536,-97.2032],"76716":[31.5536,-97.2032],"76795":[31.47,-97.24],"76797":[31.5536,-97.2032],"76798":[31.547,-97.1203],"76799":[31.5411,-97.1615],"76801":[31.7754,-98.9915],"76802":[31.7874,-98.9229],"76803":[31.7421,-98.9456],"76804":[31.7742,-99.0921],"76820":[30.767,-99.0486],"76821":[31.7468,-99.9589],"76823":[31.7503,-99.1568],"76824":[31.1123,-98.4821],"76825":[31.1509,-99.3372],"76827":[31.5176,-99.1277],"76828":[31.9986,-99.2553],"76831":[30.701,-98.9564],"76832":[30.9806,-98.6633],"76834":[31.8287,-99.427],"76836":[31.3957,-99.599],"76837":[31.2192,-99.8407],"76841":[30.839,-100.0577],"76842":[30.9214,-99.1216],"76844":[31.4458,-98.5744],"76845":[31.5549,-99.4767],"76848":[30.8816,-99.554],"76849":[30.4754,-99.7473],"76852":[31.3173,-99.3833],"76853":[31.2167,-98.4006],"76854":[30.6768,-99.5765],"76855":[31.5663,-100.0759],"76856":[30.7434,-99.2261],"76857":[31.9571,-98.9656],"76858":[31.1952,-99.5798],"76859":[30.9119,-99.7847],"76861":[31.6121,-100.1823],"76862":[31.4167,-99.7171],"76864":[31.5748,-98.6635],"76865":[31.8795,-100.1315],"76866":[31.5048,-99.9139],"76869":[30.8906,-99.0212],"76870":[31.641,-98.5276],"76871":[31.3003,-98.9128],"76872":[31.3,-99.1572],"76873":[31.5037,-99.3746],"76874":[30.47,-100.0901],"76875":[31.6436,-100.0191],"76877":[31.1627,-98.7309],"76878":[31.7215,-99.3212],"76880":[31.4685,-98.3161],"76882":[31.8034,-99.6747],"76883":[30.3274,-99.9062],"76884":[31.7529,-99.5473],"76885":[30.866,-98.8357],"76886":[31.4766,-100.2595],"76887":[30.9959,-99.1682],"76888":[31.5892,-99.6326],"76890":[31.6694,-98.8182],"76901":[31.4782,-100.4818],"76902":[31.4638,-100.437],"76903":[31.4707,-100.4386],"76904":[31.4194,-100.48],"76905":[31.4647,-100.39],"76906":[31.4638,-100.437],"76908":[31.4329,-100.4065],"76909":[31.4638,-100.437],"76930":[31.1596,-101.1918],"76932":[31.417,-101.5423],"76933":[31.8789,-100.2988],"76934":[31.6266,-100.6694],"76935":[31.2346,-100.5203],"76936":[30.8667,-100.5889],"76937":[31.3617,-100.0922],"76939":[31.2501,-100.592],"76940":[31.4518,-100.1349],"76941":[31.2829,-100.8221],"76943":[30.7164,-101.2388],"76945":[31.8951,-100.5104],"76949":[32.0484,-100.6922],"76950":[30.5558,-100.6307],"76951":[31.8351,-101.0017],"76953":[31.7397,-100.2884],"76955":[31.3132,-100.1328],"76957":[31.3741,-100.3076],"76958":[31.6453,-100.716],"77001":[29.8131,-95.3098],"77002":[29.7594,-95.3594],"77003":[29.7489,-95.3391],"77004":[29.7247,-95.3625],"77005":[29.7179,-95.4263],"77006":[29.7409,-95.3923],"77007":[29.7736,-95.4034],"77008":[29.7991,-95.4118],"77009":[29.7936,-95.3675],"77010":[29.7543,-95.3609],"77011":[29.742,-95.3073],"77012":[29.7149,-95.2819],"77013":[29.7842,-95.2301],"77014":[29.9796,-95.4625],"77015":[29.7853,-95.1852],"77016":[29.8579,-95.3032],"77017":[29.6863,-95.2555],"77018":[29.8272,-95.4266],"77019":[29.7517,-95.4054],"77020":[29.7758,-95.3121],"77021":[29.6954,-95.3562],"77022":[29.8299,-95.3769],"77023":[29.7242,-95.3178],"77024":[29.7696,-95.5201],"77025":[29.6889,-95.4341],"77026":[29.7972,-95.3288],"77027":[29.7396,-95.446],"77028":[29.8297,-95.2879],"77029":[29.763,-95.2567],"77030":[29.7041,-95.401],"77031":[29.6581,-95.5413],"77032":[29.9368,-95.3299],"77033":[29.6686,-95.3382],"77034":[29.6364,-95.2216],"77035":[29.6518,-95.4854],"77036":[29.6984,-95.5405],"77037":[29.8892,-95.3935],"77038":[29.9196,-95.4386],"77039":[29.9067,-95.3334],"77040":[29.8744,-95.5278],"77041":[29.8602,-95.5817],"77042":[29.7404,-95.5589],"77043":[29.8052,-95.5607],"77044":[29.8635,-95.1976],"77045":[29.6297,-95.4382],"77046":[29.733,-95.4306],"77047":[29.6254,-95.375],"77048":[29.6321,-95.3416],"77049":[29.8235,-95.1848],"77050":[29.9015,-95.2848],"77051":[29.6579,-95.3688],"77052":[29.7633,-95.3633],"77053":[29.5962,-95.4587],"77054":[29.6852,-95.4017],"77055":[29.7971,-95.4958],"77056":[29.7446,-95.4683],"77057":[29.7422,-95.4903],"77058":[29.5716,-95.0998],"77059":[29.5975,-95.1134],"77060":[29.9335,-95.3981],"77061":[29.6652,-95.279],"77062":[29.5721,-95.1303],"77063":[29.7348,-95.522],"77064":[29.919,-95.5569],"77065":[29.9319,-95.6106],"77066":[29.961,-95.4947],"77067":[29.9547,-95.4522],"77068":[30.0069,-95.4897],"77069":[29.9863,-95.5208],"77070":[29.9781,-95.5803],"77071":[29.6518,-95.5176],"77072":[29.699,-95.5862],"77073":[30.0198,-95.4087],"77074":[29.6896,-95.5106],"77075":[29.6223,-95.26],"77076":[29.858,-95.3834],"77077":[29.7477,-95.603],"77078":[29.8497,-95.2582],"77079":[29.7738,-95.598],"77080":[29.8159,-95.523],"77081":[29.7119,-95.4845],"77082":[29.7223,-95.6285],"77083":[29.6947,-95.6511],"77084":[29.844,-95.6623],"77085":[29.6218,-95.4819],"77086":[29.9227,-95.4939],"77087":[29.6876,-95.3011],"77088":[29.8817,-95.4539],"77089":[29.594,-95.2218],"77090":[30.0167,-95.447],"77091":[29.8534,-95.4435],"77092":[29.8324,-95.472],"77093":[29.8617,-95.3403],"77094":[29.7705,-95.7107],"77095":[29.8941,-95.6481],"77096":[29.6722,-95.4861],"77097":[29.76,-95.36],"77098":[29.735,-95.4118],"77099":[29.6709,-95.5866],"77201":[29.7633,-95.3633],"77202":[29.834,-95.4342],"77203":[29.7633,-95.3633],"77204":[29.834,-95.4342],"77205":[29.834,-95.4342],"77206":[29.834,-95.4342],"77207":[29.834,-95.4342],"77208":[29.7633,-95.3633],"77209":[29.7633,-95.3633],"77210":[29.7633,-95.3633],"77212":[29.7633,-95.3633],"77213":[29.834,-95.4342],"77215":[29.834,-95.4342],"77216":[29.834,-95.4342],"77217":[29.834,-95.4342],"77218":[29.834,-95.4342],"77219":[29.834,-95.4342],"77220":[29.834,-95.4342],"77221":[29.834,-95.4342],"77222":[29.834,-95.4342],"77223":[29.834,-95.4342],"77224":[29.834,-95.4342],"77225":[29.834,-95.4342],"77226":[29.834,-95.4342],"77227":[29.834,-95.4342],"77228":[29.834,-95.4342],"77229":[29.834,-95.4342],"77230":[29.834,-95.4342],"77231":[29.834,-95.4342],"77233":[29.834,-95.4342],"77234":[29.834,-95.4342],"77235":[29.834,-95.4342],"77236":[29.834,-95.4342],"77237":[29.834,-95.4342],"77238":[29.834,-95.4342],"77240":[29.834,-95.4342],"77241":[29.834,-95.4342],"77242":[29.834,-95.4342],"77243":[29.834,-95.4342],"77244":[29.834,-95.4342],"77245":[29.834,-95.4342],"77246":[29.64,-95.43],"77247":[29.64,-95.43],"77248":[29.834,-95.4342],"77249":[29.834,-95.4342],"77250":[29.7,-95.53],"77251":[29.834,-95.4342],"77252":[29.7633,-95.3633],"77253":[29.7633,-95.3633],"77254":[29.834,-95.4342],"77255":[29.834,-95.4342],"77256":[29.834,-95.4342],"77257":[29.834,-95.4342],"77258":[29.834,-95.4342],"77259":[29.834,-95.4342],"77260":[29.67,-95.24],"77261":[29.834,-95.4342],"77262":[29.834,-95.4342],"77263":[29.834,-95.4342],"77265":[29.834,-95.4342],"77266":[29.834,-95.4342],"77267":[29.834,-95.4342],"77268":[29.834,-95.4342],"77269":[29.834,-95.4342],"77270":[29.834,-95.4342],"77271":[29.834,-95.4342],"77272":[29.834,-95.4342],"77273":[29.834,-95.4342],"77274":[29.834,-95.4342],"77275":[29.834,-95.4342],"77276":[29.75,-95.36],"77277":[29.834,-95.4342],"77278":[29.76,-95.51],"77279":[29.834,-95.4342],"77280":[29.834,-95.4342],"77282":[29.834,-95.4342],"77284":[29.834,-95.4342],"77285":[29.75,-95.36],"77286":[29.67,-95.36],"77287":[29.834,-95.4342],"77288":[29.834,-95.4342],"77289":[29.834,-95.4342],"77290":[29.834,-95.4342],"77291":[29.834,-95.4342],"77292":[29.7443,-95.3326],"77293":[29.834,-95.4342],"77294":[29.86,-95.24],"77296":[29.76,-95.36],"77297":[29.7633,-95.3633],"77298":[29.76,-95.36],"77299":[29.834,-95.4342],"77301":[30.3125,-95.4527],"77302":[30.2238,-95.3577],"77303":[30.3814,-95.3749],"77304":[30.3217,-95.5285],"77305":[30.2906,-95.3832],"77306":[30.2277,-95.2851],"77315":[29.834,-95.4342],"77316":[30.3587,-95.6857],"77318":[30.4416,-95.5394],"77320":[30.847,-95.597],"77325":[30.0569,-95.1835],"77326":[30.5209,-94.8221],"77327":[30.33,-95.0202],"77328":[30.3963,-95.194],"77331":[30.6027,-95.1086],"77332":[30.6285,-94.6319],"77333":[30.3365,-95.7723],"77334":[30.772,-95.3838],"77335":[30.6079,-94.9592],"77336":[30.0565,-95.1051],"77337":[30.1222,-95.5966],"77338":[30.0041,-95.2825],"77339":[30.0569,-95.1835],"77340":[30.6448,-95.5798],"77341":[30.7142,-95.5508],"77342":[30.7813,-95.5953],"77343":[30.7235,-95.5508],"77344":[30.7235,-95.5508],"77345":[30.0336,-95.261],"77346":[30.0042,-95.1728],"77347":[29.9988,-95.2622],"77348":[30.7235,-95.5508],"77349":[30.7235,-95.5508],"77350":[30.8568,-94.8561],"77351":[30.6829,-94.8976],"77352":[0.0,0.0],"77353":[30.2094,-95.7508],"77354":[30.2333,-95.5502],"77355":[30.1598,-95.7402],"77356":[30.4411,-95.7097],"77357":[30.1579,-95.198],"77358":[30.5354,-95.4532],"77359":[30.7126,-95.3095],"77360":[30.8225,-95.1056],"77362":[30.1581,-95.6814],"77363":[30.2969,-95.8498],"77364":[30.7593,-95.2295],"77365":[30.1237,-95.2686],"77367":[30.853,-95.4036],"77368":[30.4513,-94.8433],"77369":[30.4596,-94.7436],"77371":[30.498,-94.9966],"77372":[30.2326,-95.1993],"77373":[30.0532,-95.3773],"77374":[30.3765,-94.6361],"77375":[30.0739,-95.6201],"77376":[30.4334,-94.6804],"77377":[30.0615,-95.6821],"77378":[30.4441,-95.4506],"77379":[30.0377,-95.5326],"77380":[30.1441,-95.4703],"77381":[30.1716,-95.4985],"77382":[30.2106,-95.5257],"77383":[30.0799,-95.4172],"77384":[30.2257,-95.4924],"77385":[30.1877,-95.4288],"77386":[30.1288,-95.4239],"77387":[30.1199,-95.4247],"77388":[30.0505,-95.4695],"77389":[30.1044,-95.5066],"77391":[30.0799,-95.4172],"77393":[30.329,-95.4635],"77396":[29.9507,-95.2622],"77399":[30.8179,-94.8691],"77401":[29.7023,-95.4611],"77402":[29.834,-95.4342],"77404":[28.9828,-95.9694],"77406":[29.6436,-95.798],"77407":[29.6625,-95.7272],"77410":[29.9691,-95.6972],"77411":[29.7111,-95.5963],"77412":[29.5714,-96.4541],"77413":[29.7844,-95.6849],"77414":[28.8636,-95.9173],"77415":[28.9386,-95.7366],"77417":[29.479,-95.9681],"77418":[29.9658,-96.2531],"77419":[28.8649,-96.218],"77420":[29.2529,-95.974],"77422":[29.0236,-95.5867],"77423":[29.8072,-95.9755],"77426":[30.1833,-96.2347],"77428":[28.7253,-96.175],"77429":[29.9766,-95.6358],"77430":[29.3014,-95.7036],"77431":[29.1737,-95.8207],"77432":[29.0575,-96.2075],"77433":[29.8836,-95.7025],"77434":[29.5842,-96.3354],"77435":[29.4705,-96.1211],"77436":[29.405,-96.2369],"77437":[29.2008,-96.2743],"77440":[28.8864,-96.14],"77441":[29.7217,-95.8977],"77442":[29.476,-96.4919],"77443":[29.3475,-96.1933],"77444":[29.3327,-95.7702],"77445":[30.092,-96.0716],"77446":[30.0836,-95.9866],"77447":[30.0729,-95.8104],"77448":[29.4137,-96.0929],"77449":[29.8323,-95.736],"77450":[29.745,-95.7326],"77451":[29.447,-96.0036],"77452":[30.0477,-96.3269],"77453":[29.2161,-96.0263],"77454":[29.5353,-96.2303],"77455":[29.1114,-96.4033],"77456":[28.9547,-96.0928],"77457":[28.6908,-95.9675],"77458":[28.9362,-96.2265],"77459":[29.5704,-95.5423],"77460":[29.405,-96.3864],"77461":[29.4117,-95.8273],"77463":[29.08,-95.7497],"77464":[29.5948,-95.9727],"77465":[28.715,-96.2154],"77466":[29.8173,-96.0073],"77467":[29.2052,-96.1369],"77468":[29.1825,-95.9086],"77469":[29.5511,-95.7329],"77470":[29.5311,-96.5752],"77471":[29.5497,-95.7982],"77473":[29.8019,-96.1014],"77474":[29.7826,-96.1592],"77475":[29.4936,-96.6711],"77476":[29.6794,-95.9772],"77477":[29.6228,-95.5678],"77478":[29.6196,-95.607],"77479":[29.5785,-95.6066],"77480":[29.0415,-95.7004],"77481":[29.4683,-95.5776],"77482":[29.016,-95.8905],"77483":[28.8259,-95.9046],"77484":[30.071,-95.9253],"77485":[29.6397,-96.0456],"77486":[29.1408,-95.6694],"77487":[29.6197,-95.6349],"77488":[29.3205,-96.0858],"77489":[29.5962,-95.5115],"77491":[29.7858,-95.8244],"77492":[29.7858,-95.8244],"77493":[29.8678,-95.8298],"77494":[29.7404,-95.8304],"77496":[29.5255,-95.7565],"77497":[29.6161,-95.5577],"77498":[29.6396,-95.65],"77501":[29.6911,-95.2091],"77502":[29.6789,-95.1982],"77503":[29.6877,-95.1572],"77504":[29.6501,-95.1885],"77505":[29.6518,-95.1464],"77506":[29.7009,-95.1989],"77507":[29.6224,-95.0545],"77508":[29.5699,-95.1066],"77510":[29.4032,-95.0734],"77511":[29.412,-95.2515],"77512":[29.4238,-95.2441],"77514":[29.662,-94.593],"77515":[29.181,-95.4467],"77516":[29.1694,-95.4319],"77517":[29.3673,-95.1361],"77518":[29.5055,-94.9893],"77519":[30.225,-94.6096],"77520":[29.7461,-94.9653],"77521":[29.7705,-94.9695],"77522":[29.7355,-94.9774],"77523":[29.77,-94.8608],"77530":[29.7914,-95.1317],"77531":[29.0325,-95.4026],"77532":[29.9249,-95.0578],"77533":[30.1133,-94.643],"77534":[29.2291,-95.3435],"77535":[30.0102,-94.8787],"77536":[29.6826,-95.1222],"77538":[29.9978,-94.5746],"77539":[29.4585,-95.0345],"77541":[29.0357,-95.3379],"77542":[28.9541,-95.3597],"77545":[29.5293,-95.4626],"77546":[29.5224,-95.1879],"77547":[29.7392,-95.24],"77549":[29.5294,-95.201],"77550":[29.2983,-94.793],"77551":[29.2766,-94.8303],"77552":[29.2205,-94.9444],"77553":[29.3322,-94.8002],"77554":[29.2243,-94.9637],"77555":[29.3305,-94.8002],"77560":[29.8752,-94.5938],"77561":[30.151,-94.7338],"77562":[29.8296,-95.0393],"77563":[29.3398,-94.9926],"77564":[30.1463,-94.6424],"77565":[29.5236,-95.0276],"77566":[29.0393,-95.4401],"77568":[29.3676,-94.9742],"77571":[29.6884,-95.0513],"77572":[29.6658,-95.0194],"77573":[29.5173,-95.0963],"77574":[29.5116,-95.0582],"77575":[30.0946,-94.7378],"77577":[29.2667,-95.2889],"77578":[29.4694,-95.3503],"77580":[29.8477,-94.8908],"77581":[29.5617,-95.2721],"77582":[30.0542,-94.6764],"77583":[29.4203,-95.4537],"77584":[29.5405,-95.3208],"77585":[30.2841,-94.5294],"77586":[29.5832,-95.037],"77587":[29.6601,-95.2258],"77588":[29.5127,-95.2542],"77590":[29.397,-94.9203],"77591":[29.3891,-94.9942],"77592":[29.3305,-94.8002],"77597":[29.8591,-94.6759],"77598":[29.5564,-95.144],"77611":[30.0192,-93.8326],"77612":[30.4132,-93.9913],"77613":[30.0108,-94.363],"77614":[30.2894,-93.7488],"77615":[30.3129,-94.0731],"77616":[30.5678,-94.18],"77617":[29.523,-94.4755],"77619":[29.9448,-93.9152],"77622":[29.8668,-94.3187],"77623":[29.5472,-94.4267],"77624":[30.675,-94.3534],"77625":[30.3703,-94.3259],"77626":[30.204,-93.8866],"77627":[29.9716,-94.0012],"77629":[30.0015,-94.4189],"77630":[30.0709,-93.8659],"77631":[30.093,-93.7366],"77632":[30.1775,-93.8409],"77639":[30.0631,-93.8599],"77640":[29.8709,-93.9643],"77641":[29.8476,-94.1297],"77642":[29.9212,-93.927],"77643":[29.9621,-93.8679],"77650":[29.4266,-94.6861],"77651":[29.977,-93.9626],"77655":[29.7336,-93.8943],"77656":[30.3244,-94.1907],"77657":[30.2818,-94.2191],"77659":[30.1491,-94.3733],"77660":[30.6387,-94.1663],"77661":[29.7809,-94.39],"77662":[30.1502,-94.0008],"77663":[30.5185,-94.4458],"77664":[30.5978,-94.412],"77665":[29.8157,-94.3395],"77670":[30.1316,-94.0155],"77701":[30.0688,-94.1039],"77702":[30.0871,-94.1254],"77703":[30.1132,-94.1197],"77704":[30.1236,-94.1539],"77705":[30.0211,-94.1157],"77706":[30.0948,-94.1648],"77707":[30.0686,-94.1755],"77708":[30.14,-94.1604],"77709":[30.14,-94.14],"77710":[30.086,-94.1018],"77713":[30.085,-94.2607],"77720":[30.086,-94.1018],"77725":[30.086,-94.1018],"77726":[30.1118,-94.1901],"77801":[30.6327,-96.3662],"77802":[30.6582,-96.3351],"77803":[30.6913,-96.3714],"77805":[30.6521,-96.341],"77806":[30.6744,-96.37],"77807":[30.6711,-96.4799],"77808":[30.8202,-96.3059],"77830":[30.5443,-96.0018],"77831":[30.7065,-95.9546],"77833":[30.1774,-96.4028],"77834":[30.1669,-96.3977],"77835":[30.1767,-96.5925],"77836":[30.5298,-96.7143],"77837":[30.9782,-96.6711],"77838":[30.5994,-96.7708],"77840":[30.6045,-96.3123],"77841":[30.5726,-96.327],"77842":[30.6521,-96.341],"77843":[30.6521,-96.341],"77844":[30.6521,-96.341],"77845":[30.5118,-96.3171],"77850":[31.3138,-95.9935],"77852":[30.4322,-96.7561],"77853":[30.3579,-96.8248],"77855":[31.1593,-96.1234],"77856":[31.0001,-96.5171],"77857":[30.7833,-96.7237],"77859":[30.8669,-96.5843],"77861":[30.7326,-96.0911],"77862":[30.7871,-96.2641],"77863":[30.3863,-96.5633],"77864":[30.9533,-95.9091],"77865":[31.2309,-96.2375],"77866":[30.4491,-96.217],"77867":[30.7344,-96.565],"77868":[30.3576,-96.0594],"77869":[30.35,-96.06],"77870":[31.051,-96.4291],"77871":[31.0705,-96.125],"77872":[30.9285,-96.0925],"77873":[30.5796,-95.8959],"77875":[30.6075,-95.9579],"77876":[30.6133,-95.8883],"77878":[30.4702,-96.4804],"77879":[30.4076,-96.5358],"77880":[30.3182,-96.2249],"77881":[30.5334,-96.3032],"77882":[30.8977,-96.39],"77901":[28.809,-96.9993],"77902":[28.9255,-97.1006],"77903":[28.8053,-97.0036],"77904":[28.8675,-96.999],"77905":[28.7525,-97.0338],"77950":[28.4023,-96.853],"77951":[28.6495,-96.8945],"77954":[29.091,-97.2812],"77957":[28.9527,-96.6488],"77960":[28.6955,-97.2358],"77961":[28.8597,-96.3386],"77962":[29.0308,-96.5031],"77963":[28.6993,-97.3783],"77964":[29.4426,-96.9234],"77967":[29.3125,-97.2917],"77968":[28.8994,-96.8003],"77969":[28.7671,-96.6492],"77970":[28.8439,-96.4641],"77971":[28.7724,-96.4793],"77973":[28.5511,-97.0099],"77974":[28.9229,-97.3042],"77975":[29.57,-97.1031],"77976":[28.9543,-97.0906],"77977":[28.6923,-96.8254],"77978":[28.6651,-96.5506],"77979":[28.6011,-96.6259],"77982":[28.4483,-96.4058],"77983":[28.4101,-96.7023],"77984":[29.428,-97.164],"77986":[29.4876,-96.7946],"77987":[29.3426,-97.0756],"77988":[28.8489,-96.8905],"77989":[28.9974,-97.1539],"77990":[28.4587,-96.8928],"77991":[28.8068,-96.6042],"77993":[28.8472,-97.448],"77994":[29.1792,-97.46],"77995":[29.284,-97.1306],"78001":[28.2639,-99.2802],"78002":[29.2705,-98.7421],"78003":[29.7276,-99.0453],"78004":[29.8274,-98.5753],"78005":[29.0531,-98.8582],"78006":[29.8931,-98.6857],"78007":[28.4805,-98.3503],"78008":[28.767,-98.2566],"78009":[29.3553,-98.8824],"78010":[29.9441,-99.0364],"78011":[28.8649,-98.707],"78012":[28.7858,-98.4886],"78013":[29.9677,-98.905],"78014":[28.4398,-99.2328],"78015":[29.7327,-98.6646],"78016":[29.1521,-98.909],"78017":[28.6782,-99.1747],"78019":[28.0405,-99.3563],"78021":[28.4887,-98.8518],"78022":[28.3204,-98.1162],"78023":[29.6321,-98.7542],"78024":[30.0027,-99.4823],"78025":[30.0731,-99.269],"78026":[28.903,-98.544],"78027":[29.9406,-98.5166],"78028":[30.0416,-99.1408],"78029":[30.0332,-99.141],"78039":[29.3082,-98.8125],"78040":[27.5085,-99.5036],"78041":[27.5706,-99.4263],"78042":[27.5062,-99.5075],"78043":[27.5305,-99.1392],"78044":[27.5065,-99.5087],"78045":[27.6821,-99.6384],"78046":[27.375,-99.4557],"78049":[27.53,-99.48],"78050":[29.073,-98.4842],"78052":[29.2366,-98.7945],"78054":[29.3258,-98.6911],"78055":[29.8475,-99.3215],"78056":[29.5441,-98.9231],"78057":[29.0595,-99.0204],"78058":[30.1725,-99.485],"78059":[29.2117,-98.8552],"78060":[28.4492,-98.1019],"78061":[28.8923,-99.0944],"78062":[28.7397,-98.1786],"78063":[29.6796,-98.9484],"78064":[28.9924,-98.4831],"78065":[29.0994,-98.6241],"78066":[29.4718,-98.8877],"78067":[27.1502,-99.2921],"78069":[29.2205,-98.6678],"78070":[29.9238,-98.3788],"78071":[28.4756,-98.1782],"78072":[28.4198,-98.5693],"78073":[29.275,-98.6677],"78074":[29.9523,-98.7944],"78075":[28.6373,-98.2565],"78076":[26.9055,-99.174],"78101":[29.3805,-98.265],"78102":[28.4222,-97.7616],"78104":[28.3931,-97.776],"78107":[28.5295,-97.5925],"78108":[29.575,-98.228],"78109":[29.5173,-98.3217],"78111":[29.0464,-97.7514],"78112":[29.2308,-98.372],"78113":[28.9814,-98.0156],"78114":[29.1693,-98.1936],"78115":[29.5451,-98.0408],"78116":[29.0514,-97.8343],"78117":[28.9445,-97.9707],"78118":[28.8828,-97.9071],"78119":[28.8046,-97.8456],"78121":[29.3509,-98.113],"78122":[29.3961,-97.7566],"78123":[29.6011,-98.0451],"78124":[29.5683,-98.1517],"78125":[28.5552,-97.9407],"78130":[29.7229,-98.0742],"78131":[29.703,-98.1245],"78132":[29.7565,-98.1983],"78133":[29.9112,-98.2374],"78135":[29.703,-98.1245],"78140":[29.3016,-97.7529],"78141":[28.9142,-97.5946],"78142":[28.5278,-97.7831],"78143":[29.2484,-97.8287],"78144":[28.9562,-97.8982],"78145":[28.6526,-97.9921],"78146":[28.6164,-97.8082],"78147":[29.0619,-98.0825],"78148":[29.5465,-98.2954],"78150":[29.5227,-98.2798],"78151":[28.8876,-97.7138],"78152":[29.4353,-98.1952],"78154":[29.579,-98.2778],"78155":[29.5613,-97.9628],"78156":[29.6118,-97.9712],"78159":[29.2655,-97.6227],"78160":[29.2319,-97.9351],"78161":[29.2888,-98.0509],"78162":[28.5708,-97.7972],"78163":[29.7767,-98.4626],"78164":[28.9892,-97.5121],"78201":[29.4711,-98.5356],"78202":[29.4275,-98.4601],"78203":[29.4148,-98.4601],"78204":[29.4059,-98.5078],"78205":[29.4237,-98.4925],"78206":[29.4375,-98.4616],"78207":[29.4229,-98.526],"78208":[29.44,-98.459],"78209":[29.4821,-98.4554],"78210":[29.3977,-98.4658],"78211":[29.3499,-98.5638],"78212":[29.4388,-98.4935],"78213":[29.5234,-98.5273],"78214":[29.3641,-98.4924],"78215":[29.4413,-98.4793],"78216":[29.5334,-98.4975],"78217":[29.5395,-98.4194],"78218":[29.4969,-98.4032],"78219":[29.4492,-98.3446],"78220":[29.4106,-98.4128],"78221":[29.3309,-98.5054],"78222":[29.3831,-98.396],"78223":[29.3579,-98.4356],"78224":[29.3374,-98.5393],"78225":[29.3875,-98.5245],"78226":[29.393,-98.5511],"78227":[29.4027,-98.6433],"78228":[29.4589,-98.5699],"78229":[29.5042,-98.5697],"78230":[29.5407,-98.5521],"78231":[29.5714,-98.5414],"78232":[29.5863,-98.4769],"78233":[29.5563,-98.3643],"78234":[29.4623,-98.4414],"78235":[29.3494,-98.4422],"78236":[29.3763,-98.6263],"78237":[29.4208,-98.5645],"78238":[29.451,-98.6169],"78239":[29.5182,-98.3627],"78240":[29.5189,-98.6006],"78241":[29.4375,-98.4616],"78242":[29.3509,-98.6109],"78243":[29.4375,-98.4616],"78244":[29.4793,-98.3476],"78245":[29.4189,-98.6895],"78246":[29.4375,-98.4616],"78247":[29.5855,-98.4071],"78248":[29.5894,-98.5201],"78249":[29.5612,-98.6117],"78250":[29.5054,-98.6688],"78251":[29.4597,-98.6555],"78252":[29.346,-98.6464],"78253":[29.4599,-98.7479],"78254":[29.5551,-98.7442],"78255":[29.6701,-98.6873],"78256":[29.6169,-98.6252],"78257":[29.6495,-98.6137],"78258":[29.6562,-98.4967],"78259":[29.6283,-98.4445],"78260":[29.7026,-98.4759],"78261":[29.7055,-98.4191],"78262":[29.42,-98.49],"78263":[29.3614,-98.3174],"78264":[29.1733,-98.4723],"78265":[29.4375,-98.4616],"78266":[29.6643,-98.3118],"78268":[29.4375,-98.4616],"78269":[29.4375,-98.4616],"78270":[29.4375,-98.4616],"78275":[29.53,-98.42],"78278":[29.4375,-98.4616],"78279":[29.4375,-98.4616],"78280":[29.4375,-98.4616],"78283":[29.4375,-98.4616],"78284":[29.4426,-98.4913],"78285":[29.4375,-98.4616],"78286":[29.42,-98.49],"78287":[29.45,-98.5],"78288":[29.4241,-98.4936],"78289":[29.4375,-98.4616],"78291":[29.4375,-98.4616],"78292":[29.4375,-98.4616],"78293":[29.4375,-98.4616],"78294":[29.4375,-98.4616],"78295":[29.4375,-98.4616],"78296":[29.4375,-98.4616],"78297":[29.4375,-98.4616],"78298":[29.4375,-98.4616],"78299":[29.4375,-98.4616],"78330":[27.7817,-97.9086],"78332":[27.7432,-98.0836],"78333":[27.7522,-98.0697],"78335":[27.9125,-97.1884],"78336":[27.9095,-97.1591],"78338":[26.8698,-97.7698],"78339":[27.8051,-97.7922],"78340":[28.0968,-97.2106],"78341":[27.5925,-98.4142],"78342":[27.6475,-98.0814],"78343":[27.5886,-97.783],"78344":[27.4295,-98.8385],"78347":[27.5988,-97.462],"78349":[27.3849,-98.309],"78350":[28.2264,-97.9617],"78351":[27.6745,-97.7486],"78352":[27.9736,-97.6761],"78353":[26.9249,-98.1922],"78355":[27.2242,-98.1408],"78357":[27.88,-98.6061],"78358":[28.0614,-97.0411],"78359":[27.9222,-97.29],"78360":[26.8831,-98.8936],"78361":[27.2997,-98.6829],"78362":[27.8682,-97.2069],"78363":[27.4229,-97.8407],"78364":[27.5159,-97.8561],"78368":[28.0802,-97.8097],"78369":[27.445,-99.0011],"78370":[27.9403,-97.5838],"78371":[27.4685,-98.9586],"78372":[27.9487,-97.9838],"78373":[27.7707,-97.1051],"78374":[27.8935,-97.3169],"78375":[27.3544,-98.133],"78376":[27.4184,-98.514],"78377":[28.3169,-97.2767],"78379":[27.3217,-97.7787],"78380":[27.7984,-97.6995],"78381":[28.0131,-97.0936],"78382":[28.0308,-97.0688],"78383":[28.025,-97.8705],"78384":[27.7654,-98.2503],"78385":[27.1496,-97.8576],"78387":[28.0339,-97.5196],"78389":[28.2121,-97.7127],"78390":[27.9765,-97.3966],"78391":[28.1693,-97.7549],"78393":[28.2232,-97.3192],"78401":[27.7941,-97.403],"78402":[27.8262,-97.3857],"78403":[27.777,-97.4632],"78404":[27.7683,-97.4013],"78405":[27.7762,-97.4271],"78406":[27.7684,-97.5144],"78407":[27.8042,-97.4356],"78408":[27.7945,-97.4381],"78409":[27.8146,-97.527],"78410":[27.8458,-97.596],"78411":[27.7311,-97.3877],"78412":[27.7061,-97.3537],"78413":[27.691,-97.3983],"78414":[27.677,-97.365],"78415":[27.7262,-97.4078],"78416":[27.7536,-97.4347],"78417":[27.729,-97.4494],"78418":[27.6349,-97.3103],"78419":[27.6952,-97.2694],"78426":[27.777,-97.4632],"78427":[27.8006,-97.3964],"78460":[27.8006,-97.3964],"78461":[27.79,-97.42],"78463":[27.777,-97.4632],"78465":[27.777,-97.4632],"78466":[27.777,-97.4632],"78467":[27.777,-97.4632],"78468":[27.777,-97.4632],"78469":[27.777,-97.4632],"78470":[27.8,-97.39],"78471":[27.8,-97.39],"78472":[27.7402,-97.5792],"78473":[27.79,-97.39],"78474":[27.8,-97.39],"78475":[27.79,-97.39],"78476":[27.8,-97.39],"78477":[27.8,-97.39],"78478":[27.79,-97.39],"78480":[27.777,-97.4632],"78501":[26.2154,-98.2359],"78502":[26.2567,-98.1989],"78503":[26.1771,-98.252],"78504":[26.2556,-98.2303],"78505":[26.2034,-98.23],"78516":[26.1906,-98.1164],"78520":[25.9337,-97.5174],"78521":[25.9221,-97.4612],"78522":[25.9017,-97.4975],"78523":[25.981,-97.5209],"78526":[25.9717,-97.4699],"78535":[26.2451,-97.7416],"78536":[26.6801,-98.4125],"78537":[26.1671,-98.0529],"78538":[26.3328,-97.9622],"78539":[26.2792,-98.1832],"78540":[26.3017,-98.1633],"78541":[26.4481,-98.2842],"78542":[26.4661,-98.0695],"78543":[26.2974,-97.9884],"78545":[26.562,-99.1335],"78547":[26.3396,-98.6876],"78548":[26.2897,-98.6479],"78549":[26.4671,-98.0393],"78550":[26.1951,-97.689],"78551":[26.2447,-97.7206],"78552":[26.1831,-97.7468],"78553":[26.1906,-97.6961],"78557":[26.1028,-98.2536],"78558":[26.2928,-98.0378],"78559":[26.1666,-97.8261],"78560":[26.2426,-98.4747],"78561":[26.4648,-97.9111],"78562":[26.2999,-97.9247],"78563":[26.6279,-98.2498],"78564":[26.7114,-99.11],"78565":[26.2434,-98.5617],"78566":[26.1158,-97.4107],"78567":[26.0492,-97.745],"78568":[26.1904,-97.5423],"78569":[26.4089,-97.7817],"78570":[26.1513,-97.9185],"78572":[26.2159,-98.3253],"78573":[26.2937,-98.3008],"78574":[26.3189,-98.3701],"78575":[26.0353,-97.5496],"78576":[26.278,-98.4469],"78577":[26.1771,-98.187],"78578":[26.0539,-97.3125],"78579":[26.0922,-97.9533],"78580":[26.4792,-97.7967],"78582":[26.3942,-98.8104],"78583":[26.2339,-97.5513],"78584":[26.4215,-99.0025],"78585":[26.5164,-99.1123],"78586":[26.1337,-97.6447],"78588":[26.7167,-98.4539],"78589":[26.2044,-98.1537],"78590":[26.5012,-97.6397],"78591":[26.5808,-98.5138],"78592":[26.0787,-97.8494],"78593":[26.2555,-97.8257],"78594":[26.344,-97.8123],"78595":[26.272,-98.5627],"78596":[26.1694,-97.9887],"78597":[26.2393,-97.1936],"78598":[26.5548,-97.425],"78599":[26.1595,-97.9908],"78602":[30.1388,-97.2921],"78604":[29.5233,-97.6839],"78605":[30.7411,-98.0529],"78606":[30.0874,-98.4107],"78607":[30.8256,-98.515],"78608":[30.9325,-97.9702],"78609":[30.7538,-98.4295],"78610":[30.0918,-97.8534],"78611":[30.7766,-98.2642],"78612":[30.0966,-97.4976],"78613":[30.5052,-97.8203],"78614":[29.4321,-97.5531],"78615":[30.4872,-97.3676],"78616":[29.9528,-97.581],"78617":[30.1745,-97.6134],"78618":[30.4613,-99.1707],"78619":[30.1072,-98.0327],"78620":[30.2268,-98.1029],"78621":[30.3231,-97.3737],"78622":[29.7561,-97.7764],"78623":[29.9627,-98.2088],"78624":[30.2817,-98.8799],"78626":[30.633,-97.6707],"78627":[30.6327,-97.6772],"78628":[30.6411,-97.7511],"78629":[29.5086,-97.4495],"78630":[30.5052,-97.8203],"78631":[30.2816,-99.241],"78632":[29.6661,-97.4906],"78633":[30.7177,-97.7543],"78634":[30.5257,-97.5672],"78635":[30.2269,-98.5396],"78636":[30.2948,-98.3691],"78638":[29.6726,-97.8306],"78639":[30.6662,-98.4475],"78640":[29.9966,-97.8335],"78641":[30.5835,-97.8575],"78642":[30.663,-97.9316],"78643":[30.7151,-98.6109],"78644":[29.8868,-97.6769],"78645":[30.449,-97.9669],"78646":[30.5788,-97.8531],"78648":[29.6826,-97.6499],"78650":[30.2811,-97.2139],"78651":[30.4554,-97.7167],"78652":[30.1238,-97.8393],"78653":[30.3388,-97.5323],"78654":[30.5784,-98.2751],"78655":[29.8394,-97.8508],"78656":[29.8953,-97.8144],"78657":[30.5443,-98.3739],"78658":[29.5952,-97.5911],"78659":[30.1858,-97.1198],"78660":[30.4421,-97.6299],"78661":[29.7239,-97.7449],"78662":[29.9906,-97.4081],"78663":[30.4429,-98.4365],"78664":[30.5145,-97.668],"78665":[30.5145,-97.668],"78666":[29.8754,-97.9404],"78667":[30.0544,-98.0036],"78669":[30.3899,-98.0539],"78670":[29.7706,-97.8186],"78671":[30.2088,-98.6131],"78672":[30.8609,-98.4596],"78673":[30.7415,-97.5891],"78674":[30.6747,-97.5929],"78675":[30.4549,-98.6646],"78676":[30.0265,-98.1123],"78677":[29.3739,-97.565],"78680":[30.6568,-97.6026],"78681":[30.5083,-97.6789],"78682":[30.6568,-97.6026],"78683":[30.6568,-97.6026],"78691":[30.4394,-97.62],"78701":[30.2713,-97.7426],"78702":[30.2638,-97.7166],"78703":[30.2907,-97.7648],"78704":[30.2428,-97.7658],"78705":[30.2896,-97.7396],"78708":[30.3264,-97.7713],"78709":[30.3264,-97.7713],"78710":[30.352,-97.7151],"78711":[30.3264,-97.7713],"78712":[30.2852,-97.7354],"78713":[30.2672,-97.7431],"78714":[30.2672,-97.7431],"78715":[30.2672,-97.7431],"78716":[30.3162,-97.8588],"78717":[30.506,-97.7472],"78718":[30.3264,-97.7713],"78719":[30.1802,-97.6667],"78720":[30.3264,-97.7713],"78721":[30.2721,-97.6868],"78722":[30.2893,-97.715],"78723":[30.3085,-97.6849],"78724":[30.296,-97.6396],"78725":[30.2562,-97.6243],"78726":[30.43,-97.8326],"78727":[30.4254,-97.7195],"78728":[30.4417,-97.6811],"78729":[30.4521,-97.7688],"78730":[30.3607,-97.8241],"78731":[30.3471,-97.7609],"78732":[30.3752,-97.9007],"78733":[30.3314,-97.8666],"78734":[30.3705,-97.9427],"78735":[30.249,-97.8414],"78736":[30.2444,-97.916],"78737":[30.2107,-97.9427],"78738":[30.3337,-97.9824],"78739":[30.172,-97.8784],"78741":[30.2315,-97.7223],"78742":[30.2313,-97.6703],"78744":[30.1876,-97.7472],"78745":[30.2063,-97.7956],"78746":[30.2971,-97.8181],"78747":[30.1204,-97.7433],"78748":[30.1743,-97.8225],"78749":[30.2166,-97.8508],"78750":[30.4224,-97.7967],"78751":[30.3093,-97.7242],"78752":[30.3316,-97.7004],"78753":[30.3649,-97.6827],"78754":[30.3423,-97.6673],"78755":[30.3264,-97.7713],"78756":[30.3223,-97.739],"78757":[30.3437,-97.7316],"78758":[30.3764,-97.7078],"78759":[30.4036,-97.7526],"78760":[30.3264,-97.7713],"78761":[30.3264,-97.7713],"78762":[30.3264,-97.7713],"78763":[30.3354,-97.5598],"78764":[30.4455,-97.6595],"78765":[30.3264,-97.7713],"78766":[30.2672,-97.7431],"78767":[30.2672,-97.7431],"78768":[30.2672,-97.7431],"78769":[30.3264,-97.7713],"78772":[30.3264,-97.7713],"78773":[30.3264,-97.7713],"78774":[30.3264,-97.7713],"78778":[30.3264,-97.7713],"78779":[30.3264,-97.7713],"78780":[30.26,-97.74],"78781":[30.26,-97.74],"78783":[30.3264,-97.7713],"78785":[30.26,-97.74],"78786":[30.35,-97.65],"78788":[30.26,-97.74],"78789":[30.26,-97.74],"78798":[30.37,-97.68],"78799":[30.2672,-97.7431],"78801":[29.2172,-99.7931],"78802":[29.2237,-99.7794],"78827":[28.4364,-99.7486],"78828":[29.8282,-100.105],"78829":[28.9286,-99.6115],"78830":[28.5693,-99.5781],"78832":[29.3096,-100.4155],"78833":[29.6795,-100.0084],"78834":[28.5278,-99.8635],"78836":[28.3598,-99.586],"78837":[29.7484,-101.2628],"78838":[29.4952,-99.7126],"78839":[28.687,-99.8264],"78840":[29.4102,-100.8932],"78841":[29.3465,-100.9289],"78842":[29.412,-100.9342],"78843":[29.3576,-100.7808],"78847":[29.3627,-100.8968],"78850":[29.3398,-99.2835],"78851":[30.2186,-102.1067],"78852":[28.7028,-100.4818],"78853":[28.679,-100.4784],"78860":[28.5119,-100.3112],"78861":[29.3475,-99.1414],"78870":[29.2911,-99.6372],"78871":[29.8066,-101.5606],"78872":[28.9488,-99.8507],"78873":[29.769,-99.7479],"78877":[28.9256,-100.5912],"78879":[29.6495,-99.7165],"78880":[30.0188,-100.231],"78881":[29.3267,-99.4781],"78883":[29.6455,-99.2469],"78884":[29.5972,-99.5585],"78885":[29.7452,-99.5551],"78886":[29.1404,-99.1428],"78931":[30.0292,-96.4448],"78932":[30.1404,-96.6861],"78933":[29.7512,-96.39],"78934":[29.7032,-96.5527],"78935":[29.7092,-96.4865],"78938":[29.8459,-96.6966],"78940":[29.8868,-96.6463],"78941":[29.7095,-97.0987],"78942":[30.1777,-96.9332],"78943":[29.6994,-96.5942],"78944":[29.9904,-96.4843],"78945":[29.904,-96.886],"78946":[30.2383,-96.7613],"78947":[30.4191,-97.0524],"78948":[30.3177,-96.9702],"78949":[29.7993,-97.1006],"78950":[29.9134,-96.4961],"78951":[29.6016,-96.83],"78952":[29.9349,-96.9675],"78953":[29.9241,-97.3119],"78954":[30.0411,-96.7341],"78956":[29.6882,-96.9106],"78957":[30.0178,-97.1494],"78959":[29.6868,-97.2958],"78960":[30.0702,-96.902],"78961":[30.0652,-96.6961],"78962":[29.6787,-96.755],"78963":[29.9523,-97.0361],"79001":[35.2748,-102.6652],"79002":[35.2273,-100.7592],"79003":[35.6059,-100.1007],"79005":[36.4429,-100.5238],"79007":[35.6678,-101.3974],"79008":[35.6678,-101.3974],"79009":[34.5137,-102.883],"79010":[35.5314,-102.2541],"79011":[35.5855,-100.1679],"79012":[35.2664,-102.0978],"79013":[36.0412,-102.0007],"79014":[35.9045,-100.3841],"79015":[34.9772,-101.9247],"79016":[34.9803,-101.9188],"79018":[35.6837,-102.3302],"79019":[35.0967,-101.3813],"79021":[33.9753,-102.0314],"79022":[36.2629,-102.6019],"79024":[36.3907,-100.3612],"79025":[34.9106,-102.2002],"79027":[34.5341,-102.3046],"79029":[35.8823,-101.968],"79031":[34.2415,-102.4213],"79032":[34.2789,-101.8941],"79033":[36.2963,-100.9843],"79034":[36.4309,-100.2068],"79035":[34.6417,-102.7241],"79036":[35.6441,-101.5845],"79039":[35.2168,-101.1285],"79040":[36.2868,-101.4089],"79041":[34.0669,-101.8736],"79042":[34.7219,-101.8256],"79043":[34.3878,-102.1155],"79044":[35.8856,-102.3969],"79045":[34.837,-102.405],"79046":[36.1618,-100.2736],"79051":[36.4774,-102.2601],"79052":[34.3737,-101.737],"79053":[34.3847,-102.587],"79054":[35.4391,-100.8059],"79056":[36.223,-100.2702],"79057":[35.2312,-100.6008],"79058":[35.6359,-101.9602],"79059":[35.7193,-100.7027],"79061":[35.5297,-100.4242],"79062":[36.0596,-101.4729],"79063":[34.5444,-102.1069],"79064":[34.1844,-102.1414],"79065":[35.538,-100.9579],"79066":[35.5334,-100.956],"79068":[35.3808,-101.4304],"79070":[36.3748,-100.8156],"79072":[34.1962,-101.7259],"79073":[34.0689,-101.827],"79077":[35.0523,-100.2807],"79078":[35.702,-101.5346],"79079":[35.2142,-100.249],"79080":[35.5685,-101.1721],"79081":[36.1927,-101.1952],"79082":[34.2387,-102.3188],"79083":[35.8377,-101.45],"79084":[36.3335,-101.9886],"79085":[34.7437,-102.5064],"79086":[36.0097,-101.8123],"79087":[36.374,-102.9845],"79088":[34.5583,-101.8039],"79091":[34.901,-102.0788],"79092":[35.2241,-102.4214],"79093":[36.2716,-101.0443],"79094":[34.7928,-101.5471],"79095":[34.8717,-100.2207],"79096":[35.4319,-100.2568],"79097":[35.4278,-101.174],"79098":[35.1916,-102.2118],"79101":[35.2032,-101.8421],"79102":[35.1999,-101.8496],"79103":[35.1751,-101.7976],"79104":[35.1939,-101.7975],"79105":[35.4015,-101.8951],"79106":[35.1977,-101.8949],"79107":[35.2309,-101.806],"79108":[35.2779,-101.83],"79109":[35.1663,-101.8868],"79110":[35.1545,-101.8641],"79111":[35.2286,-101.6703],"79114":[35.05,-101.8175],"79116":[35.2454,-101.999],"79117":[35.3089,-101.843],"79118":[35.0763,-101.8349],"79119":[35.0642,-101.9743],"79120":[35.1964,-101.8034],"79121":[35.1697,-101.9266],"79124":[35.2703,-101.943],"79159":[35.222,-101.8313],"79166":[35.4015,-101.8951],"79168":[35.4015,-101.8951],"79172":[35.4015,-101.8951],"79174":[35.4015,-101.8951],"79178":[35.4015,-101.8951],"79185":[35.4015,-101.8951],"79187":[35.26,-101.71],"79189":[35.4015,-101.8951],"79201":[34.4104,-100.2364],"79220":[33.7718,-100.8021],"79221":[34.1423,-101.5257],"79223":[34.2295,-100.4573],"79225":[34.2439,-99.5157],"79226":[34.9529,-100.8952],"79227":[33.9912,-99.6983],"79229":[33.628,-100.8197],"79230":[34.7644,-100.0286],"79231":[33.9446,-101.0922],"79233":[34.5303,-100.4455],"79234":[34.2321,-101.0038],"79235":[33.9743,-101.3346],"79236":[33.6206,-100.3229],"79237":[34.8698,-100.6806],"79239":[34.6724,-100.7259],"79240":[34.8843,-100.7674],"79241":[34.1458,-101.4259],"79243":[33.7413,-100.9833],"79244":[34.0525,-100.8361],"79245":[34.7122,-100.5347],"79247":[34.3452,-99.4196],"79248":[34.0217,-100.2986],"79250":[33.8768,-101.6046],"79251":[34.918,-100.4252],"79252":[34.2955,-99.7494],"79255":[34.3796,-101.0465],"79256":[33.8977,-100.8528],"79257":[34.4641,-101.3169],"79258":[34.2245,-101.3096],"79259":[34.3759,-100.3948],"79261":[34.4036,-100.8449],"79311":[33.85,-101.8611],"79312":[33.9976,-102.4416],"79313":[33.8043,-102.1652],"79314":[33.5997,-103.0168],"79316":[33.1698,-102.2762],"79320":[33.86,-102.67],"79322":[33.6562,-101.2287],"79323":[32.9711,-102.8313],"79324":[33.8731,-102.7599],"79325":[34.386,-102.9901],"79326":[34.053,-102.206],"79329":[33.6504,-101.6786],"79330":[33.0594,-101.1881],"79331":[32.7367,-101.9569],"79336":[33.5788,-102.3676],"79338":[33.5932,-102.3627],"79339":[33.9212,-102.3207],"79342":[32.9162,-102.4221],"79343":[33.6666,-101.5277],"79344":[33.8487,-102.8985],"79345":[33.3321,-102.2492],"79346":[33.7251,-102.7594],"79347":[34.2193,-102.7496],"79350":[33.7296,-101.8355],"79351":[32.9773,-101.8271],"79353":[33.8104,-102.5656],"79355":[33.1894,-102.8294],"79356":[33.2017,-101.3922],"79357":[33.6851,-101.3836],"79358":[33.4575,-102.1584],"79359":[32.9317,-102.5781],"79360":[32.721,-102.6828],"79363":[33.6919,-101.9836],"79364":[33.4373,-101.6435],"79366":[33.5334,-101.6796],"79367":[33.5918,-102.1692],"79369":[33.9256,-102.1564],"79370":[33.479,-100.8571],"79371":[34.0697,-102.5255],"79372":[33.4482,-102.4898],"79373":[33.1988,-101.822],"79376":[33.1826,-102.5768],"79377":[32.9298,-102.1278],"79378":[33.0473,-102.4282],"79379":[33.5988,-102.6199],"79380":[33.7354,-102.3419],"79381":[33.3299,-101.7122],"79382":[33.5059,-102.0091],"79383":[33.3451,-101.9203],"79401":[33.5865,-101.8606],"79402":[33.5922,-101.8511],"79403":[33.6196,-101.8098],"79404":[33.526,-101.8333],"79405":[33.57,-101.84],"79406":[33.5819,-101.8778],"79407":[33.5684,-101.9423],"79408":[33.5659,-101.9267],"79409":[33.5779,-101.8552],"79410":[33.5693,-101.8904],"79411":[33.5704,-101.8626],"79412":[33.5463,-101.8577],"79413":[33.5466,-101.8871],"79414":[33.5497,-101.9187],"79415":[33.6021,-101.876],"79416":[33.5924,-101.9367],"79423":[33.5146,-101.8795],"79424":[33.5159,-101.9344],"79430":[33.61,-101.8213],"79452":[33.61,-101.8213],"79453":[33.5779,-101.8552],"79457":[33.5779,-101.8552],"79464":[33.4896,-102.0109],"79490":[33.61,-101.8213],"79491":[33.61,-101.8213],"79493":[33.61,-101.8213],"79499":[33.61,-101.8213],"79501":[32.7489,-99.8953],"79502":[33.1301,-100.2344],"79503":[32.8832,-99.6964],"79504":[32.3916,-99.3777],"79505":[33.584,-99.7923],"79506":[32.082,-100.3111],"79508":[32.2894,-99.8103],"79510":[32.3803,-99.5184],"79511":[32.2942,-101.3197],"79512":[32.3987,-100.8609],"79516":[32.5671,-100.8854],"79517":[32.853,-101.103],"79518":[33.3632,-100.6937],"79519":[32.0482,-99.6775],"79520":[32.8799,-100.128],"79521":[33.158,-99.7309],"79525":[32.6423,-99.9239],"79526":[32.6294,-100.7547],"79527":[32.5821,-101.0021],"79528":[33.2518,-100.5825],"79529":[33.4183,-99.8137],"79530":[32.136,-99.7351],"79532":[32.4112,-100.7123],"79533":[32.8712,-99.5783],"79534":[32.7893,-100.2278],"79535":[32.2026,-100.4972],"79536":[32.4444,-99.9924],"79537":[32.2919,-100.2107],"79538":[31.9781,-99.6809],"79539":[33.3749,-99.8473],"79540":[33.1298,-100.0559],"79541":[32.1553,-99.8229],"79543":[32.722,-100.4008],"79544":[33.3105,-99.8594],"79545":[32.4276,-100.5391],"79546":[32.8555,-100.4705],"79547":[33.1842,-99.8894],"79548":[33.0771,-99.959],"79549":[32.7451,-100.9175],"79550":[32.7179,-100.9176],"79553":[32.9453,-99.7859],"79556":[32.4726,-100.3979],"79560":[32.7209,-100.2543],"79561":[32.4898,-100.1195],"79562":[32.235,-99.8244],"79563":[32.4477,-99.8684],"79565":[32.3627,-101.043],"79566":[32.0318,-100.1183],"79567":[31.962,-99.9551],"79601":[32.4682,-99.7182],"79602":[32.4178,-99.7214],"79603":[32.4679,-99.7619],"79604":[32.4487,-99.7331],"79605":[32.432,-99.7724],"79606":[32.392,-99.7746],"79607":[32.4204,-99.8381],"79608":[32.4487,-99.7331],"79697":[32.4487,-99.7331],"79698":[32.4751,-99.7348],"79699":[32.4665,-99.7117],"79701":[31.9896,-102.0626],"79702":[31.9637,-102.0801],"79703":[31.9721,-102.1369],"79704":[31.8693,-102.0317],"79705":[32.0295,-102.0915],"79706":[31.8816,-102.0134],"79707":[32.0199,-102.1476],"79708":[31.8693,-102.0317],"79710":[31.8693,-102.0317],"79711":[31.9973,-102.0779],"79712":[31.8693,-102.0317],"79713":[32.5273,-101.716],"79714":[32.3201,-102.5409],"79718":[30.9843,-103.7446],"79719":[31.4639,-103.3971],"79720":[32.291,-101.4382],"79721":[32.2506,-101.4786],"79730":[31.2295,-103.0538],"79731":[31.3969,-102.3544],"79733":[32.1105,-101.3669],"79734":[30.6131,-103.9364],"79735":[30.8908,-102.8799],"79738":[32.7523,-101.45],"79739":[31.8491,-101.5269],"79740":[31.0629,-102.3885],"79741":[31.9541,-102.625],"79742":[31.3459,-102.8568],"79743":[31.2729,-102.6926],"79744":[30.9156,-101.9152],"79745":[31.855,-103.0913],"79748":[32.4125,-101.6517],"79749":[32.3046,-101.8762],"79752":[31.3673,-102.1577],"79754":[31.7068,-103.5988],"79755":[31.5424,-101.9244],"79756":[31.5813,-102.9003],"79758":[32.0245,-102.3572],"79759":[31.8599,-102.7413],"79760":[31.7652,-102.3543],"79761":[31.8579,-102.3523],"79762":[31.889,-102.3548],"79763":[31.8341,-102.4162],"79764":[31.8767,-102.4375],"79765":[31.9375,-102.3944],"79766":[31.7827,-102.3449],"79768":[31.8457,-102.3676],"79769":[31.8457,-102.3676],"79770":[31.864,-103.9297],"79772":[31.4467,-103.5791],"79776":[31.7334,-102.5879],"79777":[31.5387,-103.1267],"79778":[31.2266,-101.9441],"79780":[31.0428,-103.6364],"79781":[30.6935,-101.86],"79782":[32.14,-101.8099],"79783":[32.3575,-101.9607],"79785":[31.282,-103.8057],"79786":[30.9443,-103.7893],"79788":[31.5692,-103.0067],"79789":[31.7527,-103.1561],"79821":[31.9907,-106.5976],"79830":[29.9112,-103.4604],"79831":[30.3068,-103.6704],"79832":[30.3641,-103.6472],"79834":[29.3635,-103.2121],"79835":[31.9344,-106.5929],"79836":[31.5494,-106.2038],"79837":[31.924,-105.2099],"79838":[31.4745,-106.1589],"79839":[31.2985,-105.8452],"79842":[30.1886,-103.2214],"79843":[30.293,-104.0848],"79845":[29.5573,-104.3551],"79846":[29.4702,-104.0055],"79847":[31.7559,-104.7633],"79848":[30.1221,-102.3984],"79849":[31.5508,-106.2507],"79851":[31.1938,-105.3219],"79852":[29.3315,-103.5922],"79853":[31.4467,-106.0692],"79854":[30.62,-104.4811],"79855":[31.0391,-104.8245],"79901":[31.7584,-106.4783],"79902":[31.7763,-106.4932],"79903":[31.7862,-106.4406],"79904":[31.8533,-106.4381],"79905":[31.7674,-106.4304],"79906":[31.8092,-106.4247],"79907":[31.7089,-106.3293],"79908":[31.8265,-106.3857],"79910":[31.6948,-106.3],"79911":[31.8925,-106.5426],"79912":[31.8383,-106.5364],"79913":[31.9373,-106.5724],"79914":[31.6948,-106.3],"79915":[31.7432,-106.3686],"79916":[31.8136,-106.4122],"79917":[31.6948,-106.3],"79918":[31.8136,-106.4122],"79920":[31.8214,-106.4614],"79922":[31.8218,-106.5732],"79923":[31.6948,-106.3],"79924":[31.9021,-106.4149],"79925":[31.7814,-106.3613],"79926":[31.6948,-106.3],"79927":[31.6446,-106.2737],"79928":[31.6631,-106.1401],"79929":[31.6948,-106.3],"79930":[31.8048,-106.4568],"79931":[31.6948,-106.3],"79932":[31.8623,-106.5932],"79934":[31.9386,-106.4073],"79935":[31.7718,-106.3303],"79936":[31.7677,-106.3016],"79937":[31.6948,-106.3],"79938":[31.8045,-105.9661],"79940":[31.6948,-106.3],"79941":[31.7587,-106.4869],"79942":[31.6948,-106.3],"79943":[31.7587,-106.4869],"79944":[31.7587,-106.4869],"79945":[31.7587,-106.4869],"79946":[31.7587,-106.4869],"79947":[31.7587,-106.4869],"79948":[31.7587,-106.4869],"79949":[31.7587,-106.4869],"79950":[31.7587,-106.4869],"79951":[31.7587,-106.4869],"79952":[31.7587,-106.4869],"79953":[31.7587,-106.4869],"79954":[31.7587,-106.4869],"79955":[31.7587,-106.4869],"79958":[31.7587,-106.4869],"79960":[31.7587,-106.4869],"79961":[31.6948,-106.3],"79968":[31.7705,-106.5048],"79976":[31.6948,-106.3],"79978":[31.7587,-106.4869],"79980":[31.6948,-106.3],"79990":[31.6948,-106.3],"79995":[31.6948,-106.3],"79996":[31.6948,-106.3],"79997":[31.6948,-106.3],"79998":[31.6948,-106.3],"79999":[31.6948,-106.3],"88510":[31.6948,-106.3],"88511":[31.6948,-106.3],"88512":[31.6948,-106.3],"88513":[31.6948,-106.3],"88514":[31.6948,-106.3],"88515":[31.6948,-106.3],"88516":[31.84,-106.43],"88517":[31.6948,-106.3],"88518":[31.6948,-106.3],"88519":[31.6948,-106.3],"88520":[31.6948,-106.3],"88521":[31.6948,-106.3],"88523":[31.6948,-106.3],"88524":[31.6948,-106.3],"88525":[31.6948,-106.3],"88526":[31.6948,-106.3],"88527":[31.6948,-106.3],"88528":[31.6948,-106.3],"88529":[31.6948,-106.3],"88530":[31.6948,-106.3],"88531":[31.6948,-106.3],"88532":[31.6948,-106.3],"88533":[31.6948,-106.3],"88534":[31.6948,-106.3],"88535":[31.6948,-106.3],"88536":[31.6948,-106.3],"88538":[31.6948,-106.3],"88539":[31.6948,-106.3],"88540":[31.6948,-106.3],"88541":[31.6948,-106.3],"88542":[31.6948,-106.3],"88543":[31.6948,-106.3],"88544":[31.6948,-106.3],"88545":[31.6948,-106.3],"88546":[31.6948,-106.3],"88547":[31.6948,-106.3],"88548":[31.6948,-106.3],"88549":[31.6948,-106.3],"88550":[31.6948,-106.3],"88553":[31.6948,-106.3],"88554":[31.6948,-106.3],"88555":[31.6948,-106.3],"88556":[31.6948,-106.3],"88557":[31.6948,-106.3],"88558":[31.6948,-106.3],"88559":[31.6948,-106.3],"88560":[31.6948,-106.3],"88561":[31.6948,-106.3],"88562":[31.6948,-106.3],"88563":[31.6948,-106.3],"88565":[31.6948,-106.3],"88566":[31.6948,-106.3],"88567":[31.6948,-106.3],"88568":[31.6948,-106.3],"88569":[31.6948,-106.3],"88570":[31.6948,-106.3],"88571":[31.6948,-106.3],"88572":[31.6948,-106.3],"88573":[31.6948,-106.3],"88574":[31.6948,-106.3],"88575":[31.6948,-106.3],"88576":[31.6948,-106.3],"88577":[31.6948,-106.3],"88578":[31.6948,-106.3],"88579":[31.6948,-106.3],"88580":[31.6948,-106.3],"88581":[31.6948,-106.3],"88582":[31.6948,-106.3],"88583":[31.6948,-106.3],"88584":[31.6948,-106.3],"88585":[31.6948,-106.3],"88586":[31.6948,-106.3],"88587":[31.6948,-106.3],"88588":[31.6948,-106.3],"88589":[31.6948,-106.3],"88590":[31.6948,-106.3],"88595":[31.6948,-106.3],"20002":[38.9024,-76.9901]};
+const slots = {carelogs:null, caregivers:null, clients:null};
+const LABEL = {carelogs:'Care logs', caregivers:'Caregivers', clients:'Clients'};
+
+function slotEl(k){ return document.querySelector('.slot[data-k="'+k+'"]'); }
+function markSlot(k, txt, ok){ const el=slotEl(k); if(!el)return;
+  el.querySelector('.ss').textContent = txt; el.classList.toggle('ok', !!ok); }
+function setMsg(t){ document.getElementById('upmsg').textContent = t || ''; }
+function updateBtn(){ document.getElementById('runbtn').disabled = !(slots.carelogs && slots.caregivers); }
+
+async function ingest(fileList){
+  setMsg('');
+  for(const file of fileList){
+    let rows;
+    try{
+      const buf = await file.arrayBuffer();
+      rows = HiringEngine.parseWorkbook(buf, XLSX);
+    }catch(e){ setMsg('Could not read '+file.name+'. Make sure it is a WellSky .xls/.xlsx export.'); continue; }
+    const kind = HiringEngine.detectKind(rows);
+    if(!kind){ setMsg(file.name+' didn\'t match care logs, caregivers, or clients — check the export.'); continue; }
+    slots[kind] = rows;
+    markSlot(kind, file.name.slice(0,22)+' · '+rows.length.toLocaleString()+' rows', true);
+  }
+  updateBtn();
+}
+
+function run(){
+  if(!(slots.carelogs && slots.caregivers)) return;
+  let DATA;
+  try{ DATA = HiringEngine.analyze(slots.carelogs, slots.caregivers, slots.clients, ZIPGEO); }
+  catch(e){ setMsg('Analysis failed: '+e.message); return; }
+  render(DATA);
+  document.getElementById('uploader').style.display='none';
+  document.getElementById('results').style.display='block';
+  window.scrollTo(0,0);
+  setTimeout(()=>{ if(window.__map) window.__map.invalidateSize(); }, 250);
+}
+
+function reset(){
+  slots.carelogs=slots.caregivers=slots.clients=null;
+  ['carelogs','caregivers','clients'].forEach(k=>markSlot(k,'waiting…',false));
+  document.getElementById('fileinput').value='';
+  setMsg(''); updateBtn();
+  document.getElementById('results').style.display='none';
+  document.getElementById('uploader').style.display='grid';
+  window.scrollTo(0,0);
+}
+
+(function wire(){
+  const dz=document.getElementById('dropzone'), fi=document.getElementById('fileinput');
+  document.getElementById('browsebtn').addEventListener('click',()=>fi.click());
+  dz.addEventListener('click',e=>{ if(e.target.id!=='browsebtn') fi.click(); });
+  fi.addEventListener('change',e=>ingest(e.target.files));
+  ['dragenter','dragover'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.add('drag');}));
+  ['dragleave','drop'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.remove('drag');}));
+  dz.addEventListener('drop',e=>{ if(e.dataTransfer&&e.dataTransfer.files) ingest(e.dataTransfer.files); });
+  document.getElementById('runbtn').addEventListener('click',run);
+  document.getElementById('resetbtn').addEventListener('click',reset);
+})();
+
+</script>
+</body>
+</html>
