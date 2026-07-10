@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RAH Audit Tool</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+:root{
+  --bg:#f7f5f0;
+  --surface:#ffffff;
+  --surface-soft:#fdfcfa;
+  --border:#e8e3da;
+  --border-soft:#f0ece4;
+  --text:#3a3530;
+  --text-soft:#6b6459;
+  --muted:#9a9388;
+  --accent:#e89572;
+  --accent-soft:#fbe8df;
+  --accent-deep:#d97b54;
+  --sage:#a3c4a8;
+  --sage-soft:#e6f0e7;
+  --sage-deep:#6fa377;
+  --butter:#f2d394;
+  --butter-soft:#fbf2dc;
+  --butter-deep:#d4a843;
+  --coral:#eaa39a;
+  --coral-soft:#fbe4e1;
+  --coral-deep:#d4756a;
+  --sky:#a8c5d6;
+  --sky-soft:#e4eef3;
+  --sky-deep:#6e9cb5;
+  --lavender:#c2b3d4;
+  --lavender-soft:#efe9f5;
+  --font:'Inter',system-ui,sans-serif;
+  --mono:'JetBrains Mono',monospace;
+  --radius:14px;
+  --radius-sm:10px;
+  --shadow:0 1px 3px rgba(58,53,48,0.04),0 4px 16px rgba(58,53,48,0.04);
+  --shadow-soft:0 1px 2px rgba(58,53,48,0.03);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:var(--font);font-size:14px;line-height:1.5;-webkit-font-smoothing:antialiased;}
+
+/* Header */
+header{background:var(--surface);border-bottom:1px solid var(--border);padding:18px 36px;display:flex;align-items:center;gap:16px;position:sticky;top:0;z-index:10;}
+.logo{background:linear-gradient(135deg,var(--accent),var(--accent-deep));color:white;font-weight:700;font-size:13px;padding:7px 13px;border-radius:9px;letter-spacing:0.04em;box-shadow:0 2px 8px rgba(217,123,84,0.25);}
+header h1{font-size:16px;font-weight:600;color:var(--text);letter-spacing:-0.01em;}
+#week-label{font-size:12.5px;color:var(--muted);margin-left:auto;font-family:var(--mono);background:var(--bg);padding:6px 12px;border-radius:8px;}
+
+.main{max-width:1180px;margin:0 auto;padding:36px;}
+
+/* Upload */
+.upload-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:20px;}
+.drop-zone{border:2px dashed var(--border);background:var(--surface);padding:30px 26px;cursor:pointer;transition:all .2s ease;position:relative;border-radius:var(--radius);display:flex;flex-direction:column;align-items:flex-start;}
+.drop-zone:hover,.drop-zone.over{border-color:var(--accent);background:var(--accent-soft);transform:translateY(-1px);}
+.drop-zone.loaded{border-style:solid;border-color:var(--sage);background:var(--sage-soft);}
+.drop-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.drop-icon{width:42px;height:42px;border-radius:11px;background:var(--accent-soft);display:flex;align-items:center;justify-content:center;margin-bottom:14px;transition:all .2s;}
+.drop-zone.loaded .drop-icon{background:var(--sage);}
+.drop-icon svg{width:22px;height:22px;stroke:var(--accent-deep);}
+.drop-zone.loaded .drop-icon svg{stroke:white;}
+.drop-label{font-size:11px;font-weight:600;color:var(--accent-deep);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:5px;}
+.drop-zone.loaded .drop-label{color:var(--sage-deep);}
+.drop-title{font-size:16px;font-weight:600;margin-bottom:3px;color:var(--text);}
+.drop-sub{font-size:12.5px;color:var(--muted);}
+.drop-status{margin-top:12px;font-size:12px;font-family:var(--mono);color:var(--sage-deep);font-weight:500;display:none;align-items:center;gap:6px;}
+.drop-zone.loaded .drop-status{display:flex;}
+
+/* Log */
+.log-box{background:var(--surface-soft);border:1px solid var(--border-soft);border-radius:var(--radius-sm);padding:12px 16px;margin-bottom:18px;font-family:var(--mono);font-size:11.5px;color:var(--text-soft);max-height:96px;overflow-y:auto;display:none;}
+.log-line{padding:2px 0;}
+.log-ok{color:var(--sage-deep);}
+.log-err{color:var(--coral-deep);}
+
+/* Run button */
+.run-btn{width:100%;padding:15px;background:linear-gradient(135deg,var(--accent),var(--accent-deep));color:white;border:none;font-family:var(--font);font-size:15px;font-weight:600;cursor:pointer;border-radius:var(--radius-sm);transition:all .2s;margin-bottom:40px;box-shadow:0 3px 12px rgba(217,123,84,0.25);letter-spacing:0.01em;}
+.run-btn:hover{transform:translateY(-1px);box-shadow:0 5px 18px rgba(217,123,84,0.32);}
+.run-btn:active{transform:translateY(0);}
+.run-btn:disabled{background:var(--border);color:var(--muted);cursor:not-allowed;box-shadow:none;transform:none;}
+
+/* Progress */
+.progress-bar{height:4px;background:var(--border-soft);border-radius:4px;margin-bottom:18px;display:none;overflow:hidden;}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-deep));width:0%;transition:width .4s;border-radius:4px;}
+
+/* Summary cards */
+.summary-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:30px;}
+.stat-card{background:var(--surface);border:1px solid var(--border);padding:20px 22px;border-radius:var(--radius);box-shadow:var(--shadow-soft);transition:transform .15s;}
+.stat-card:hover{transform:translateY(-2px);}
+.stat-card.is-total{background:linear-gradient(135deg,#ffffff,var(--accent-soft));}
+.stat-card.is-action{background:linear-gradient(135deg,#ffffff,var(--coral-soft));}
+.stat-card.is-verify{background:linear-gradient(135deg,#ffffff,var(--butter-soft));}
+.stat-card.is-mileage{background:linear-gradient(135deg,#ffffff,var(--sage-soft));}
+.stat-top{display:flex;align-items:center;gap:8px;margin-bottom:14px;}
+.stat-dot{width:9px;height:9px;border-radius:50%;}
+.stat-dot.d-total{background:var(--accent);}
+.stat-dot.d-action{background:var(--coral-deep);}
+.stat-dot.d-verify{background:var(--butter-deep);}
+.stat-dot.d-mileage{background:var(--sage-deep);}
+.stat-label{font-size:11px;font-weight:600;color:var(--text-soft);text-transform:uppercase;letter-spacing:0.06em;}
+.stat-value{font-size:34px;font-weight:700;line-height:1;color:var(--text);letter-spacing:-0.02em;}
+
+/* Tabs */
+.tabs{display:flex;gap:4px;margin-bottom:24px;background:var(--surface);padding:5px;border-radius:12px;border:1px solid var(--border);width:fit-content;}
+.tab-btn{padding:9px 22px;font-size:13px;font-weight:600;border:none;background:transparent;color:var(--muted);cursor:pointer;border-radius:8px;transition:all .15s;}
+.tab-btn:hover{color:var(--text);}
+.tab-btn.active{color:var(--accent-deep);background:var(--accent-soft);}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;}
+
+/* Toolbar */
+.toolbar{display:flex;gap:12px;align-items:center;margin-bottom:20px;flex-wrap:wrap;}
+.search-box{position:relative;flex:1;min-width:220px;}
+.search-box svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);width:16px;height:16px;stroke:var(--muted);}
+.search-box input{width:100%;padding:10px 14px 10px 38px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface);font-family:var(--font);font-size:13.5px;color:var(--text);transition:all .15s;}
+.search-box input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft);}
+.search-box input::placeholder{color:var(--muted);}
+.export-btn{padding:10px 18px;background:var(--surface);border:1px solid var(--border);color:var(--text-soft);font-size:13px;font-weight:600;font-family:var(--font);cursor:pointer;border-radius:var(--radius-sm);transition:all .15s;display:flex;align-items:center;gap:7px;}
+.export-btn:hover{border-color:var(--sage);background:var(--sage-soft);color:var(--sage-deep);}
+.export-btn svg{width:15px;height:15px;stroke:currentColor;}
+
+/* Filter chips */
+.filters{display:flex;gap:7px;margin-bottom:24px;flex-wrap:wrap;align-items:center;}
+.filter-chip{padding:6px 14px;font-size:12px;font-weight:500;border:1px solid var(--border);background:var(--surface);color:var(--text-soft);cursor:pointer;border-radius:20px;transition:all .15s;display:flex;align-items:center;gap:6px;}
+.filter-chip:hover{border-color:var(--accent);color:var(--accent-deep);}
+.filter-chip.active{background:var(--accent);border-color:var(--accent);color:white;}
+.filter-chip .count{font-size:10.5px;opacity:0.7;font-weight:600;}
+.filter-chip.active .count{opacity:0.9;}
+
+/* Flag cards */
+.flag-group{margin-bottom:28px;}
+.group-header{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.group-title{font-size:13px;font-weight:700;color:var(--text);text-transform:uppercase;letter-spacing:0.04em;}
+.group-line{flex:1;height:1px;background:var(--border);}
+.group-count{font-size:12px;font-weight:600;color:var(--muted);font-family:var(--mono);}
+
+.flag-list{display:flex;flex-direction:column;gap:8px;}
+.flag-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px 18px;display:grid;grid-template-columns:auto 1fr auto;gap:16px;align-items:center;transition:all .15s;border-left:3px solid var(--border);}
+.flag-card:hover{box-shadow:var(--shadow);transform:translateX(2px);}
+.flag-card.sev-action{border-left-color:var(--coral-deep);}
+.flag-card.sev-verify{border-left-color:var(--butter-deep);}
+
+.flag-badges{display:flex;flex-direction:column;gap:5px;align-items:flex-start;min-width:92px;}
+.flag-main{min-width:0;}
+.flag-entity{font-size:14px;font-weight:600;color:var(--text);margin-bottom:2px;}
+.flag-counterpart{font-size:12.5px;color:var(--text-soft);margin-bottom:4px;}
+.flag-counterpart .arrow{color:var(--muted);margin:0 5px;}
+.flag-detail{font-size:12.5px;color:var(--text-soft);line-height:1.45;}
+.flag-meta{display:flex;flex-direction:column;align-items:flex-end;gap:6px;min-width:90px;}
+.flag-date{font-size:12px;color:var(--muted);font-family:var(--mono);white-space:nowrap;}
+
+.badge{display:inline-flex;align-items:center;padding:3px 9px;font-size:10.5px;font-weight:600;border-radius:6px;letter-spacing:0.02em;white-space:nowrap;}
+.badge-report-billing{background:var(--sage-soft);color:var(--sage-deep);}
+.badge-report-payroll{background:var(--accent-soft);color:var(--accent-deep);}
+.badge-report-cross{background:var(--lavender-soft);color:#7a6296;}
+.badge-type{background:var(--sky-soft);color:var(--sky-deep);}
+.badge-sev-action{background:var(--coral-soft);color:var(--coral-deep);}
+.badge-sev-verify{background:var(--butter-soft);color:var(--butter-deep);}
+
+/* Mileage table */
+.mile-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow-soft);}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+thead th{text-align:left;padding:13px 18px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.05em;color:var(--muted);background:var(--surface-soft);border-bottom:1px solid var(--border);}
+tbody tr{border-bottom:1px solid var(--border-soft);transition:background .1s;}
+tbody tr:last-child{border-bottom:none;}
+tbody tr:hover{background:var(--surface-soft);}
+tbody td{padding:13px 18px;color:var(--text-soft);}
+.td-name{font-weight:600;color:var(--text);}
+.td-miles{font-family:var(--mono);font-weight:600;color:var(--text);}
+
+.empty-state{text-align:center;padding:56px 0;color:var(--muted);display:none;}
+.empty-state .big{font-size:42px;margin-bottom:12px;}
+.empty-state p{font-size:14px;}
+
+.results-section{display:none;}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">RAH</div>
+  <h1>Billing &amp; Payroll Audit Tool</h1>
+  <span id="week-label">No report loaded</span>
+</header>
+
+<div class="main">
+  <div class="upload-grid">
+    <div class="drop-zone" id="zone-billing">
+      <input type="file" accept=".pdf" id="file-billing">
+      <div class="drop-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      </div>
+      <div class="drop-label">Report 1</div>
+      <div class="drop-title">Billing PDF</div>
+      <div class="drop-sub">WellSky Billing Report export</div>
+      <div class="drop-status" id="status-billing"></div>
+    </div>
+    <div class="drop-zone" id="zone-payroll">
+      <input type="file" accept=".pdf" id="file-payroll">
+      <div class="drop-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+      </div>
+      <div class="drop-label">Report 2</div>
+      <div class="drop-title">Payroll PDF</div>
+      <div class="drop-sub">WellSky Payroll Report export</div>
+      <div class="drop-status" id="status-payroll"></div>
+    </div>
+  </div>
+
+  <div class="progress-bar" id="progress-bar"><div class="progress-fill" id="progress-fill"></div></div>
+  <div class="log-box" id="log-box"></div>
+  <button class="run-btn" id="run-btn" disabled>Run Audit</button>
+
+  <div class="results-section" id="results">
+    <div class="summary-grid">
+      <div class="stat-card is-total">
+        <div class="stat-top"><span class="stat-dot d-total"></span><span class="stat-label">Total Flags</span></div>
+        <div class="stat-value" id="stat-total">0</div>
+      </div>
+      <div class="stat-card is-action">
+        <div class="stat-top"><span class="stat-dot d-action"></span><span class="stat-label">Require Action</span></div>
+        <div class="stat-value" id="stat-action">0</div>
+      </div>
+      <div class="stat-card is-verify">
+        <div class="stat-top"><span class="stat-dot d-verify"></span><span class="stat-label">Need Verification</span></div>
+        <div class="stat-value" id="stat-verify">0</div>
+      </div>
+      <div class="stat-card is-mileage">
+        <div class="stat-top"><span class="stat-dot d-mileage"></span><span class="stat-label">Mileage Entries</span></div>
+        <div class="stat-value" id="stat-mileage">0</div>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab-btn active" data-tab="flags">Flags</button>
+      <button class="tab-btn" data-tab="mileage">Mileage</button>
+    </div>
+
+    <div class="tab-panel active" id="tab-flags">
+      <div class="toolbar">
+        <div class="search-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <input type="text" id="search-input" placeholder="Search by caregiver, client, or detail...">
+        </div>
+        <button class="export-btn" id="export-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Export CSV
+        </button>
+      </div>
+
+      <div class="filters" id="filters"></div>
+
+      <div id="flag-groups"></div>
+      <div class="empty-state" id="empty-state"><div class="big">🌿</div><p>No flags match your search or filter.</p></div>
+    </div>
+
+    <div class="tab-panel" id="tab-mileage">
+      <div class="toolbar">
+        <div class="search-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <input type="text" id="mile-search" placeholder="Search mileage...">
+        </div>
+      </div>
+      <div class="mile-wrap">
+        <table>
+          <thead><tr><th>Client</th><th>Caregiver</th><th>Date</th><th>Miles</th><th>Note / Reason</th><th>Type</th></tr></thead>
+          <tbody id="mile-body"></tbody>
+        </table>
+      </div>
+      <div class="empty-state" id="mile-empty"><div class="big">🌿</div><p>No mileage entries found.</p></div>
+    </div>
+  </div>
+</div>
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+let billingFile=null,payrollFile=null,allFlags=[],allMileage=[],activeFilter='all',searchTerm='';
+
+const TYPE_LABELS={
+  rate:'Rate Inconsistency',hours:'Hours / Visit',zero:'$0.00 / Missing Note',
+  '15min':'15-Min Increment',holiday:'Holiday Rate',ot:'Overtime',
+  livein:'Live-In',overlap:'Shift Overlap',mileage:'Mileage',
+  va_rate:'VA/AAA/GUIDE Rate',cross:'Billing/Payroll Mismatch',
+  paydontbill:'Pay Don\'t Bill'
+};
+
+['billing','payroll'].forEach(type=>{
+  const input=document.getElementById('file-'+type),zone=document.getElementById('zone-'+type),status=document.getElementById('status-'+type);
+  const store=f=>{type==='billing'?billingFile=f:payrollFile=f;zone.classList.add('loaded');status.innerHTML='<span>✓</span> '+f.name;checkReady();};
+  input.addEventListener('change',e=>{if(e.target.files[0])store(e.target.files[0]);});
+  zone.addEventListener('dragover',e=>{e.preventDefault();zone.classList.add('over');});
+  zone.addEventListener('dragleave',()=>zone.classList.remove('over'));
+  zone.addEventListener('drop',e=>{e.preventDefault();zone.classList.remove('over');const f=e.dataTransfer.files[0];if(f&&f.name.endsWith('.pdf'))store(f);});
+});
+function checkReady(){document.getElementById('run-btn').disabled=!(billingFile&&payrollFile);}
+
+document.querySelectorAll('.tab-btn').forEach(btn=>{
+  btn.addEventListener('click',()=>{
+    document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');document.getElementById('tab-'+btn.dataset.tab).classList.add('active');
+  });
+});
+
+document.getElementById('search-input').addEventListener('input',e=>{searchTerm=e.target.value.toLowerCase();renderFlags();});
+document.getElementById('mile-search').addEventListener('input',e=>{renderMileage(e.target.value.toLowerCase());});
+
+async function extractText(file){
+  const buf=await file.arrayBuffer();
+  const pdf=await pdfjsLib.getDocument({data:buf}).promise;
+  let out='';
+  for(let i=1;i<=pdf.numPages;i++){
+    const page=await pdf.getPage(i);
+    const content=await page.getTextContent();
+    const byY={};
+    for(const item of content.items){const y=Math.round(item.transform[5]);if(!byY[y])byY[y]=[];byY[y].push({x:item.transform[4],str:item.str});}
+    Object.keys(byY).map(Number).sort((a,b)=>b-a).forEach(y=>{out+=byY[y].sort((a,b)=>a.x-b.x).map(r=>r.str).join('  ')+'\n';});
+    out+='\f';
+  }
+  return out;
+}
+
+function log(msg,cls=''){const box=document.getElementById('log-box');box.style.display='block';const d=document.createElement('div');d.className='log-line '+cls;d.textContent=msg;box.appendChild(d);box.scrollTop=box.scrollHeight;}
+function setProgress(p){document.getElementById('progress-fill').style.width=p+'%';}
+
+document.getElementById('run-btn').addEventListener('click',async()=>{
+  const btn=document.getElementById('run-btn');btn.disabled=true;btn.textContent='Analyzing...';
+  document.getElementById('log-box').innerHTML='';allFlags=[];allMileage=[];
+  document.getElementById('progress-bar').style.display='block';setProgress(5);
+  try{
+    log('Extracting billing PDF...');const bText=await extractText(billingFile);setProgress(30);log('Billing extracted ✓','log-ok');
+    log('Extracting payroll PDF...');const pText=await extractText(payrollFile);setProgress(60);log('Payroll extracted ✓','log-ok');
+    log('Running audit rules...');
+    const bResult=parseBilling(bText);
+    const pResult=parsePayroll(pText,bResult.billingMap,bResult.zeroNoteKeys);
+    const crossFlags=crossCheck(bResult.billingMap,pResult.payrollMap);
+    allFlags=[...bResult.flags,...pResult.flags,...crossFlags];
+    allFlags=dedup(allFlags);
+    allMileage=bResult.mileage;
+    setProgress(90);log(`Found ${allFlags.length} flags, ${allMileage.length} mileage entries.`,'log-ok');
+    const wm=bText.match(/(\d{2}\/\d{2}\/\d{4})\s*-\s*(\d{2}\/\d{2}\/\d{4})/);
+    if(wm)document.getElementById('week-label').textContent='Week: '+wm[1]+' – '+wm[2];
+    renderResults();document.getElementById('results').style.display='block';setProgress(100);
+  }catch(e){log('Error: '+e.message,'log-err');console.error(e);}
+  document.getElementById('progress-bar').style.display='none';btn.textContent='Run Audit';btn.disabled=false;
+});
+
+// ── RENDER ────────────────────────────────────────────────────────────────────
+function renderResults(){
+  document.getElementById('stat-total').textContent=allFlags.length;
+  document.getElementById('stat-action').textContent=allFlags.filter(f=>f.severity==='action').length;
+  document.getElementById('stat-verify').textContent=allFlags.filter(f=>f.severity==='verify').length;
+  document.getElementById('stat-mileage').textContent=allMileage.length;
+  renderFilters();
+  renderFlags();
+  renderMileage('');
+  setupExport();
+}
+
+function renderFilters(){
+  const counts={all:allFlags.length};
+  allFlags.forEach(f=>{counts[f.type]=(counts[f.type]||0)+1;});
+  const types=['all',...Object.keys(TYPE_LABELS).filter(t=>counts[t])];
+  const cont=document.getElementById('filters');
+  cont.innerHTML=types.map(t=>{
+    const label=t==='all'?'All Flags':TYPE_LABELS[t];
+    const active=t===activeFilter?'active':'';
+    return `<button class="filter-chip ${active}" data-filter="${t}">${label}<span class="count">${counts[t]||0}</span></button>`;
+  }).join('');
+  cont.querySelectorAll('.filter-chip').forEach(chip=>{
+    chip.onclick=()=>{activeFilter=chip.dataset.filter;renderFilters();renderFlags();};
+  });
+}
+
+function matchesSearch(f){
+  if(!searchTerm)return true;
+  return (f.entity+' '+f.counterpart+' '+f.detail+' '+f.date).toLowerCase().includes(searchTerm);
+}
+
+function renderFlags(){
+  let flags=allFlags.filter(matchesSearch);
+  if(activeFilter!=='all')flags=flags.filter(f=>f.type===activeFilter);
+
+  const cont=document.getElementById('flag-groups');
+  const empty=document.getElementById('empty-state');
+
+  if(flags.length===0){cont.innerHTML='';empty.style.display='block';return;}
+  empty.style.display='none';
+
+  // Group: ACTION first, then VERIFY
+  const action=flags.filter(f=>f.severity==='action');
+  const verify=flags.filter(f=>f.severity==='verify');
+
+  let html='';
+  if(action.length)html+=renderGroup('Require Action',action);
+  if(verify.length)html+=renderGroup('Need Verification',verify);
+  cont.innerHTML=html;
+}
+
+function renderGroup(title,flags){
+  const cards=flags.map(f=>{
+    const repClass=f.report==='Billing'?'badge-report-billing':f.report==='Payroll'?'badge-report-payroll':'badge-report-cross';
+    const repLabel=f.report==='Billing'?'BILLING':f.report==='Payroll'?'PAYROLL':'B+P';
+    const sevClass=f.severity==='action'?'badge-sev-action':'badge-sev-verify';
+    const sevLabel=f.severity==='action'?'ACTION':'VERIFY';
+    const typeLabel=(TYPE_LABELS[f.type]||f.type).toUpperCase();
+    const cp=f.counterpart&&f.counterpart!=='—'?`<div class="flag-counterpart">${esc(f.counterpart)}</div>`:'';
+    return `<div class="flag-card sev-${f.severity}">
+      <div class="flag-badges">
+        <span class="badge ${repClass}">${repLabel}</span>
+        <span class="badge badge-type">${typeLabel}</span>
+      </div>
+      <div class="flag-main">
+        <div class="flag-entity">${esc(f.entity)}</div>
+        ${cp}
+        <div class="flag-detail">${esc(f.detail)}</div>
+      </div>
+      <div class="flag-meta">
+        <span class="badge ${sevClass}">${sevLabel}</span>
+        ${f.date?`<span class="flag-date">${esc(f.date)}</span>`:''}
+      </div>
+    </div>`;
+  }).join('');
+  return `<div class="flag-group">
+    <div class="group-header">
+      <span class="group-title">${title}</span>
+      <span class="group-line"></span>
+      <span class="group-count">${flags.length}</span>
+    </div>
+    <div class="flag-list">${cards}</div>
+  </div>`;
+}
+
+function renderMileage(search){
+  let mile=allMileage;
+  if(search)mile=mile.filter(m=>(m.client+' '+m.cg+' '+m.note).toLowerCase().includes(search));
+  document.getElementById('mile-empty').style.display=mile.length?'none':'block';
+  document.getElementById('mile-body').innerHTML=mile.map(m=>{
+    const badge=m.authType==='AUTH'?'<span class="badge badge-sev-verify">AUTH</span>':'<span class="badge badge-type">PRIVATE</span>';
+    return `<tr><td class="td-name">${esc(m.client)}</td><td>${esc(m.cg)}</td><td>${esc(m.date)}</td><td class="td-miles">${m.miles}</td><td>${esc(m.note)}</td><td>${badge}</td></tr>`;
+  }).join('');
+}
+
+function setupExport(){
+  document.getElementById('export-btn').onclick=()=>{
+    const rows=[['Report','Entity','Counterpart','Date','Flag Type','Detail','Severity']];
+    allFlags.forEach(f=>rows.push([f.report,f.entity,f.counterpart,f.date,f.type,f.detail,f.severity]));
+    rows.push([]);rows.push(['--- MILEAGE ---','Client','Caregiver','Miles','Note','Auth Type']);
+    allMileage.forEach(m=>rows.push(['',m.client,m.cg,m.miles,m.note,m.authType]));
+    const csv=rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n');
+    const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='rah_audit.csv';a.click();
+  };
+}
+
+
+// ── HELPERS ──────────────────────────────────────────────────────────────────
+const SKIP=/^(Date|Reg|OT|DOT|Auth|Rate|Total|Right at Home|Billing Report|Payroll Report|https:|WellSky|5555|Austin)/i;
+function F(line){return line.trim().split(/\s{2,}/).map(s=>s.trim()).filter(Boolean);}
+function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function normName(n){n=n.trim().toLowerCase();if(n.includes(',')){const p=n.split(',',2);return(p[1].trim()+' '+p[0].trim()).trim();}return n;}
+function isGuide(n){return /\bGUIDE\b/.test(n||'');}
+function hasAuth(f){return f.some(x=>/^…[0-9a-z]{2,6}$/i.test(x));}
+function authType(f){const m=f.find(x=>/^…[0-9a-z]{2,6}$/i.test(x));if(!m)return null;const s=m.slice(1);return/^\d+$/.test(s)?'va':'aaa';}
+function authLabel(f,clientName){if(isGuide(clientName))return'GUIDE';const at=authType(f);if(at==='va')return'VA';if(at==='aaa')return'AAA';return'Auth';}
+function isLI(r){return/live-in/i.test(r);}
+function isFoodStipend(reg,rate){return reg<=0.017&&/\/visit/.test(rate)&&/\$25\.00/.test(rate);}
+function isRAH(n){return/RAH.*(Incentive|Orientation)|(Incentive|Orientation).*RAH|TRAINING|HCP/i.test(n);}
+function rateType(r){return r.includes('/visit')?'visit':r.includes('live-in')?'livein':'hourly';}
+function rateAmt(r){const m=r.match(/\$([\d.]+)\//);return m?parseFloat(m[1]):0;}
+function minToTime(m){let h=Math.floor(m/60),mn=m%60,ap=h>=12?'p':'a';if(h>12)h-=12;if(h===0)h=12;return mn>0?`${h}:${String(mn).padStart(2,'0')}${ap}`:`${h}${ap}`;}
+
+function parseTime(t){
+  const m=t.trim().match(/(\d{1,2})(?::(\d{2}))?([ap])/i);if(!m)return null;
+  let h=parseInt(m[1]),mn=parseInt(m[2]||0),ap=m[3].toLowerCase();
+  if(ap==='p'&&h!==12)h+=12;if(ap==='a'&&h===12)h=0;return h*60+mn;
+}
+function shiftTimes(dateField){
+  const m=dateField.match(/(\d{1,2}(?::\d{2})?[ap])-(\d{1,2}(?::\d{2})?[ap])/i);
+  if(!m)return[null,null];return[parseTime(m[1]),parseTime(m[2])];
+}
+function extractHours(f,dateIdx){
+  let reg=0,ot=0,pos=dateIdx+1;
+  while(pos<f.length){
+    const x=f[pos];
+    if(/^\$/.test(x)||/^…/.test(x)||(x.startsWith('(')&&x.includes('$')))break;
+    const n=parseFloat(x.replace(/[^0-9.]/g,''));
+    if(!isNaN(n)&&/^-?\d/.test(x)){if(reg===0)reg=n;else if(ot===0){ot=n;break;}}
+    pos++;
+  }
+  return{reg,ot};
+}
+const SKIP15=['11:59p','12:00a','Travel Time','RAH Incentive','RAH Orientation'];
+function non15Time(line){
+  if(SKIP15.some(s=>line.includes(s)))return null;
+  if(/\([AB]\)/.test(line))return null;
+  for(const t of(line.match(/\d{1,2}:\d{2}[ap]/g)||[])){if(parseInt(t.split(':')[1])%15!==0)return t;}
+  return null;
+}
+
+function dedup(flags){
+  const map={};
+  for(const f of flags){
+    const names=[normName(f.entity),normName(f.counterpart)].sort().join('|');
+    const k=names+'|'+f.date+'|'+f.type+'|'+f.severity;
+    if(!map[k])map[k]=f;
+    else if(map[k].report!==f.report)map[k]={...map[k],report:'B+P'};
+  }
+  return Object.values(map);
+}
+
+// ── PARSE BILLING ─────────────────────────────────────────────────────────────
+function parseBilling(text){
+  const flags=[],mileage=[],billingMap={},zeroNoteKeys=new Map();
+
+  function processPendingHourly(pending,authDays){
+    for(const p of pending){
+      if(authDays.has(p.day))continue;
+      if(p.reg<=3.25) flags.push({report:'Billing',entity:p.entity,counterpart:p.cp,date:p.date,type:'hours',
+        detail:`Hourly shift is only ${p.reg} hrs (≤3.25) — should be visit rate`,severity:'action'});
+      else flags.push({report:'Billing',entity:p.entity,counterpart:p.cp,date:p.date,type:'hours',
+        detail:`Hourly shift is ${p.reg} hrs (>3.25 but <4) — should be rounded to 4 hrs hourly`,severity:'action'});
+    }
+  }
+
+  for(const page of text.split('\f')){
+    const lines=page.split('\n').map(l=>l.trim()).filter(Boolean);
+    let client=null,isLIClient=false,isAuthClient=false,lastCG=null;
+    let cgRateMap={};
+    let clientAuthDays=new Set(),pendingHourly=[];
+
+    for(let li=0;li<lines.length;li++){
+      const line=lines[li];
+      if(SKIP.test(line))continue;
+      if(/^[A-Z][a-zA-Z"' -]+,\s+[A-Z]/.test(line)&&/Date/.test(line)&&/Reg/.test(line)){
+        processPendingHourly(pendingHourly,clientAuthDays);
+        client=F(line)[0];
+        if(isRAH(client)){client=null;continue;}
+        isLIClient=false;isAuthClient=false;lastCG=null;cgRateMap={};
+        clientAuthDays=new Set();pendingHourly=[];continue;
+      }
+      if(!client)continue;
+
+      // Mileage detection
+      const mileageIdx=line.search(/Mileage:/i);
+      if(mileageIdx>=0){
+        const afterMileage=line.slice(mileageIdx).replace(/^Mileage:\s*/i,'');
+        // Look ahead for miles info without consuming lines
+        let milesVal=0;
+        const milesOnLine=line.match(/([\d.]+)\s+miles/i);
+        if(milesOnLine){milesVal=parseFloat(milesOnLine[1]);}
+        else{for(let j=li+1;j<Math.min(li+5,lines.length);j++){
+          const mm=lines[j].match(/([\d.]+)\s+miles/i);
+          if(mm){milesVal=parseFloat(mm[1]);break;}
+        }}
+        const noteM=afterMileage.match(/^(.+?)\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+\d+/i);
+        const note=noteM?noteM[1].trim():afterMileage.replace(/\s+\d+\.?\d*\s+miles.*/i,'').replace(/\s+(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec).*/i,'').replace(/\s+\$[\d.]+\/mile.*/i,'').trim();
+        const aType=isAuthClient?'AUTH':'PRIVATE';
+        mileage.push({client,cg:lastCG||'—',date:'',miles:milesVal,note,authType:aType});
+        if(isAuthClient){
+          const mLabel=isGuide(client)?'GUIDE':'VA/AAA';
+          flags.push({report:'Billing',entity:client,counterpart:lastCG||'—',date:'',type:'mileage',
+            detail:`${mLabel} client mileage: "${note}" (${milesVal} mi) — verify authorization`,severity:'verify'});
+        }
+        continue;
+      }
+
+      // Fallback: catch mileage lines with "$1.00/mile" that weren't caught above
+      if(/\$1\.00\/mile/i.test(line)&&/([\d.]+)\s+miles/i.test(line)&&!/Mileage:/i.test(line)){
+        const mm=line.match(/([\d.]+)\s+miles/i);
+        const milesVal=mm?parseFloat(mm[1]):0;
+        if(milesVal>0){
+          const aType=isAuthClient?'AUTH':'PRIVATE';
+          mileage.push({client,cg:lastCG||'—',date:'',miles:milesVal,note:'(mileage detected from billing line)',authType:aType});
+          if(isAuthClient){
+            const mLabel=isGuide(client)?'GUIDE':'VA/AAA';
+            flags.push({report:'Billing',entity:client,counterpart:lastCG||'—',date:'',type:'mileage',
+              detail:`${mLabel} client mileage: ${milesVal} mi — verify authorization`,severity:'verify'});
+          }
+          continue;
+        }
+      }
+
+      if(!/\d{1,2}\/\d{1,2}/.test(line))continue;
+      const f=F(line);if(!f.length)continue;
+      if(isRAH(f[0]))continue;
+
+      const cgRaw=f[0];
+      const dateIdx=f.findIndex(x=>/^\d{1,2}\/\d{1,2}/.test(x));if(dateIdx<0)continue;
+      const hasNote=f.slice(0,dateIdx).some(x=>/\bnote\b/i.test(x));
+      const cgName=cgRaw.replace(/\s*note\s*$/i,'').trim();
+      lastCG=cgName;
+      const date=f[dateIdx];
+      const{reg,ot}=extractHours(f,dateIdx);
+      const rate=f.find(x=>/^\$[\d,]+\.?\d*\//.test(x))||'';
+      if(isFoodStipend(reg,rate))continue;
+
+      const lineAuth=hasAuth(f);if(lineAuth)isAuthClient=true;
+      const aType=authType(f);
+      const aLabel=authLabel(f,client);
+      const isAuthOrGuide=lineAuth||isGuide(client);
+      const isLIRate=isLI(rate);if(isLIRate)isLIClient=true;
+      const isZero=/^\$0\.00/.test(rate)||f.some(x=>x==='N/A');
+      const isHoliday=line.includes('(h)');
+      const rt=rateType(rate);
+      const amt=rateAmt(rate);
+
+      // Track auth days for hourly exception
+      const shiftDay=(date.match(/(\d{1,2}\/\d+)/)||[])[1]||'';
+      if(isAuthOrGuide&&shiftDay)clientAuthDays.add(shiftDay);
+
+      // Index for cross-check
+      const[start]=shiftTimes(date);
+      if(start!==null&&!isZero){
+        const key=normName(cgName)+'|'+normName(client)+'|'+shiftDay+'|'+start;
+        billingMap[key]={rt,rate,client,cg:cgName,date,auth:isAuthOrGuide};
+      }
+
+      // $0.00
+      if(isZero){
+        const sev='action';
+        const detail=hasNote
+          ?'$0.00/N/A with note — verify documentation and that 3 steps are complete'
+          :'$0.00/N/A without note — missing sticky note (note + tag + checkbox required)';
+        const zFlag={report:'Billing',entity:client,counterpart:cgName,date,type:'zero',detail,severity:sev};
+        flags.push(zFlag);
+        if(hasNote&&start!==null){
+          const zKey=normName(cgName)+'|'+normName(client)+'|'+shiftDay+'|'+start;
+          zeroNoteKeys.set(zKey,zFlag);
+        }
+      }
+
+      // Holiday
+      if(isHoliday)flags.push({report:'Billing',entity:client,counterpart:cgName,date,type:'holiday',
+        detail:'Holiday rate (h) 1.5x — verify this is an approved holiday date',severity:'verify'});
+
+      // OT (skip live-in)
+      if(ot>0&&!isLIRate)flags.push({report:'Billing',entity:client,counterpart:cgName,date,type:'ot',
+        detail:`OT: ${ot} hrs — verify authorization`,severity:'verify'});
+
+      // Visit rules
+      if(rt==='visit'&&!isZero&&reg%1!==0){
+        if(reg>3.25)flags.push({report:'Billing',entity:client,counterpart:cgName,date,type:'hours',
+          detail:`Visit shift is ${reg} hrs — exceeds 3-hour visit limit, must change to hourly`,severity:'action'});
+        else if(reg===3.25)flags.push({report:'Billing',entity:client,counterpart:cgName,date,type:'hours',
+          detail:`Visit 15 min overage: ${reg} hrs — round down to 3 hrs, keep visit rate`,severity:'action'});
+        else flags.push({report:'Billing',entity:client,counterpart:cgName,date,type:'hours',
+          detail:`Visit has non-whole hours: ${reg} hrs — must be whole number, adjust clock time`,severity:'action'});
+      }
+
+      // Hourly < 4 hrs (private pay only, skip A/B segments, check auth exception later)
+      if(rt==='hourly'&&!isZero&&!isAuthOrGuide&&!isLIRate&&reg>0&&reg<4&&!/\([AB]\)/.test(line)){
+        pendingHourly.push({entity:client,cp:cgName,date,day:shiftDay,reg});
+      }
+
+      // Auth/GUIDE rules
+      if(isAuthOrGuide&&!isZero){
+        if(reg>0&&reg%1!==0)flags.push({report:'Billing',entity:client,counterpart:cgName,date,type:'hours',
+          detail:`${aLabel} client with decimal hours: ${reg} — must be whole number`,severity:'action'});
+        const bt=non15Time(line);
+        if(bt)flags.push({report:'Billing',entity:client,counterpart:cgName,date,type:'15min',
+          detail:`Non-15-min clock time: ${bt} — ${aLabel} shifts must be :00, :15, :30, or :45`,severity:'action'});
+        // GUIDE minimum 4 hours
+        if(isGuide(client)&&reg>0&&reg<4)flags.push({report:'Billing',entity:client,counterpart:cgName,date,type:'hours',
+          detail:`GUIDE shift is ${reg} hrs — minimum is 4 hours`,severity:'action'});
+        // VA rate validation $38/hr
+        if(aType==='va'&&rt==='hourly'&&amt>0&&Math.abs(amt-38.0)>0.01)flags.push({report:'Billing',entity:client,counterpart:cgName,date,type:'va_rate',
+          detail:`VA shift billed at ${rate} — must be $38.00/hr`,severity:'action'});
+        // AAA rate validation $29/hr
+        if(aType==='aaa'&&!isGuide(client)&&rt==='hourly'&&amt>0&&Math.abs(amt-29.0)>0.01&&Math.abs(amt-30.0)>0.01)flags.push({report:'Billing',entity:client,counterpart:cgName,date,type:'va_rate',
+          detail:`AAA shift billed at ${rate} — must be $29.00/hr or $30.00/hr`,severity:'action'});
+        // GUIDE rate validation $32.81/hr
+        if(isGuide(client)&&rt==='hourly'&&amt>0&&Math.abs(amt-32.81)>0.02)flags.push({report:'Billing',entity:client,counterpart:cgName,date,type:'va_rate',
+          detail:`GUIDE shift billed at ${rate} — must be $32.81/hr`,severity:'action'});
+      }
+
+      // Rate inconsistency (same type only, VA+private intentional, visit by duration)
+      if(!isZero&&rate&&!isLIRate){
+        if(!cgRateMap[cgName])cgRateMap[cgName]={va:new Set(),aaa:new Set(),guide:new Set(),pvVisit:{},pvHr:new Set()};
+        const cm=cgRateMap[cgName];
+        if(isGuide(client))cm.guide.add(amt);
+        else if(aType==='va')cm.va.add(amt);
+        else if(aType==='aaa')cm.aaa.add(amt);
+        else if(rt==='visit'){const dur=Math.floor(reg);if(!cm.pvVisit[dur])cm.pvVisit[dur]=new Set();cm.pvVisit[dur].add(amt);}
+        else cm.pvHr.add(amt);
+        const check=(set,label)=>{
+          if(set.size>1){
+            flags.push({report:'Billing',entity:client,counterpart:cgName,date,type:'rate',
+              detail:`${label} rate inconsistency for same client: ${[...set].map(x=>'$'+x).join(' vs ')}`,severity:'action'});
+            set.clear();set.add(amt);
+          }
+        };
+        check(cm.va,'VA');check(cm.aaa,'AAA');check(cm.guide,'GUIDE');check(cm.pvHr,'Private hourly');
+        Object.entries(cm.pvVisit).forEach(([dur,set])=>check(set,`Private visit (${dur}hr)`));
+      }
+
+      // Live-in client billed at visit
+      if(isLIClient&&rt==='visit')flags.push({report:'Billing',entity:client,counterpart:cgName,date,type:'livein',
+        detail:`Live-in client billed at /visit — should be hourly or live-in rate`,severity:'action'});
+    }
+
+    // Process pending hourly < 4 checks
+    processPendingHourly(pendingHourly,clientAuthDays);
+
+    // Overlap detection for ALL clients
+    if(client){
+      const clientShifts=[];
+      for(const line of lines){
+        if(!/\d{1,2}\/\d{1,2}/.test(line)||!line.includes('$'))continue;
+        const f=F(line);if(!f.length||isRAH(f[0]))continue;
+        const dateIdx=f.findIndex(x=>/^\d{1,2}\/\d{1,2}/.test(x));if(dateIdx<0)continue;
+        const dateField=f[dateIdx];
+        const day=(dateField.match(/(\d{1,2}\/\d+)/)||[])[1];if(!day)continue;
+        const[s,e]=shiftTimes(dateField);if(s===null)continue;
+        const rate=f.find(x=>/^\$[\d,]+\.?\d*\//.test(x))||'';
+        const{reg}=extractHours(f,dateIdx);
+        if(isFoodStipend(reg,rate))continue;
+        const cg=f[0].replace(/\s*note\s*$/i,'').trim();
+        clientShifts.push({day,s,e,cg,date:dateField});
+      }
+      const byDay={};
+      clientShifts.forEach(sh=>{if(!byDay[sh.day])byDay[sh.day]=[];byDay[sh.day].push(sh);});
+      Object.entries(byDay).forEach(([day,slist])=>{
+        slist.sort((a,b)=>a.s-b.s);
+        for(let i=0;i<slist.length-1;i++){
+          const a=slist[i],b=slist[i+1];
+          if(a.cg===b.cg&&(a.e===1439||b.s===0))continue;
+          if(a.e===1439)continue;
+          if(a.e!==null&&b.s!==null&&a.e>b.s){
+            const om=a.e-b.s;
+            flags.push({report:'Billing',entity:client,counterpart:`${a.cg} / ${b.cg}`,date:`${day}`,type:'overlap',
+              detail:`Shift overlap (${om} min): ${a.cg} ends ${minToTime(a.e)}, ${b.cg} starts ${minToTime(b.s)}`,severity:'action'});
+          }
+        }
+      });
+    }
+  }
+  return{flags,mileage,billingMap,zeroNoteKeys};
+}
+
+// ── PARSE PAYROLL ─────────────────────────────────────────────────────────────
+function parsePayroll(text,billingMap,zeroNoteKeys){
+  const flags=[],payrollMap={};
+
+  function processPendingHourlyP(pending,authDaysMap){
+    for(const p of pending){
+      const ad=authDaysMap[p.client]||new Set();
+      if(ad.has(p.day))continue;
+      if(p.reg<=3.25) flags.push({report:'Payroll',entity:p.entity,counterpart:p.client,date:p.date,type:'hours',
+        detail:`Hourly shift is only ${p.reg} hrs (≤3.25) — should be visit rate`,severity:'action'});
+      else flags.push({report:'Payroll',entity:p.entity,counterpart:p.client,date:p.date,type:'hours',
+        detail:`Hourly shift is ${p.reg} hrs (>3.25 but <4) — should be rounded to 4 hrs hourly`,severity:'action'});
+    }
+  }
+
+  for(const page of text.split('\f')){
+    const lines=page.split('\n').map(l=>l.trim()).filter(Boolean);
+    let cg=null;
+    let clientRateMap={};
+    let clientIsLI={};
+    let clientAuthDaysP={},pendingHourlyP=[],payDontBillKeys=new Set();
+
+    for(const line of lines){
+      if(SKIP.test(line))continue;
+      const cgH=line.match(/Payroll Report for (.+?)\s+-\s+\d{2}\/\d{2}\/\d{4}/);
+      if(cgH){processPendingHourlyP(pendingHourlyP,clientAuthDaysP);cg=cgH[1].trim();if(isRAH(cg)){cg=null;continue;}clientRateMap={};clientIsLI={};clientAuthDaysP={};pendingHourlyP=[];payDontBillKeys=new Set();continue;}
+      if(/^[A-Z][a-zA-Z"'-]+,\s+[A-Z]/.test(line)&&/Date/.test(line)&&/Reg/.test(line)){
+        processPendingHourlyP(pendingHourlyP,clientAuthDaysP);cg=F(line)[0];if(isRAH(cg)){cg=null;continue;}clientRateMap={};clientIsLI={};clientAuthDaysP={};pendingHourlyP=[];payDontBillKeys=new Set();continue;
+      }
+      if(!cg||!/\d{1,2}\/\d{1,2}/.test(line)||/^Travel Time:/i.test(line))continue;
+      const f=F(line);if(!f.length)continue;
+      if(isRAH(f[0]))continue;
+
+      const clientRaw=f[0];
+      const dateIdx=f.findIndex(x=>/^\d{1,2}\/\d{1,2}/.test(x));if(dateIdx<0)continue;
+      const hasNote=f.slice(0,dateIdx).some(x=>/\bnote\b/i.test(x));
+      const client=clientRaw.replace(/\s*note\s*$/i,'').trim();
+      const date=f[dateIdx];
+      const{reg,ot}=extractHours(f,dateIdx);
+      const rate=f.find(x=>/^\$[\d,]+\.?\d*\//.test(x))||'';
+      if(!rate)continue;
+      if(isFoodStipend(reg,rate))continue;
+
+      const lineAuth=hasAuth(f);
+      const aLabel=authLabel(f,client);
+      const isAuthOrGuide=lineAuth||isGuide(client);
+      const isLIRate=isLI(rate);if(isLIRate)clientIsLI[client]=true;
+      const isZero=/^\$0\.00/.test(rate)||f.some(x=>x==='N/A');
+      const isHoliday=line.includes('(h)');
+      const rt=rateType(rate);
+      const amt=rateAmt(rate);
+
+      // Track auth days per client
+      const shiftDay=(date.match(/(\d{1,2}\/\d+)/)||[])[1]||'';
+      if(isAuthOrGuide&&shiftDay){
+        if(!clientAuthDaysP[client])clientAuthDaysP[client]=new Set();
+        clientAuthDaysP[client].add(shiftDay);
+      }
+
+      // Index for cross-check
+      const[start]=shiftTimes(date);
+      if(start!==null&&!isZero&&!isLIRate){
+        const key=normName(cg)+'|'+normName(client)+'|'+shiftDay+'|'+start;
+        payrollMap[key]={rt,rate,cg,client,date};
+      }
+
+      // Pay but Don't Bill detection
+      if(start!==null&&!isZero&&amt>0){
+        const zKey=normName(cg)+'|'+normName(client)+'|'+shiftDay+'|'+start;
+        const billingZero=zeroNoteKeys.get(zKey);
+        if(billingZero){
+          const noteStatus=hasNote
+            ?'documented in billing and payroll — verify'
+            :'note missing in payroll — add documentation';
+          billingZero.detail=`Pay but Don't Bill: CG paid ${rate} (${reg} hrs), client not billed — ${noteStatus}`;
+          billingZero.type='paydontbill';
+          payDontBillKeys.add(zKey);
+        }
+      }
+
+      // $0.00
+      if(isZero){
+        const detail=hasNote
+          ?'$0.00 pay with note — verify documentation'
+          :'$0.00 pay without note — missing documentation (note + tag + checkbox required)';
+        flags.push({report:'Payroll',entity:cg,counterpart:client,date,type:'zero',detail,severity:'action'});
+      }
+
+      // Holiday
+      if(isHoliday)flags.push({report:'Payroll',entity:cg,counterpart:client,date,type:'holiday',
+        detail:'Holiday rate (h) 1.5x — verify approved holiday date',severity:'verify'});
+
+      // OT (skip live-in)
+      if(ot>0&&!isLIRate)flags.push({report:'Payroll',entity:cg,counterpart:client,date,type:'ot',
+        detail:`OT: ${ot} hrs — verify authorization`,severity:'verify'});
+
+      // Live-in rate must be $7.25 (allow $7.50 max)
+      if(isLIRate&&amt>0&&amt>7.50)flags.push({report:'Payroll',entity:cg,counterpart:client,date,type:'livein',
+        detail:`Live-in pay rate is ${rate} — should not exceed $7.50/hr`,severity:'action'});
+
+      // Live-in client paid at /visit
+      if(clientIsLI[client]&&rt==='visit')flags.push({report:'Payroll',entity:cg,counterpart:client,date,type:'livein',
+        detail:`Live-in client paid at /visit — should be hourly or live-in`,severity:'action'});
+
+      // Visit rules
+      if(rt==='visit'&&!isZero&&reg%1!==0){
+        if(reg>3.25)flags.push({report:'Payroll',entity:cg,counterpart:client,date,type:'hours',
+          detail:`Visit shift is ${reg} hrs — exceeds 3-hour visit limit, must change to hourly`,severity:'action'});
+        else if(reg===3.25)flags.push({report:'Payroll',entity:cg,counterpart:client,date,type:'hours',
+          detail:`Visit 15 min overage: ${reg} hrs — round down to 3 hrs, keep visit rate`,severity:'action'});
+        else flags.push({report:'Payroll',entity:cg,counterpart:client,date,type:'hours',
+          detail:`Visit has non-whole hours: ${reg} hrs — must be whole number, adjust clock time`,severity:'action'});
+      }
+
+      // Hourly < 4 hrs (private pay only, skip A/B segments and Pay Don't Bill, check auth exception later)
+      if(rt==='hourly'&&!isZero&&!isAuthOrGuide&&!isLIRate&&reg>0&&reg<4&&!/\([AB]\)/.test(line)){
+        const hKey=normName(cg)+'|'+normName(client)+'|'+shiftDay+'|'+(start||0);
+        if(!payDontBillKeys.has(hKey)){
+          pendingHourlyP.push({entity:cg,client,date,day:shiftDay,reg});
+        }
+      }
+
+      // Auth/GUIDE rules
+      if(isAuthOrGuide&&!isZero){
+        if(reg>0&&reg%1!==0)flags.push({report:'Payroll',entity:cg,counterpart:client,date,type:'hours',
+          detail:`${aLabel} client with decimal hours: ${reg} — must be whole number`,severity:'action'});
+        const bt=non15Time(line);
+        if(bt)flags.push({report:'Payroll',entity:cg,counterpart:client,date,type:'15min',
+          detail:`Non-15-min clock time: ${bt} — ${aLabel} shifts must be :00, :15, :30, or :45`,severity:'action'});
+        if(isGuide(client)&&reg>0&&reg<4)flags.push({report:'Payroll',entity:cg,counterpart:client,date,type:'hours',
+          detail:`GUIDE shift is ${reg} hrs — minimum is 4 hours`,severity:'action'});
+      }
+
+      // Rate inconsistency (same type only, visit by duration)
+      if(!isZero&&rate&&!isLIRate){
+        if(!clientRateMap[client])clientRateMap[client]={va:new Set(),aaa:new Set(),guide:new Set(),pvVisit:{},pvHr:new Set()};
+        const cm=clientRateMap[client];
+        const aType=authType(f);
+        if(isGuide(client))cm.guide.add(amt);
+        else if(aType==='va')cm.va.add(amt);
+        else if(aType==='aaa')cm.aaa.add(amt);
+        else if(rt==='visit'){const dur=Math.floor(reg);if(!cm.pvVisit[dur])cm.pvVisit[dur]=new Set();cm.pvVisit[dur].add(amt);}
+        else cm.pvHr.add(amt);
+        const check=(set,label)=>{
+          if(set.size>1){
+            flags.push({report:'Payroll',entity:cg,counterpart:client,date,type:'rate',
+              detail:`${label} pay rate inconsistency for same client: ${[...set].map(x=>'$'+x).join(' vs ')}`,severity:'action'});
+            set.clear();set.add(amt);
+          }
+        };
+        check(cm.va,'VA');check(cm.aaa,'AAA');check(cm.guide,'GUIDE');check(cm.pvHr,'Private hourly');
+        Object.entries(cm.pvVisit).forEach(([dur,set])=>check(set,`Private visit (${dur}hr)`));
+      }
+    }
+    processPendingHourlyP(pendingHourlyP,clientAuthDaysP);
+  }
+  return{flags,payrollMap};
+}
+
+// ── CROSS-CHECK BILLING vs PAYROLL ────────────────────────────────────────────
+function crossCheck(billingMap,payrollMap){
+  const flags=[];
+  for(const[key,b] of Object.entries(billingMap)){
+    if(!(key in payrollMap))continue;
+    const p=payrollMap[key];
+    // Rate type mismatch
+    if(b.rt!==p.rt&&b.rt!=='livein'&&p.rt!=='livein'){
+      flags.push({report:'Billing+Payroll',entity:b.client,counterpart:b.cg,date:b.date,type:'cross',
+        detail:`Billing is ${b.rt} (${b.rate}) but payroll is ${p.rt} (${p.rate}) — must match`,severity:'action'});
+    }
+    // Pay = billing / 2 check (private pay only, same rate type)
+    if(!b.auth&&b.rt===p.rt&&b.rt!=='livein'){
+      const bAmt=rateAmt(b.rate);
+      const pAmt=rateAmt(p.rate);
+      if(bAmt>0&&pAmt>0){
+        const expected=bAmt/2;
+        if(Math.abs(pAmt-expected)>0.51){
+          flags.push({report:'Billing+Payroll',entity:b.client,counterpart:b.cg,date:b.date,type:'cross',
+            detail:`Pay rate $${pAmt} is not half of bill rate $${bAmt} (expected ~$${expected.toFixed(2)})`,severity:'verify'});
+        }
+      }
+    }
+  }
+  return flags;
+}
+</script>
+</body>
+</html>
