@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Continuous Care — Monthly Report</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+:root{--navy:#16213e;--steel:#1a3a6b;--blue:#2563eb;--sky:#dbeafe;--gold:#d4a827;--gold-light:#fef9e7;--green:#166534;--green-bg:#dcfce7;--red:#991b1b;--red-bg:#fee2e2;--orange:#92400e;--orange-bg:#fef3c7;--white:#fff;--light:#f8fafc;--border:#e2e8f0;--text:#0f172a;--muted:#64748b;--radius:12px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--light);color:var(--text);min-height:100vh}
+header{background:linear-gradient(135deg,var(--navy) 0%,var(--steel) 100%);padding:24px 48px;display:flex;align-items:center;gap:18px;border-bottom:3px solid var(--gold)}
+.logo{width:44px;height:44px;background:var(--gold);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0}
+header h1{font-family:'DM Serif Display',serif;color:#fff;font-size:20px;line-height:1.2}
+header p{color:#93b4d8;font-size:12px;margin-top:3px;font-weight:300}
+main{max-width:980px;margin:0 auto;padding:36px 24px 80px}
+.step-label{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);margin-bottom:8px}
+.card{background:var(--white);border-radius:var(--radius);border:1px solid var(--border);padding:28px 32px;margin-bottom:20px;box-shadow:0 1px 8px rgba(0,0,0,.05)}
+.card-title{font-family:'DM Serif Display',serif;font-size:16px;color:var(--navy);margin-bottom:20px;padding-bottom:14px;border-bottom:2px solid var(--sky);display:flex;align-items:center;gap:10px}
+.pill{background:var(--sky);color:var(--blue);font-family:'DM Sans',sans-serif;font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px}
+.upload-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.upload-zone{border:2px dashed var(--border);border-radius:10px;padding:24px 16px;text-align:center;cursor:pointer;transition:all .2s;background:var(--light);position:relative}
+.upload-zone:hover,.upload-zone.dragover{border-color:var(--blue);background:var(--sky)}
+.upload-zone.loaded{border-color:#16a34a;background:var(--green-bg);border-style:solid}
+.upload-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.upload-icon{font-size:28px;margin-bottom:8px}
+.upload-lbl{font-size:13px;font-weight:600;color:var(--navy);margin-bottom:3px}
+.upload-hint{font-size:11px;color:var(--muted)}
+.upload-ok{margin-top:8px;font-size:12px;font-weight:600;color:var(--green);display:none}
+.upload-zone.loaded .upload-ok{display:block}
+.upload-zone.loaded .u-default{display:none}
+.period-row{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.period-row label{font-size:13px;font-weight:600;color:var(--navy);white-space:nowrap}
+select{padding:9px 32px 9px 14px;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--navy);background:var(--white) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath fill='%2364748b' d='M5 6L0 0h10z'/%3E%3C/svg%3E") no-repeat right 12px center;appearance:none;cursor:pointer}
+select:focus{outline:none;border-color:var(--blue)}
+.notes-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.notes-field label{display:block;font-size:12px;font-weight:600;color:var(--navy);margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px}
+.notes-field textarea{width:100%;padding:10px 13px;border:1.5px solid var(--border);border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;color:var(--text);resize:vertical;min-height:80px;line-height:1.5}
+.notes-field textarea:focus{outline:none;border-color:var(--blue)}
+.notes-field textarea::placeholder{color:#b0bec5}
+.btn-gen{width:100%;padding:17px;background:var(--navy);color:#fff;border:none;border-radius:var(--radius);font-family:'DM Serif Display',serif;font-size:17px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:12px;border-bottom:3px solid var(--gold);margin-top:4px}
+.btn-gen:hover{background:var(--steel);transform:translateY(-1px)}
+.msg{padding:12px 16px;border-radius:8px;font-size:13px;margin-top:14px;display:none}
+.msg.error{background:var(--red-bg);border:1px solid #fca5a5;color:var(--red)}
+.msg.info{background:var(--green-bg);border:1px solid #86efac;color:var(--green)}
+.msg.show{display:block}
+#preview-section{display:none;margin-top:28px}
+.preview-header{background:linear-gradient(135deg,var(--navy),var(--steel));color:#fff;border-radius:var(--radius) var(--radius) 0 0;padding:20px 32px;display:flex;align-items:center;justify-content:space-between}
+.preview-header h2{font-family:'DM Serif Display',serif;font-size:18px}
+.preview-header p{font-size:12px;color:#93b4d8;margin-top:3px}
+.metrics-row{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--border);border:1px solid var(--border)}
+.metric-box{background:var(--white);padding:18px 12px;text-align:center}
+.metric-box .num{font-family:'DM Serif Display',serif;font-size:28px;color:var(--navy);line-height:1}
+.metric-box .lbl{font-size:10px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-top:5px}
+.metric-box .delta{font-size:11px;font-weight:600;margin-top:4px}
+.delta.up{color:#16a34a}.delta.down{color:#dc2626}.delta.flat{color:var(--muted)}
+.charts-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;padding:20px;background:var(--light);border:1px solid var(--border);border-top:none}
+.chart-box{background:var(--white);border-radius:8px;border:1px solid var(--border);padding:16px}
+.chart-box h4{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px}
+.chart-wrap{position:relative;height:160px}
+.detail-wrap{border:1px solid var(--border);border-top:none}
+.detail-section{border-bottom:1px solid var(--border)}
+.detail-section:last-child{border-bottom:none}
+.dsec-title{background:var(--sky);padding:10px 20px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.6px;color:var(--steel);display:flex;align-items:center;gap:8px}
+.dsec-body{padding:16px 20px;display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.dsec-body.full{grid-template-columns:1fr}
+.dsec-sub{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-bottom:10px}
+.person-list{display:flex;flex-wrap:wrap;gap:8px}
+.pc{background:var(--light);border:1px solid var(--border);border-radius:8px;padding:8px 14px;font-size:12px}
+.pc .pn{font-weight:600;color:var(--navy)}.pc .pi{color:var(--muted);margin-top:2px}
+.pc.nc{border-left:3px solid #16a34a}
+.pc.ng{border-left:3px solid var(--blue)}
+.pc.ld{border-left:3px solid var(--red)}
+.pc.ls{border-left:3px solid var(--orange)}
+.pc.lg{border-left:3px solid #7c3aed}
+.empty{color:var(--muted);font-size:13px;font-style:italic;padding:4px 0}
+.comparison-table{width:100%;border-collapse:collapse;font-size:13px}
+.comparison-table th{background:var(--sky);padding:8px 10px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--steel)}
+.comparison-table th.right{text-align:center}
+.comparison-table td{padding:8px 10px;border-bottom:1px solid var(--border)}
+.comparison-table tr:last-child td{border-bottom:none}
+.comparison-table td.right{text-align:center;color:var(--muted)}
+.comparison-table td.curr{text-align:center;font-weight:700;color:var(--navy)}
+.download-bar{background:var(--white);border:1px solid var(--border);border-top:none;border-radius:0 0 var(--radius) var(--radius);padding:16px 20px;display:flex;align-items:center;gap:12px}
+.btn-dl{display:inline-flex;align-items:center;gap:8px;padding:11px 24px;background:var(--green);color:#fff;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s}
+.btn-dl:hover{background:#15803d;transform:translateY(-1px)}
+.dl-note{font-size:12px;color:var(--muted)}
+@media(max-width:640px){header{padding:18px}main{padding:20px 12px 60px}.card{padding:18px 16px}.upload-grid,.notes-grid,.metrics-row,.charts-row,.dsec-body{grid-template-columns:1fr}.metrics-row{grid-template-columns:repeat(3,1fr)}}
+.btn-print{display:inline-flex;align-items:center;gap:8px;padding:11px 24px;background:var(--blue);color:#fff;border:none;border-radius:8px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .2s}
+.btn-print:hover{background:#1d4ed8;transform:translateY(-1px)}
+@media print{
+  header,main>.step-label,main>.card,main>.btn-gen,#msg-err,#msg-ok,.download-bar{display:none!important}
+  body{background:#fff}
+  main{max-width:100%;padding:0;margin:0}
+  #preview-section{display:block!important;margin:0}
+  .preview-header{border-radius:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .metrics-row,.charts-row,.detail-wrap{border-radius:0}
+  .metric-box,.chart-box,.dsec-title,.comparison-table th{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .chart-wrap{height:130px}
+  .charts-row{page-break-inside:avoid}
+  .detail-section{page-break-inside:avoid}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">📋</div>
+  <div>
+    <h1>Continuous Care — Monthly Report Generator</h1>
+    <p>Right at Home · Live-In Program · Bo Hodges</p>
+  </div>
+</header>
+<main>
+  <div class="step-label">Step 1 — Upload WellSky exports</div>
+  <div class="card">
+    <div class="card-title">Upload Files <span class="pill">Download from WellSky first</span></div>
+    <div class="upload-grid">
+      <div class="upload-zone" id="zone-clients">
+        <input type="file" id="file-clients" accept=".xls,.xlsx,.csv">
+        <div class="upload-icon u-default">👥</div>
+        <div class="upload-lbl u-default">Clients Report</div>
+        <div class="upload-hint u-default">clients.xls from WellSky</div>
+        <div class="upload-ok" id="ok-clients">✓ Loaded</div>
+      </div>
+      <div class="upload-zone" id="zone-cgs">
+        <input type="file" id="file-cgs" accept=".xls,.xlsx,.csv">
+        <div class="upload-icon u-default">🏥</div>
+        <div class="upload-lbl u-default">Caregivers Report</div>
+        <div class="upload-hint u-default">caregivers.xls from WellSky</div>
+        <div class="upload-ok" id="ok-cgs">✓ Loaded</div>
+      </div>
+    </div>
+  </div>
+  <div class="step-label">Step 2 — Select month</div>
+  <div class="card">
+    <div class="card-title">Reporting Month</div>
+    <div class="period-row">
+      <label>Month:</label>
+      <select id="sel-month">
+        <option value="0">January</option><option value="1">February</option><option value="2">March</option><option value="3">April</option><option value="4">May</option><option value="5">June</option><option value="6">July</option><option value="7">August</option><option value="8">September</option><option value="9">October</option><option value="10">November</option><option value="11">December</option>
+      </select>
+      <select id="sel-year"></select>
+    </div>
+  </div>
+  <div class="step-label">Step 3 — Add your notes (optional)</div>
+  <div class="card">
+    <div class="card-title">Notes &amp; Observations</div>
+    <div class="notes-grid">
+      <div class="notes-field"><label>Observations</label><textarea id="txt-obs" placeholder="What trends did you notice this month?"></textarea></div>
+      <div class="notes-field"><label>Action Items</label><textarea id="txt-actions" placeholder="Plans for next month?"></textarea></div>
+      <div class="notes-field"><label>Caregiver Notes</label><textarea id="txt-cg-notes" placeholder="Notes on caregiver activity, schedules, etc."></textarea></div>
+      <div class="notes-field"><label>Comments</label><textarea id="txt-comments" placeholder="Any additional comments..."></textarea></div>
+    </div>
+  </div>
+  <button class="btn-gen" onclick="generate()">📊  Generate Report</button>
+  <div class="msg error" id="msg-err"></div>
+  <div class="msg info" id="msg-ok"></div>
+  <div id="preview-section">
+    <div class="preview-header">
+      <div><h2 id="prev-title">Monthly Report</h2><p id="prev-period"></p></div>
+      <div style="font-size:11px;color:#93b4d8;text-align:right">Prepared by Bo Hodges<br>Right at Home</div>
+    </div>
+    <div class="metrics-row" id="metrics-row"></div>
+    <div class="charts-row">
+      <div class="chart-box"><h4>Client Trend (3 months)</h4><div class="chart-wrap"><canvas id="chart-clients"></canvas></div></div>
+      <div class="chart-box"><h4>Caregiver Trend (3 months)</h4><div class="chart-wrap"><canvas id="chart-cgs"></canvas></div></div>
+    </div>
+    <div class="detail-wrap" id="detail-wrap"></div>
+    <div class="download-bar">
+      <button class="btn-dl" onclick="downloadExcel()">⬇️  Download Report (.xlsx)</button>
+      <button class="btn-print" onclick="window.print()">🖨️  Save as PDF (Ctrl+P)</button>
+      <span class="dl-note">In the print dialog, choose "Save as PDF"</span>
+    </div>
+  </div>
+</main>
+<script>
+var clientsData=null,cgsData=null,lastReport=null,chartC=null,chartG=null;
+var MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+var MS=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+(function(){
+  var now=new Date(),sy=document.getElementById('sel-year');
+  for(var y=now.getFullYear()-2;y<=now.getFullYear()+1;y++){var o=document.createElement('option');o.value=y;o.textContent=y;if(y===now.getFullYear())o.selected=true;sy.appendChild(o);}
+  var prev=new Date(now.getFullYear(),now.getMonth()-1,1);
+  document.getElementById('sel-month').value=prev.getMonth();
+  sy.value=prev.getFullYear();
+})();
+function setupUpload(inId,zId,okId,key){
+  var input=document.getElementById(inId),zone=document.getElementById(zId);
+  input.addEventListener('change',function(e){readFile(e.target.files[0],key,zId,okId);});
+  zone.addEventListener('dragover',function(e){e.preventDefault();zone.classList.add('dragover');});
+  zone.addEventListener('dragleave',function(){zone.classList.remove('dragover');});
+  zone.addEventListener('drop',function(e){e.preventDefault();zone.classList.remove('dragover');readFile(e.dataTransfer.files[0],key,zId,okId);});
+}
+function readFile(file,key,zId,okId){
+  if(!file)return;
+  var r=new FileReader();
+  r.onload=function(e){
+    try{
+      var wb=XLSX.read(e.target.result,{type:'binary',cellDates:true});
+      var ws=wb.Sheets[wb.SheetNames[0]];
+      var data=XLSX.utils.sheet_to_json(ws,{raw:false,defval:''});
+      if(key==='clients')clientsData=data;else cgsData=data;
+      document.getElementById(zId).classList.add('loaded');
+      document.getElementById(okId).textContent='✓ '+file.name+' ('+data.length+' rows)';
+    }catch(err){showErr('Could not read: '+file.name);}
+  };
+  r.readAsBinaryString(file);
+}
+setupUpload('file-clients','zone-clients','ok-clients','clients');
+setupUpload('file-cgs','zone-cgs','ok-cgs','cgs');
+// Auto-regenerate when month or year changes (only if both files loaded)
+function autoRegen(){if(clientsData&&cgsData){clearMsgs();generate();}}
+document.getElementById('sel-month').addEventListener('change',autoRegen);
+document.getElementById('sel-year').addEventListener('change',autoRegen);
+function pd(v){if(!v)return null;if(v instanceof Date)return v;var d=new Date(v);return isNaN(d)?null:d;}
+function inRange(v,s,e){var d=pd(v);return d&&d>=s&&d<=e;}
+function fmt(v){var d=pd(v);if(!d)return '';return (d.getMonth()+1).toString().padStart(2,'0')+'/'+d.getDate().toString().padStart(2,'0')+'/'+d.getFullYear();}
+// Activos HOY (independiente del mes del reporte)
+function getCurrentActiveClients(){
+  var today=new Date();today.setHours(23,59,59,0);
+  return clientsData.filter(function(r){
+    var s=pd(r['Start Date']),d=pd(r['Date deactivated']);
+    return s&&s<=today&&(!d||d>today);
+  });
+}
+function getCurrentActiveCGs(){
+  var today=new Date();today.setHours(23,59,59,0);
+  return cgsData.filter(function(r){
+    var h=pd(r['Hire Date']),t=pd(r['Termination Date']);
+    return h&&h<=today&&(!t||t>today);
+  });
+}
+function computeMonth(month,year){
+  var start=new Date(year,month,1),end=new Date(year,month+1,0,23,59,59);
+  // Servidos durante el mes (activos en cualquier momento del mes)
+  var activeClients=clientsData.filter(function(r){
+    var s=pd(r['Start Date']),d=pd(r['Date deactivated']);
+    return s&&s<=end&&(!d||d>=start);
+  });
+  // Activos al FINAL del mes (no salieron durante el mes — base del bono)
+  var clientsAtEnd=clientsData.filter(function(r){
+    var s=pd(r['Start Date']),d=pd(r['Date deactivated']);
+    return s&&s<=end&&(!d||d>end);
+  });
+  // CGs al final del mes
+  var cgsAtEnd=cgsData.filter(function(r){
+    var h=pd(r['Hire Date']),t=pd(r['Termination Date']);
+    return h&&h<=end&&(!t||t>end);
+  });
+  // Nuevos ese mes
+  var newClients=clientsData.filter(function(r){return inRange(r['Start Date'],start,end);});
+  // Salidas ese mes
+  var leftClients=clientsData.filter(function(r){return inRange(r['Date deactivated'],start,end);});
+  var deceased=leftClients.filter(function(r){return r['Deactivation Reason']==='Deceased';});
+  var stopped=leftClients.filter(function(r){return r['Deactivation Reason']!=='Deceased';});
+  // CGs activos durante el mes
+  var activeCGs=cgsData.filter(function(r){
+    var h=pd(r['Hire Date']),t=pd(r['Termination Date']);
+    return h&&h<=end&&(!t||t>=start);
+  });
+  var newHires=cgsData.filter(function(r){return inRange(r['Hire Date'],start,end);});
+  var leftCGs=cgsData.filter(function(r){return inRange(r['Termination Date'],start,end);});
+  return{month:month,year:year,start:start,end:end,
+    label:MONTHS[month]+' '+year,short:MS[month]+' '+year,
+    period:(month+1).toString().padStart(2,'0')+'/01/'+year+' - '+(month+1).toString().padStart(2,'0')+'/'+end.getDate()+'/'+year,
+    clients:{active:activeClients.length,atEnd:clientsAtEnd.length,atEndList:clientsAtEnd,newList:newClients,leftDeceasedList:deceased,leftStoppedList:stopped,totalLeft:leftClients.length},
+    cgs:{active:activeCGs.length,atEnd:cgsAtEnd.length,atEndList:cgsAtEnd,newList:newHires,leftList:leftCGs},
+    bonus:clientsAtEnd.length*15};
+}
+function generate(){
+  clearMsgs();
+  if(!clientsData)return showErr('Please upload the Clients file.');
+  if(!cgsData)return showErr('Please upload the Caregivers file.');
+  var month=parseInt(document.getElementById('sel-month').value);
+  var year=parseInt(document.getElementById('sel-year').value);
+  var curr=computeMonth(month,year);
+  var p1m=month===0?11:month-1,p1y=month===0?year-1:year;
+  var p2m=p1m===0?11:p1m-1,p2y=p1m===0?p1y-1:p1y;
+  var prev1=computeMonth(p1m,p1y),prev2=computeMonth(p2m,p2y);
+  var nowClients=getCurrentActiveClients(),nowCGs=getCurrentActiveCGs();
+  lastReport={curr:curr,prev1:prev1,prev2:prev2,
+    nowClients:nowClients,nowCGs:nowCGs,
+    obs:document.getElementById('txt-obs').value.trim(),
+    actions:document.getElementById('txt-actions').value.trim(),
+    cgNotes:document.getElementById('txt-cg-notes').value.trim(),
+    comments:document.getElementById('txt-comments').value.trim()};
+  renderPreview(lastReport);
+  showOk('Report generated! Review below, then download.');
+}
+function delta(c,p,ps){
+  var d=c-p;
+  if(d===0)return '<span class="delta flat">No change vs '+ps+'</span>';
+  return '<span class="delta '+(d>0?'up':'down')+'">'+(d>0?'▲ +':'▼ ')+d+' vs '+ps+'</span>';
+}
+function renderPreview(rpt){
+  var curr=rpt.curr,prev1=rpt.prev1,prev2=rpt.prev2;
+  document.getElementById('prev-title').textContent=curr.label+' — Continuous Care Report';
+  document.getElementById('prev-period').textContent=curr.period;
+  var nowC=rpt.nowClients?rpt.nowClients.length:'—',nowG=rpt.nowCGs?rpt.nowCGs.length:'—';
+  document.getElementById('metrics-row').innerHTML=
+    '<div class="metric-box" style="background:var(--sky)"><div class="num" style="color:var(--blue)">'+nowC+'</div><div class="lbl">Active Clients Today</div><div class="delta flat" style="font-size:10px">As of right now</div></div>'+
+    '<div class="metric-box"><div class="num">'+curr.clients.active+'</div><div class="lbl">Served in '+curr.short+'</div>'+delta(curr.clients.active,prev1.clients.active,prev1.short)+'</div>'+
+    '<div class="metric-box" style="background:#f0fdf4"><div class="num" style="color:#16a34a">'+curr.clients.atEnd+'</div><div class="lbl">Clients at Month End</div>'+delta(curr.clients.atEnd,prev1.clients.atEnd,prev1.short)+'</div>'+
+    '<div class="metric-box"><div class="num">'+curr.clients.newList.length+'</div><div class="lbl">New Clients</div>'+delta(curr.clients.newList.length,prev1.clients.newList.length,prev1.short)+'</div>'+
+    '<div class="metric-box"><div class="num">'+curr.clients.totalLeft+'</div><div class="lbl">Clients Left</div>'+delta(curr.clients.totalLeft,prev1.clients.totalLeft,prev1.short)+'</div>'+
+    '<div class="metric-box"><div class="num">'+curr.cgs.active+'</div><div class="lbl">CGs Served in '+curr.short+'</div>'+delta(curr.cgs.active,prev1.cgs.active,prev1.short)+'</div>'+
+    '<div class="metric-box" style="background:#f0fdf4"><div class="num" style="color:#16a34a">'+curr.cgs.atEnd+'</div><div class="lbl">CGs at Month End</div>'+delta(curr.cgs.atEnd,prev1.cgs.atEnd,prev1.short)+'</div>'+
+    '<div class="metric-box"><div class="num">'+curr.cgs.newList.length+'</div><div class="lbl">New Hires</div>'+delta(curr.cgs.newList.length,prev1.cgs.newList.length,prev1.short)+'</div>'+
+    '<div class="metric-box"><div class="num">'+curr.clients.totalLeft+'</div><div class="lbl">Left This Month</div>'+delta(curr.clients.totalLeft,prev1.clients.totalLeft,prev1.short)+'</div>'+
+    '<div class="metric-box"><div class="num">$'+curr.bonus+'</div><div class="lbl">Live-In Bonus</div>'+delta(curr.bonus,prev1.bonus,prev1.short)+'</div>';
+  var labels=[prev2.short,prev1.short,curr.short];
+  if(chartC)chartC.destroy();
+  if(chartG)chartG.destroy();
+  function mkChart(id,label,color,vals){
+    return new Chart(document.getElementById(id),{type:'line',data:{labels:labels,datasets:[{label:label,data:vals,borderColor:color,backgroundColor:color+'22',borderWidth:2.5,pointRadius:5,pointBackgroundColor:color,fill:true,tension:0.35}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:false,grid:{color:'#f1f5f9'},ticks:{font:{size:11}}},x:{grid:{display:false},ticks:{font:{size:11}}}}}});
+  }
+  chartC=mkChart('chart-clients','Active Clients','#2563eb',[prev2.clients.active,prev1.clients.active,curr.clients.active]);
+  chartG=mkChart('chart-cgs','Active Caregivers','#d4a827',[prev2.cgs.active,prev1.cgs.active,curr.cgs.active]);
+  function pc(r,cls,info){return '<div class="pc '+cls+'"><div class="pn">'+r['First Name']+' '+r['Last Name']+'</div><div class="pi">'+info+'</div></div>';}
+  function empty(m){return '<div class="empty">'+m+'</div>';}
+  var atEndClientCards=curr.clients.atEndList&&curr.clients.atEndList.length?curr.clients.atEndList.map(function(r){return pc(r,'ng','Since: '+fmt(r['Start Date']));}).join(''):empty('No clients at month end');
+  var atEndCGCards=curr.cgs.atEndList&&curr.cgs.atEndList.length?curr.cgs.atEndList.map(function(r){return pc(r,'ng','Since: '+fmt(r['Hire Date']));}).join(''):empty('No caregivers at month end');
+  var ncCards=curr.clients.newList.length?curr.clients.newList.map(function(r){return pc(r,'nc','Started: '+fmt(r['Start Date']));}).join(''):empty('No new clients this month');
+  var dcCards=curr.clients.leftDeceasedList.length?curr.clients.leftDeceasedList.map(function(r){return pc(r,'ld','Deceased · '+fmt(r['Date deactivated']));}).join(''):empty('None');
+  var stCards=curr.clients.leftStoppedList.length?curr.clients.leftStoppedList.map(function(r){return pc(r,'ls',(r['Deactivation Reason']||'Left')+' · '+fmt(r['Date deactivated']));}).join(''):empty('None');
+  var nhCards=curr.cgs.newList.length?curr.cgs.newList.map(function(r){return pc(r,'ng','Hired: '+fmt(r['Hire Date']));}).join(''):empty('No new hires this month');
+  var lcCards=curr.cgs.leftList.length?curr.cgs.leftList.map(function(r){return pc(r,'lg',(r['Deactivation Reason']||'Left')+' · '+fmt(r['Termination Date']));}).join(''):empty('None');
+  var cmpRows=[
+    ['Clients Served',prev2.clients.active,prev1.clients.active,curr.clients.active],
+    ['Clients at Month End',prev2.clients.atEnd,prev1.clients.atEnd,curr.clients.atEnd],
+    ['New Clients',prev2.clients.newList.length,prev1.clients.newList.length,curr.clients.newList.length],
+    ['Clients Left',prev2.clients.totalLeft,prev1.clients.totalLeft,curr.clients.totalLeft],
+    ['CGs Served',prev2.cgs.active,prev1.cgs.active,curr.cgs.active],
+    ['CGs at Month End',prev2.cgs.atEnd,prev1.cgs.atEnd,curr.cgs.atEnd],
+    ['New Hires',prev2.cgs.newList.length,prev1.cgs.newList.length,curr.cgs.newList.length],
+    ['Caregivers Left',prev2.cgs.leftList.length,prev1.cgs.leftList.length,curr.cgs.leftList.length],
+    ['Live-In Bonus','$'+prev2.bonus,'$'+prev1.bonus,'$'+curr.bonus]
+  ];
+  document.getElementById('detail-wrap').innerHTML=
+    '<div class="detail-section"><div class="dsec-title">🟢 Currently Active (Today — '+nowC+' clients / '+nowG+' caregivers)</div><div class="dsec-body">'+
+    '<div><div class="dsec-sub">Active Clients Right Now ('+nowC+')</div><div class="person-list">'+(rpt.nowClients&&rpt.nowClients.length?rpt.nowClients.map(function(r){return pc(r,'nc','Started: '+fmt(r['Start Date']));}).join(''):empty('No active clients'))+'</div></div>'+
+    '<div><div class="dsec-sub">Active Caregivers Right Now ('+nowG+')</div><div class="person-list">'+(rpt.nowCGs&&rpt.nowCGs.length?rpt.nowCGs.map(function(r){return pc(r,'ng','Hired: '+fmt(r['Hire Date']));}).join(''):empty('No active caregivers'))+'</div></div>'+
+    '</div></div>'+
+    '<div class="detail-section"><div class="dsec-title">👥 Client Activity</div><div class="dsec-body" style="grid-template-columns:1fr 1fr 1fr 1fr">'+
+    '<div><div class="dsec-sub">At Month End ('+curr.clients.atEnd+')</div><div class="person-list">'+atEndClientCards+'</div></div>'+
+    '<div><div class="dsec-sub">New Clients ('+curr.clients.newList.length+')</div><div class="person-list">'+ncCards+'</div></div>'+
+    '<div><div class="dsec-sub">Deceased ('+curr.clients.leftDeceasedList.length+')</div><div class="person-list">'+dcCards+'</div></div>'+
+    '<div><div class="dsec-sub">Stopped Services ('+curr.clients.leftStoppedList.length+')</div><div class="person-list">'+stCards+'</div></div>'+
+    '</div></div>'+
+    '<div class="detail-section"><div class="dsec-title">🏥 Caregiver Activity</div><div class="dsec-body" style="grid-template-columns:1fr 1fr 1fr">'+
+    '<div><div class="dsec-sub">At Month End ('+curr.cgs.atEnd+')</div><div class="person-list">'+atEndCGCards+'</div></div>'+
+    '<div><div class="dsec-sub">New Hires ('+curr.cgs.newList.length+')</div><div class="person-list">'+nhCards+'</div></div>'+
+    '<div><div class="dsec-sub">Left This Month ('+curr.cgs.leftList.length+')</div><div class="person-list">'+lcCards+'</div></div>'+
+    '</div></div>'+
+    '<div class="detail-section"><div class="dsec-title">📈 3-Month Comparison</div><div class="dsec-body">'+
+    '<div><table class="comparison-table"><tr><th>Metric</th><th class="right">'+prev2.short+'</th><th class="right">'+prev1.short+'</th><th class="right">'+curr.short+'</th></tr>'+
+    cmpRows.map(function(row,i){return '<tr style="background:'+(i%2?'var(--light)':'var(--white)')+'"><td style="font-weight:600;font-size:12px">'+row[0]+'</td><td class="right">'+row[1]+'</td><td class="right">'+row[2]+'</td><td class="curr">'+row[3]+'</td></tr>';}).join('')+
+    '</table></div>'+
+    '<div><div class="dsec-sub">Live-In Bonus</div><div style="font-size:32px;font-family:DM Serif Display,serif;color:var(--navy)">$'+curr.bonus+'</div><div style="font-size:12px;color:var(--muted);margin-top:4px">'+curr.clients.atEnd+' clients at month end × $15</div></div>'+
+    '</div></div>'+
+    '<div class="detail-section"><div class="dsec-title">📝 Notes</div><div class="dsec-body">'+
+    '<div><div class="dsec-sub">Observations</div><div style="font-size:13px;line-height:1.6">'+(rpt.obs||'<span style="color:var(--muted);font-style:italic">None added</span>')+'</div></div>'+
+    '<div><div class="dsec-sub">Action Items</div><div style="font-size:13px;line-height:1.6">'+(rpt.actions||'<span style="color:var(--muted);font-style:italic">None added</span>')+'</div></div>'+
+    '<div><div class="dsec-sub">Caregiver Notes</div><div style="font-size:13px;line-height:1.6">'+(rpt.cgNotes||'<span style="color:var(--muted);font-style:italic">None added</span>')+'</div></div>'+
+    '<div><div class="dsec-sub">Comments</div><div style="font-size:13px;line-height:1.6">'+(rpt.comments||'<span style="color:var(--muted);font-style:italic">None added</span>')+'</div></div>'+
+    '</div></div>';
+  document.getElementById('preview-section').style.display='block';
+  document.getElementById('preview-section').scrollIntoView({behavior:'smooth',block:'start'});
+}
+function downloadExcel(){
+  if(!lastReport)return;
+  var curr=lastReport.curr,prev1=lastReport.prev1,prev2=lastReport.prev2;
+  var wb=XLSX.utils.book_new();
+  var rows=[];
+  function add(){rows.push(Array.prototype.slice.call(arguments));}
+  function gap(){rows.push([]);}
+  add('CONTINUOUS CARE MONTHLY REPORT — '+curr.label.toUpperCase());
+  add('Prepared by: Bo Hodges','','Right at Home · Live-In Program');
+  add('Period: '+curr.period);
+  gap();
+  add('METRICS SUMMARY','',prev2.short,prev1.short,curr.short,'Change');
+  [['Active Clients',prev2.clients.active,prev1.clients.active,curr.clients.active],
+   ['New Clients',prev2.clients.newList.length,prev1.clients.newList.length,curr.clients.newList.length],
+   ['Clients Left',prev2.clients.totalLeft,prev1.clients.totalLeft,curr.clients.totalLeft],
+   ['Active Caregivers',prev2.cgs.active,prev1.cgs.active,curr.cgs.active],
+   ['New Hires',prev2.cgs.newList.length,prev1.cgs.newList.length,curr.cgs.newList.length],
+   ['Caregivers Left',prev2.cgs.leftList.length,prev1.cgs.leftList.length,curr.cgs.leftList.length],
+   ['Live-In Bonus ($)',prev2.bonus,prev1.bonus,curr.bonus]
+  ].forEach(function(r){add(r[0],'',r[1],r[2],r[3],(r[3]-r[2]>=0?'+':'')+(r[3]-r[2]));});
+  gap();
+  add('NEW CLIENTS THIS MONTH'); add('Name','Start Date');
+  if(curr.clients.newList.length)curr.clients.newList.forEach(function(r){add(r['First Name']+' '+r['Last Name'],fmt(r['Start Date']));});
+  else add('None','');
+  gap();
+  add('CLIENTS WHO LEFT THIS MONTH'); add('Name','Date Left','Reason','Category');
+  var allLeft=curr.clients.leftDeceasedList.map(function(r){return Object.assign({},r,{_cat:'Deceased'});}).concat(curr.clients.leftStoppedList.map(function(r){return Object.assign({},r,{_cat:'Stopped Care'});}));
+  if(allLeft.length)allLeft.forEach(function(r){add(r['First Name']+' '+r['Last Name'],fmt(r['Date deactivated']),r['Deactivation Reason'],r._cat);});
+  else add('None','','','');
+  gap();
+  add('NEW CAREGIVERS THIS MONTH'); add('Name','Hire Date');
+  if(curr.cgs.newList.length)curr.cgs.newList.forEach(function(r){add(r['First Name']+' '+r['Last Name'],fmt(r['Hire Date']));});
+  else add('None','');
+  gap();
+  add('CAREGIVERS WHO LEFT THIS MONTH'); add('Name','Termination Date','Reason');
+  if(curr.cgs.leftList.length)curr.cgs.leftList.forEach(function(r){add(r['First Name']+' '+r['Last Name'],fmt(r['Termination Date']),r['Deactivation Reason']||'');});
+  else add('None','','');
+  gap();
+  add('LIVE-IN COMPENSATION BONUS');
+  add('Active Clients','Rate','Total');
+  add(curr.clients.active,'$15','$'+curr.bonus);
+  gap();
+  add('OBSERVATIONS'); add(lastReport.obs||'—'); gap();
+  add('ACTION ITEMS'); add(lastReport.actions||'—'); gap();
+  add('CAREGIVER NOTES'); add(lastReport.cgNotes||'—'); gap();
+  add('COMMENTS'); add(lastReport.comments||'—');
+  var ws=XLSX.utils.aoa_to_sheet(rows);
+  ws['!cols']=[{wch:36},{wch:28},{wch:16},{wch:16},{wch:16},{wch:16}];
+  XLSX.utils.book_append_sheet(wb,ws,'Monthly Report');
+  var t2=[['Month','Active Clients','New Clients','Clients Left','Active CGs','New Hires','CGs Left','Bonus'],
+    [prev2.short,prev2.clients.active,prev2.clients.newList.length,prev2.clients.totalLeft,prev2.cgs.active,prev2.cgs.newList.length,prev2.cgs.leftList.length,prev2.bonus],
+    [prev1.short,prev1.clients.active,prev1.clients.newList.length,prev1.clients.totalLeft,prev1.cgs.active,prev1.cgs.newList.length,prev1.cgs.leftList.length,prev1.bonus],
+    [curr.short,curr.clients.active,curr.clients.newList.length,curr.clients.totalLeft,curr.cgs.active,curr.cgs.newList.length,curr.cgs.leftList.length,curr.bonus]];
+  var ws2=XLSX.utils.aoa_to_sheet(t2);
+  ws2['!cols']=[{wch:14},{wch:15},{wch:13},{wch:13},{wch:13},{wch:11},{wch:10},{wch:12}];
+  XLSX.utils.book_append_sheet(wb,ws2,'3-Month Trend');
+  XLSX.writeFile(wb,'Continuous_Care_'+MS[curr.month]+curr.year+'.xlsx');
+}
+function showErr(m){var e=document.getElementById('msg-err');e.textContent='⚠️ '+m;e.classList.add('show');}
+function showOk(m){var e=document.getElementById('msg-ok');e.textContent='✅ '+m;e.classList.add('show');}
+function clearMsgs(){document.getElementById('msg-err').classList.remove('show');document.getElementById('msg-ok').classList.remove('show');}
+</script>
+</body>
+</html>
