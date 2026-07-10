@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>RAH · File Naming Standard</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px;-webkit-font-smoothing:antialiased}
+body{font-family:'DM Sans',sans-serif;background:#F7F6F2;color:#1C1C1A;min-height:100vh;padding-bottom:4rem}
+
+/* HEADER */
+header{background:#1C1C1A;padding:0 2rem;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:10}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-mark{width:28px;height:28px;background:#C8F0E0;border-radius:6px;display:flex;align-items:center;justify-content:center}
+.logo-mark svg{width:16px;height:16px;stroke:#0F6E56;fill:none;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round}
+.logo-text{font-size:14px;font-weight:600;color:#F7F6F2;letter-spacing:.01em}
+.logo-text span{color:#9FE1CB}
+.badge{font-size:10px;font-weight:500;color:#888780;letter-spacing:.08em;background:#2C2C2A;padding:3px 8px;border-radius:4px}
+
+/* CONTAINER */
+.container{max-width:760px;margin:0 auto;padding:2rem 1.5rem}
+
+/* SCHEMA */
+.schema{background:#fff;border:1px solid #E2E0D8;border-radius:12px;padding:1rem 1.25rem;margin-bottom:1.5rem}
+.schema-title{font-size:10px;font-weight:600;letter-spacing:.09em;color:#B4B2A9;text-transform:uppercase;margin-bottom:8px}
+.schema-line{font-family:'DM Mono',monospace;font-size:12px;color:#5F5E5A;line-height:2.2;display:flex;flex-wrap:wrap;align-items:center;gap:2px}
+.sp{display:inline-flex;align-items:center;padding:2px 7px;border-radius:4px;font-size:11px;font-weight:500;white-space:nowrap}
+.sp-entity{background:#E8F5EE;color:#0F6E56}
+.sp-payer{background:#EEF4FD;color:#1A5FAD}
+.sp-name{background:#FDF3E8;color:#8B4A0A}
+.sp-doc{background:#FDE8E8;color:#9B2626}
+.sp-date{background:#F3EEF8;color:#5B3A9B}
+.sp-source{background:#FEF8E8;color:#8B6A0A}
+
+.sp-extid{background:#F0F0F0;color:#888780;border:1px dashed #C8C6BE}
+.sep{color:#C8C6BE;font-weight:600;margin:0 1px}
+.schema-note{font-size:11px;color:#B4B2A9;margin-top:6px}
+
+/* TABS */
+.tabs{display:flex;gap:4px;margin-bottom:1.5rem;background:#EAE8E2;padding:4px;border-radius:10px}
+.tab{flex:1;padding:9px 0;font-size:13px;font-weight:500;font-family:'DM Sans',sans-serif;background:transparent;border:none;border-radius:7px;cursor:pointer;color:#888780;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:6px}
+.tab svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;flex-shrink:0}
+.tab.active{background:#fff;color:#1C1C1A;box-shadow:0 1px 3px rgba(0,0,0,.07)}
+.tab:hover:not(.active){background:rgba(255,255,255,.5);color:#5F5E5A}
+
+/* PANELS */
+.panel{display:none}
+.panel.active{display:block}
+
+/* FIELD */
+.field-group{margin-bottom:1rem}
+.field-label{display:block;font-size:11px;font-weight:600;letter-spacing:.07em;color:#888780;text-transform:uppercase;margin-bottom:5px}
+.field-hint{font-size:11px;color:#B4B2A9;margin-top:3px}
+input[type=text],input[type=date],select{width:100%;padding:9px 12px;font-size:14px;font-family:'DM Sans',sans-serif;background:#fff;border:1px solid #DDDBD3;border-radius:8px;color:#1C1C1A;outline:none;transition:border-color .15s,box-shadow .15s;appearance:none}
+input[type=text]:focus,input[type=date]:focus,select:focus{border-color:#1D9E75;box-shadow:0 0 0 3px rgba(29,158,117,.1)}
+input::placeholder{color:#C8C6BE}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+
+/* ENTITY TOGGLE */
+.entity-group{display:flex;gap:6px;margin-bottom:1rem}
+.ent-btn{flex:1;padding:10px 0;font-size:13px;font-weight:500;font-family:'DM Sans',sans-serif;background:#fff;border:1px solid #DDDBD3;border-radius:8px;cursor:pointer;color:#888780;transition:all .15s;display:flex;align-items:center;justify-content:center;gap:7px}
+.ent-btn svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.ent-btn.active{background:#E8F5EE;color:#0F6E56;border-color:#9FE1CB;font-weight:600}
+.ent-btn:hover:not(.active){background:#F7F6F2;color:#5F5E5A}
+
+/* PAYER ROW */
+#payer-row{transition:opacity .2s}
+
+/* EXTID ROW */
+.extid-row{display:flex;align-items:center;gap:10px;padding:10px 12px;background:#F7F6F2;border:1px dashed #DDDBD3;border-radius:8px;margin-top:4px}
+.extid-row label{font-size:13px;color:#888780;white-space:nowrap;cursor:pointer;display:flex;align-items:center;gap:6px}
+.extid-row input[type=checkbox]{width:15px;height:15px;accent-color:#1D9E75;cursor:pointer;flex-shrink:0}
+.extid-input{flex:1}
+.extid-input input{margin:0}
+
+/* OUTPUT */
+.output{margin-top:1.5rem;background:#fff;border:1px solid #DDDBD3;border-radius:12px;padding:1.25rem;display:none}
+.out-label{font-size:10px;font-weight:600;letter-spacing:.09em;color:#B4B2A9;text-transform:uppercase;margin-bottom:8px}
+.filename{font-family:'DM Mono',monospace;font-size:14px;line-height:1.9;word-break:break-all;margin-bottom:14px;padding:12px 14px;background:#F7F6F2;border-radius:8px}
+.fn-entity{color:#0F6E56;font-weight:500}
+.fn-payer{color:#1A5FAD;font-weight:500}
+.fn-name{color:#8B4A0A;font-weight:500}
+.fn-doc{color:#9B2626;font-weight:500}
+.fn-date{color:#5B3A9B;font-weight:500}
+.fn-source{color:#8B6A0A;font-weight:500}
+
+.fn-extid{color:#888780;font-weight:500}
+.fn-sep{color:#C8C6BE}
+
+/* COPY BUTTONS */
+.copy-row{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px}
+.copy-btn{font-size:12px;font-family:'DM Sans',sans-serif;padding:7px 13px;display:inline-flex;align-items:center;gap:5px;border-radius:7px;border:1px solid #DDDBD3;cursor:pointer;background:#F7F6F2;color:#5F5E5A;transition:all .12s;white-space:nowrap}
+.copy-btn:hover{background:#EAE8E2;border-color:#C8C6BE;color:#1C1C1A}
+.copy-btn:active{transform:scale(.97)}
+.copy-btn svg{width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.copy-btn.copied{background:#E8F5EE;border-color:#9FE1CB;color:#0F6E56}
+
+/* BREAKDOWN */
+.breakdown{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:7px;margin-top:4px}
+.seg-card{background:#F7F6F2;border:1px solid #EAE8E2;border-radius:7px;padding:8px 10px}
+.seg-card-lbl{font-size:9px;color:#B4B2A9;text-transform:uppercase;letter-spacing:.07em;margin-bottom:2px}
+.seg-card-val{font-size:12px;font-family:'DM Mono',monospace;font-weight:500;word-break:break-all}
+
+/* VALIDATOR */
+.val-wrap{position:relative}
+.val-wrap input{font-family:'DM Mono',monospace;font-size:13px;padding-right:36px}
+.val-clear{position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:20px;cursor:pointer;color:#C8C6BE;background:none;border:none;line-height:1;padding:0}
+.val-clear:hover{color:#888780}
+.val-result{margin-top:1rem;border-radius:10px;padding:1rem 1.25rem;display:none}
+.val-result.ok{background:#F0FAF6;border:1px solid #9FE1CB}
+.val-result.warn{background:#FEF9EE;border:1px solid #FAC775}
+.val-result.err{background:#FEF0F0;border:1px solid #F09595}
+.val-head{font-size:14px;font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:7px}
+.val-head.ok{color:#0F6E56}
+.val-head.warn{color:#854F0B}
+.val-head.err{color:#A32D2D}
+.val-issues{list-style:none}
+.val-issues li{font-size:13px;color:#5F5E5A;padding:3px 0;display:flex;gap:7px;align-items:flex-start;line-height:1.5}
+.val-pills{display:flex;flex-wrap:wrap;gap:5px;margin-top:9px}
+.val-pill{font-size:11px;font-family:'DM Mono',monospace;padding:3px 8px;border-radius:5px;background:#fff;border:1px solid #DDDBD3;color:#5F5E5A}
+.val-pill b{color:#1C1C1A}
+
+/* REFERENCE */
+.ref-section{margin-bottom:1.5rem}
+.ref-title{font-size:11px;font-weight:600;letter-spacing:.07em;color:#888780;text-transform:uppercase;margin-bottom:8px}
+.ref-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.ref-card{background:#fff;border:1px solid #E2E0D8;border-radius:10px;padding:.9rem 1rem}
+.ref-card h4{font-size:12px;font-weight:600;color:#1C1C1A;margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #F0EEE8}
+.ref-row{display:flex;justify-content:space-between;align-items:center;font-size:12px;padding:3px 0;border-bottom:1px solid #F7F6F2}
+.ref-row:last-child{border-bottom:none}
+.ref-code{font-family:'DM Mono',monospace;font-weight:500;color:#1A5FAD}
+.ref-desc{color:#888780;text-align:right;font-size:11px}
+.example-block{background:#fff;border:1px solid #E2E0D8;border-radius:10px;padding:.9rem 1rem}
+.ex-item{padding:6px 0;border-bottom:1px solid #F0EEE8}
+.ex-item:last-child{border-bottom:none}
+.ex-name{font-family:'DM Mono',monospace;font-size:11px;color:#1A5FAD;font-weight:500;word-break:break-all}
+.ex-desc{font-size:11px;color:#B4B2A9;margin-top:2px}
+
+/* DIVIDER */
+.divider{height:1px;background:#EAE8E2;margin:1.25rem 0}
+
+/* FOOTER */
+footer{text-align:center;margin-top:3rem;font-size:11px;color:#C8C6BE;letter-spacing:.05em}
+
+@media(max-width:580px){
+  .grid2,.grid3{grid-template-columns:1fr}
+  .ref-grid{grid-template-columns:1fr}
+  .entity-group{flex-direction:column}
+  .container{padding:1.25rem 1rem}
+  header{padding:0 1rem}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-mark">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+    </div>
+    <div class="logo-text">Right at Home <span>·</span> File Naming Standard</div>
+  </div>
+  <div class="badge">v2.1 — 2025</div>
+</header>
+
+<div class="container">
+
+  <!-- SCHEMA -->
+  <div class="schema">
+    <div class="schema-title">Standard schema</div>
+    <div class="schema-line" id="schema-display">
+      <span class="sp sp-entity">ENTITY</span><span class="sep">_</span>
+      <span class="sp sp-payer">PAYER</span><span class="sep">_</span>
+      <span class="sp sp-name">LASTNAME</span><span class="sep">_</span>
+      <span class="sp sp-name">FIRSTNAME</span><span class="sep">_</span>
+      <span class="sp sp-doc">DOCTYPE</span><span class="sep">_</span>
+      <span class="sp sp-date">YYYY-MM-DD</span><span class="sep">_</span>
+      <span class="sp sp-source">SOURCE</span>
+      <span class="sep" id="schema-extid-sep" style="display:none">_</span>
+      <span class="sp sp-extid" id="schema-extid-pill" style="display:none">EXT-ID</span>
+    </div>
+    <div class="schema-note">PAYER applies to clients only. EXT-ID is optional — use only when two people share the same full name.</div>
+  </div>
+
+  <!-- TABS -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('gen',this)">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/></svg>
+      Generate
+    </button>
+    <button class="tab" onclick="switchTab('val',this)">
+      <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+      Validate
+    </button>
+    <button class="tab" onclick="switchTab('ref',this)">
+      <svg viewBox="0 0 24 24"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+      Reference
+    </button>
+  </div>
+
+  <!-- ── GENERATE ── -->
+  <div id="panel-gen" class="panel active">
+
+    <div class="field-group">
+      <div class="field-label">Entity type</div>
+      <div class="entity-group">
+        <button class="ent-btn active" id="ent-CLIENT" onclick="setEntity('CLIENT',this)">
+          <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          Client
+        </button>
+        <button class="ent-btn" id="ent-CG" onclick="setEntity('CG',this)">
+          <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Caregiver
+        </button>
+      </div>
+    </div>
+
+    <div id="payer-row" class="field-group">
+      <label class="field-label">Payer / Client type</label>
+      <select id="g-payer" onchange="generate()">
+        <option value="VA">VA — Veterans Affairs</option>
+        <option value="LTC">LTC — Long Term Care</option>
+        <option value="PRV">PRV — Private</option>
+        <option value="GUIDE">GUIDE — Guide</option>
+        <option value="AAA">AAA — Area Agency on Aging</option>
+      </select>
+    </div>
+
+    <div class="grid2">
+      <div class="field-group">
+        <label class="field-label">Last name</label>
+        <input type="text" id="g-last" placeholder="e.g. GARCIA" oninput="generate()"/>
+      </div>
+      <div class="field-group">
+        <label class="field-label">First name</label>
+        <input type="text" id="g-first" placeholder="e.g. MARIA" oninput="generate()"/>
+      </div>
+    </div>
+
+    <div class="field-group">
+      <label class="field-label">Document type</label>
+      <select id="g-doctype" onchange="generate()">
+        <option value="">— Select —</option>
+      </select>
+    </div>
+
+    <div class="grid2">
+      <div class="field-group">
+        <label class="field-label">Document date</label>
+        <input type="date" id="g-date" oninput="generate()"/>
+      </div>
+      <div class="field-group">
+        <label class="field-label">Source</label>
+        <select id="g-source" onchange="generate()">
+          <option value="WS">WS — WellSky</option>
+          <option value="PC">PC — Paycore</option>
+          <option value="EXT">EXT — External</option>
+          <option value="INT">INT — Internal</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- EXTERNAL ID -->
+    <div class="field-group">
+      <label class="field-label">External ID <span style="font-weight:400;color:#C8C6BE;text-transform:none;letter-spacing:0">(duplicates only)</span></label>
+      <div class="extid-row">
+        <label>
+          <input type="checkbox" id="extid-toggle" onchange="toggleExtId()"/>
+          Use External ID
+        </label>
+        <div class="extid-input" id="extid-input-wrap" style="display:none">
+          <input type="text" id="g-extid" placeholder="External ID from WellSky profile" oninput="generate()"/>
+        </div>
+      </div>
+      <div class="field-hint">Only check this when two people share the exact same full name. Find the External ID in WellSky under Edit Profile.</div>
+    </div>
+
+    <!-- OUTPUT -->
+    <div class="output" id="gen-output">
+      <div class="out-label">Generated file name</div>
+      <div class="filename" id="gen-filename"></div>
+      <div class="copy-row">
+        <button class="copy-btn" id="btn-plain" onclick="copyName('')">
+          <svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          Copy
+        </button>
+        <button class="copy-btn" id="btn-pdf" onclick="copyName('.pdf')">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Copy as .pdf
+        </button>
+        <button class="copy-btn" id="btn-docx" onclick="copyName('.docx')">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Copy as .docx
+        </button>
+        <button class="copy-btn" id="btn-xlsx" onclick="copyName('.xlsx')">
+          <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          Copy as .xlsx
+        </button>
+        <button class="copy-btn" id="btn-jpeg" onclick="copyName('.jpeg')">
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+          Copy as .jpeg
+        </button>
+      </div>
+      <div class="breakdown" id="gen-breakdown"></div>
+    </div>
+  </div>
+
+  <!-- ── VALIDATE ── -->
+  <div id="panel-val" class="panel">
+    <div class="field-group">
+      <label class="field-label">Paste the file name to validate</label>
+      <div class="val-wrap">
+        <input type="text" id="val-input"
+          placeholder="CLIENT_VA_GARCIA_MARIA_INTAKE_2025-05-07_WS"
+          oninput="validateName()"/>
+        <button class="val-clear" onclick="clearVal()" aria-label="Clear">×</button>
+      </div>
+    </div>
+    <div class="val-result" id="val-result"></div>
+  </div>
+
+  <!-- ── REFERENCE ── -->
+  <div id="panel-ref" class="panel">
+
+    <div class="ref-section">
+      <div class="ref-title">Entity &amp; Payer codes</div>
+      <div class="ref-grid">
+        <div class="ref-card">
+          <h4>Entity</h4>
+          <div class="ref-row"><span class="ref-code">CLIENT</span><span class="ref-desc">Client / consumer</span></div>
+          <div class="ref-row"><span class="ref-code">CG</span><span class="ref-desc">Caregiver / aide</span></div>
+        </div>
+        <div class="ref-card">
+          <h4>Payer (clients only)</h4>
+          <div class="ref-row"><span class="ref-code">VA</span><span class="ref-desc">Veterans Affairs</span></div>
+          <div class="ref-row"><span class="ref-code">LTC</span><span class="ref-desc">Long Term Care</span></div>
+          <div class="ref-row"><span class="ref-code">PRV</span><span class="ref-desc">Private</span></div>
+          <div class="ref-row"><span class="ref-code">GUIDE</span><span class="ref-desc">Guide</span></div>
+          <div class="ref-row"><span class="ref-code">AAA</span><span class="ref-desc">Area Agency on Aging</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ref-section">
+      <div class="ref-title">Source codes</div>
+      <div class="ref-card">
+        <div class="ref-row"><span class="ref-code">WS</span><span class="ref-desc">WellSky / ClearCare</span></div>
+        <div class="ref-row"><span class="ref-code">PC</span><span class="ref-desc">Paycore</span></div>
+        <div class="ref-row"><span class="ref-code">EXT</span><span class="ref-desc">External (physician, insurance, agency)</span></div>
+        <div class="ref-row"><span class="ref-code">INT</span><span class="ref-desc">Internal (created in-office)</span></div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="ref-section">
+      <div class="ref-title">Client documents — all payers (WellSky)</div>
+      <div class="ref-card">
+        <div class="ref-row"><span class="ref-code">INTAKE</span><span class="ref-desc">Intake packet</span></div>
+        <div class="ref-row"><span class="ref-code">HSA</span><span class="ref-desc">Home Safety Assessment</span></div>
+        <div class="ref-row"><span class="ref-code">ISPU</span><span class="ref-desc">ISPU (care plan)</span></div>
+        <div class="ref-row"><span class="ref-code">COC</span><span class="ref-desc">Change of Condition — PCP</span></div>
+        <div class="ref-row"><span class="ref-code">AUTH</span><span class="ref-desc">Authorization (HHA)</span></div>
+        <div class="ref-row"><span class="ref-code">RATELETTER</span><span class="ref-desc">Rate Increase Letter</span></div>
+        <div class="ref-row"><span class="ref-code">TRANSPORTAUTH</span><span class="ref-desc">Transport Authorization</span></div>
+        <div class="ref-row"><span class="ref-code">LIVEAGMT</span><span class="ref-desc">Live-in Agreement (client accepts live-in)</span></div>
+        <div class="ref-row"><span class="ref-code">PAYMENTAUTH</span><span class="ref-desc">Payment Authorization</span></div>
+        <div class="ref-row"><span class="ref-code">INCIDENT</span><span class="ref-desc">Incident Report</span></div>
+      </div>
+    </div>
+
+    <div class="ref-section">
+      <div class="ref-title">Client documents — VA only</div>
+      <div class="ref-card">
+        <div class="ref-row"><span class="ref-code">VAAGMT</span><span class="ref-desc">VA Agreement</span></div>
+        <div class="ref-row"><span class="ref-code">VAIOC</span><span class="ref-desc">VA IPOC</span></div>
+        <div class="ref-row"><span class="ref-code">VASV</span><span class="ref-desc">VA Supervision Visit</span></div>
+        <div class="ref-row"><span class="ref-code">VAHHAREFERRAL</span><span class="ref-desc">HHA Referral copy from PCP</span></div>
+      </div>
+    </div>
+
+    <div class="ref-section">
+      <div class="ref-title">Client documents — AAA only</div>
+      <div class="ref-card">
+        <div class="ref-row"><span class="ref-code">SWO</span><span class="ref-desc">Service Work Order</span></div>
+        <div class="ref-row"><span class="ref-code">TASKLIST</span><span class="ref-desc">Task List / Chore Maintenance</span></div>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="ref-section">
+      <div class="ref-title">Caregiver documents — onboarding (WellSky)</div>
+      <div class="ref-card">
+        <div class="ref-row"><span class="ref-code">APPLICATION</span><span class="ref-desc">Application for Employment</span></div>
+        <div class="ref-row"><span class="ref-code">PHONESCR</span><span class="ref-desc">Phone Screening notes</span></div>
+        <div class="ref-row"><span class="ref-code">INTVW</span><span class="ref-desc">Interview (Zoom / in-person)</span></div>
+        <div class="ref-row"><span class="ref-code">REFCHECK</span><span class="ref-desc">Reference Check</span></div>
+        <div class="ref-row"><span class="ref-code">AUTHCR</span><span class="ref-desc">Authorization for Consumer Reports</span></div>
+        <div class="ref-row"><span class="ref-code">STMTEMP</span><span class="ref-desc">Statement of Employability</span></div>
+        <div class="ref-row"><span class="ref-code">IDSS</span><span class="ref-desc">ID + Social Security card</span></div>
+        <div class="ref-row"><span class="ref-code">DL</span><span class="ref-desc">Driver's License</span></div>
+        <div class="ref-row"><span class="ref-code">PCACHKLIST</span><span class="ref-desc">PCA Checklist</span></div>
+        <div class="ref-row"><span class="ref-code">CONFIDENTIAL</span><span class="ref-desc">Confidentiality Agreement</span></div>
+        <div class="ref-row"><span class="ref-code">TORF</span><span class="ref-desc">TORF document</span></div>
+        <div class="ref-row"><span class="ref-code">LIVEAGMT</span><span class="ref-desc">Caregiver Live-in Agreement</span></div>
+        <div class="ref-row"><span class="ref-code">COUNSELING</span><span class="ref-desc">Counseling Form</span></div>
+      </div>
+    </div>
+
+    <div class="ref-section">
+      <div class="ref-title">Caregiver documents — background checks (WellSky)</div>
+      <div class="ref-grid">
+        <div class="ref-card">
+          <h4>Initial</h4>
+          <div class="ref-row"><span class="ref-code">CBC</span><span class="ref-desc">Criminal Background Check</span></div>
+          <div class="ref-row"><span class="ref-code">TXDPS</span><span class="ref-desc">Texas DPS</span></div>
+          <div class="ref-row"><span class="ref-code">TXOIG</span><span class="ref-desc">Texas OIG</span></div>
+          <div class="ref-row"><span class="ref-code">USOIG</span><span class="ref-desc">US OIG</span></div>
+          <div class="ref-row"><span class="ref-code">NAR</span><span class="ref-desc">NAR check</span></div>
+          <div class="ref-row"><span class="ref-code">EMR</span><span class="ref-desc">EMR check</span></div>
+        </div>
+        <div class="ref-card">
+          <h4>Annual</h4>
+          <div class="ref-row"><span class="ref-code">ANNBGC_CBC</span><span class="ref-desc">Annual — CBC</span></div>
+          <div class="ref-row"><span class="ref-code">ANNBGC_TXDPS</span><span class="ref-desc">Annual — TXDPS</span></div>
+          <div class="ref-row"><span class="ref-code">ANNBGC_TXOIG</span><span class="ref-desc">Annual — TXOIG</span></div>
+          <div class="ref-row"><span class="ref-code">ANNBGC_USOIG</span><span class="ref-desc">Annual — USOIG</span></div>
+          <div class="ref-row"><span class="ref-code">ANNBGC_NAR</span><span class="ref-desc">Annual — NAR</span></div>
+          <div class="ref-row"><span class="ref-code">ANNBGC_EMR</span><span class="ref-desc">Annual — EMR</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ref-section">
+      <div class="ref-title">Caregiver documents — evaluations &amp; other (WellSky)</div>
+      <div class="ref-card">
+        <div class="ref-row"><span class="ref-code">ASSESSCERT</span><span class="ref-desc">HCP Assessment Certificate</span></div>
+        <div class="ref-row"><span class="ref-code">EVALANN</span><span class="ref-desc">Annual Evaluation</span></div>
+        <div class="ref-row"><span class="ref-code">INCIDENT</span><span class="ref-desc">Incident Report</span></div>
+        <div class="ref-row"><span class="ref-code">AUDITPACK</span><span class="ref-desc">State Audit Pack</span></div>
+        <div class="ref-row"><span class="ref-code">DOCNOTE</span><span class="ref-desc">Doctor's Note</span></div>
+      </div>
+    </div>
+
+    <div class="ref-section">
+      <div class="ref-title">Caregiver documents — Paycore <span style="font-weight:400;color:#B4B2A9">(system-generated, do not rename)</span></div>
+      <div class="ref-card">
+        <div class="ref-row"><span class="ref-code" style="color:#888780">2025 401K Notification</span><span class="ref-desc">401K</span></div>
+        <div class="ref-row"><span class="ref-code" style="color:#888780">2025 Client Bill of Rights</span><span class="ref-desc">Bill of Rights</span></div>
+        <div class="ref-row"><span class="ref-code" style="color:#888780">2025 Employee Acknowledgement</span><span class="ref-desc">Employee Ack</span></div>
+        <div class="ref-row"><span class="ref-code" style="color:#888780">2025 Hep B</span><span class="ref-desc">Hepatitis B</span></div>
+        <div class="ref-row"><span class="ref-code" style="color:#888780">2025 PCA Job Description</span><span class="ref-desc">Job Description</span></div>
+        <div class="ref-row"><span class="ref-code" style="color:#888780">2025 Photo Release</span><span class="ref-desc">Photo Release</span></div>
+        <div class="ref-row"><span class="ref-code" style="color:#888780">Bank Verification</span><span class="ref-desc">Direct Deposit / Bank</span></div>
+        <div class="ref-row"><span class="ref-code" style="color:#888780">Cancellation Policy</span><span class="ref-desc">Cancellation Policy</span></div>
+        <div class="ref-row"><span class="ref-code" style="color:#888780">Cell Phone Policy</span><span class="ref-desc">Cell Phone Policy</span></div>
+        <div class="ref-row"><span class="ref-code" style="color:#888780">Drivers License</span><span class="ref-desc">DL copy in Paycore</span></div>
+        <div class="ref-row"><span class="ref-code" style="color:#888780">Emergency Prep</span><span class="ref-desc">Emergency Preparedness</span></div>
+        <div class="ref-row"><span class="ref-code" style="color:#888780">Employee Auto Responsibility</span><span class="ref-desc">Auto Responsibility</span></div>
+        <div class="ref-row"><span class="ref-code" style="color:#888780">Field Staff Handbook</span><span class="ref-desc">Handbook</span></div>
+        <div class="ref-row"><span class="ref-code" style="color:#888780">Hand Book Receipt</span><span class="ref-desc">Handbook Receipt</span></div>
+        <div class="ref-row"><span class="ref-code" style="color:#888780">I-9 Verification Document #1 / #2</span><span class="ref-desc">I-9 docs</span></div>
+        <div class="ref-row"><span class="ref-code" style="color:#888780">Orientation Manual</span><span class="ref-desc">Orientation</span></div>
+        <div class="ref-row"><span class="ref-code" style="color:#888780">PRN Acknowledgment</span><span class="ref-desc">PRN Ack</span></div>
+        <div class="ref-row"><span class="ref-code" style="color:#888780">Vehicle Insurance</span><span class="ref-desc">Vehicle Insurance</span></div>
+        <div class="ref-row"><span class="ref-code" style="color:#888780">W4</span><span class="ref-desc">W-4</span></div>
+        <div class="ref-row"><span class="ref-code" style="color:#888780">Workers Comp Fraud</span><span class="ref-desc">Workers Comp Fraud</span></div>
+      </div>
+    </div>
+
+    <div class="ref-section">
+      <div class="ref-title">Examples</div>
+      <div class="example-block">
+        <div class="ex-item">
+          <div class="ex-name">CLIENT_VA_WAGGONER_DOW_VASV_2025-08-19_WS</div>
+          <div class="ex-desc">VA Supervision Visit for client Dow Waggoner — downloaded from WellSky</div>
+        </div>
+        <div class="ex-item">
+          <div class="ex-name">CLIENT_VA_WAGGONER_DOW_INTAKE_2025-11-06_WS</div>
+          <div class="ex-desc">Intake packet for VA client Dow Waggoner</div>
+        </div>
+        <div class="ex-item">
+          <div class="ex-name">CLIENT_LTC_WEBB_JOE_ISPU_2025-10-01_WS</div>
+          <div class="ex-desc">ISPU for LTC client Joe Webb</div>
+        </div>
+        <div class="ex-item">
+          <div class="ex-name">CLIENT_AAA_DAVIDSON_ALMARIE_SWO_2026-02-02_WS</div>
+          <div class="ex-desc">Service Work Order for AAA client Almarie Davidson</div>
+        </div>
+        <div class="ex-item">
+          <div class="ex-name">CG_LAWRENCE_DONNA_ANNBGC_CBC_2025-07-04_WS</div>
+          <div class="ex-desc">Annual Background Check (CBC) for caregiver Donna Lawrence</div>
+        </div>
+        <div class="ex-item">
+          <div class="ex-name">CG_SCHOEBERT_WILL_AUDITPACK_2026-04-25_WS</div>
+          <div class="ex-desc">State Audit Pack for caregiver Will Schoebert</div>
+        </div>
+        <div class="ex-item">
+          <div class="ex-name">CG_GARCIA_MARIA_CBC_2025-03-10_WS_EXT4821</div>
+          <div class="ex-desc">CBC for caregiver Maria Garcia — External ID used because another Maria Garcia exists</div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /panel-ref -->
+
+</div><!-- /container -->
+
+<footer>Right at Home Austin West · File Naming Standard v2.0</footer>
+
+<script>
+/* ── CONFIG ──────────────────────────────────────────── */
+const DOCS = {
+  CLIENT: [
+    {code:'INTAKE',        label:'Intake packet'},
+    {code:'HSA',           label:'Home Safety Assessment'},
+    {code:'ISPU',          label:'ISPU (care plan)'},
+    {code:'COC',           label:'Change of Condition — PCP'},
+    {code:'AUTH',          label:'Authorization (HHA)'},
+    {code:'RATELETTER',    label:'Rate Increase Letter'},
+    {code:'TRANSPORTAUTH', label:'Transport Authorization'},
+    {code:'LIVEAGMT',      label:'Live-in Agreement (client)'},
+    {code:'PAYMENTAUTH',   label:'Payment Authorization'},
+    {code:'INCIDENT',      label:'Incident Report'},
+    {code:'VAAGMT',        label:'VA Agreement (VA only)'},
+    {code:'VAIOC',         label:'VA IPOC (VA only)'},
+    {code:'VASV',          label:'VA Supervision Visit (VA only)'},
+    {code:'VAHHAREFERRAL', label:'HHA Referral from PCP (VA only)'},
+    {code:'SWO',           label:'Service Work Order (AAA only)'},
+    {code:'TASKLIST',      label:'Task List / Chore Maintenance (AAA only)'},
+  ],
+  CG: [
+    {code:'APPLICATION',   label:'Application for Employment'},
+    {code:'PHONESCR',      label:'Phone Screening notes'},
+    {code:'INTVW',         label:'Interview notes'},
+    {code:'REFCHECK',      label:'Reference Check'},
+    {code:'AUTHCR',        label:'Authorization for Consumer Reports'},
+    {code:'STMTEMP',       label:'Statement of Employability'},
+    {code:'IDSS',          label:'ID + Social Security card'},
+    {code:'DL',            label:"Driver's License"},
+    {code:'PCACHKLIST',    label:'PCA Checklist'},
+    {code:'CONFIDENTIAL',  label:'Confidentiality Agreement'},
+    {code:'TORF',          label:'TORF document'},
+    {code:'LIVEAGMT',      label:'Caregiver Live-in Agreement'},
+    {code:'COUNSELING',    label:'Counseling Form'},
+    {code:'CBC',           label:'Background Check — CBC'},
+    {code:'TXDPS',         label:'Background Check — TXDPS'},
+    {code:'TXOIG',         label:'Background Check — TXOIG'},
+    {code:'USOIG',         label:'Background Check — USOIG'},
+    {code:'NAR',           label:'Background Check — NAR'},
+    {code:'EMR',           label:'Background Check — EMR'},
+    {code:'ANNBGC_CBC',    label:'Annual BGC — CBC'},
+    {code:'ANNBGC_TXDPS',  label:'Annual BGC — TXDPS'},
+    {code:'ANNBGC_TXOIG',  label:'Annual BGC — TXOIG'},
+    {code:'ANNBGC_USOIG',  label:'Annual BGC — USOIG'},
+    {code:'ANNBGC_NAR',    label:'Annual BGC — NAR'},
+    {code:'ANNBGC_EMR',    label:'Annual BGC — EMR'},
+    {code:'ASSESSCERT',    label:'HCP Assessment Certificate'},
+    {code:'EVALANN',       label:'Annual Evaluation'},
+    {code:'INCIDENT',      label:'Incident Report'},
+    {code:'AUDITPACK',     label:'State Audit Pack'},
+    {code:'DOCNOTE',       label:"Doctor's Note"},
+    { code: 'CAREINSR',   label: 'Car Insurance' },
+    { code: 'BANKVER',    label: 'Bank Verification' },
+    { code: 'AVAILAGMT',  label: 'Availability Agreement' },
+  ]
+};
+
+const VALID_ENTITIES = ['CLIENT','CG'];
+const VALID_PAYERS   = ['VA','LTC','PRV','GUIDE','AAA'];
+const VALID_SOURCES  = ['WS','PC','EXT','INT'];
+
+/* ── STATE ───────────────────────────────────────────── */
+let currentEntity = 'CLIENT';
+let _name = '';
+
+/* ── INIT ────────────────────────────────────────────── */
+document.getElementById('g-date').value = new Date().toISOString().slice(0,10);
+buildDocSelect('CLIENT');
+
+/* ── HELPERS ─────────────────────────────────────────── */
+function san(s){ return s.toUpperCase().replace(/[^A-Z0-9_]/g,'').slice(0,30); }
+
+function buildDocSelect(entity){
+  const sel = document.getElementById('g-doctype');
+  sel.innerHTML = '<option value="">— Select —</option>';
+  DOCS[entity].forEach(d => {
+    const o = document.createElement('option');
+    o.value = d.code; o.textContent = d.label;
+    sel.appendChild(o);
+  });
+}
+
+/* ── TAB ─────────────────────────────────────────────── */
+function switchTab(t, btn){
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-'+t).classList.add('active');
+  btn.classList.add('active');
+}
+
+/* ── ENTITY ──────────────────────────────────────────── */
+function setEntity(e, btn){
+  currentEntity = e;
+  document.querySelectorAll('.ent-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('payer-row').style.display = e === 'CLIENT' ? 'block' : 'none';
+  buildDocSelect(e);
+  generate();
+}
+
+/* ── EXT ID TOGGLE ───────────────────────────────────── */
+function toggleExtId(){
+  const on = document.getElementById('extid-toggle').checked;
+  document.getElementById('extid-input-wrap').style.display = on ? 'block' : 'none';
+  document.getElementById('schema-extid-sep').style.display = on ? 'inline' : 'none';
+  document.getElementById('schema-extid-pill').style.display = on ? 'inline-flex' : 'none';
+  if(!on) document.getElementById('g-extid').value = '';
+  generate();
+}
+
+/* ── GENERATE ────────────────────────────────────────── */
+function generate(){
+  const last    = san(document.getElementById('g-last').value);
+  const first   = san(document.getElementById('g-first').value);
+  const doctype = document.getElementById('g-doctype').value;
+  const date    = document.getElementById('g-date').value;
+  const source  = document.getElementById('g-source').value;
+const payer   = document.getElementById('g-payer').value;
+  const useExt  = document.getElementById('extid-toggle').checked;
+  const extid   = useExt ? san(document.getElementById('g-extid').value) : '';
+
+  if(!last && !first && !doctype){
+    document.getElementById('gen-output').style.display = 'none';
+    return;
+  }
+
+  let parts, colors, labels;
+  if(currentEntity === 'CLIENT'){
+    parts  = [currentEntity, payer, last||'LASTNAME', first||'FIRSTNAME', doctype||'DOCTYPE', date||'YYYY-MM-DD', source];
+    colors = ['fn-entity','fn-payer','fn-name','fn-name','fn-doc','fn-date','fn-source'];
+    labels = ['Entity','Payer','Last name','First name','Doc type','Date','Source'];
+  } else {
+    parts  = [currentEntity, last||'LASTNAME', first||'FIRSTNAME', doctype||'DOCTYPE', date||'YYYY-MM-DD', source];
+    colors = ['fn-entity','fn-name','fn-name','fn-doc','fn-date','fn-source'];
+    labels = ['Entity','Last name','First name','Doc type','Date','Source'];
+  }
+
+  if(useExt && extid){
+    parts.push(extid);
+    colors.push('fn-extid');
+    labels.push('Ext ID');
+  }
+
+  _name = parts.join('_');
+
+  document.getElementById('gen-output').style.display = 'block';
+  document.getElementById('gen-filename').innerHTML =
+    parts.map((p,i)=>`<span class="${colors[i]}">${p}</span>${i<parts.length-1?'<span class="fn-sep">_</span>':''}`).join('');
+  document.getElementById('gen-breakdown').innerHTML =
+    parts.map((p,i)=>`<div class="seg-card"><div class="seg-card-lbl">${labels[i]}</div><div class="seg-card-val ${colors[i]}">${p}</div></div>`).join('');
+}
+
+/* ── COPY ────────────────────────────────────────────── */
+function copyName(ext){
+  if(!_name) return;
+  const text = _name + ext;
+  const btnId = ext===''?'btn-plain':ext==='.pdf'?'btn-pdf':ext==='.docx'?'btn-docx':ext==='.xlsx'?'btn-xlsx':'btn-jpeg';
+  navigator.clipboard.writeText(text).then(()=>{
+    const btn = document.getElementById(btnId);
+    const orig = btn.innerHTML;
+    btn.innerHTML = '✓ Copied';
+    btn.classList.add('copied');
+    setTimeout(()=>{ btn.innerHTML=orig; btn.classList.remove('copied'); }, 1600);
+  }).catch(()=>{
+    /* fallback for browsers that block clipboard */
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.position='fixed'; ta.style.opacity='0';
+    document.body.appendChild(ta); ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    const btn = document.getElementById(btnId);
+    const orig = btn.innerHTML;
+    btn.innerHTML = '✓ Copied';
+    btn.classList.add('copied');
+    setTimeout(()=>{ btn.innerHTML=orig; btn.classList.remove('copied'); }, 1600);
+  });
+}
+
+/* ── VALIDATE ────────────────────────────────────────── */
+function validateName(){
+  const raw = document.getElementById('val-input').value.trim();
+  const box = document.getElementById('val-result');
+  if(!raw){ box.style.display='none'; return; }
+
+  const name  = raw.replace(/\.[a-zA-Z]{2,5}$/, '');
+  const parts = name.split('_');
+  const issues = [], info = [];
+
+  const entity = parts[0];
+  const isClient = entity === 'CLIENT';
+  const minParts = isClient ? 7 : 6;
+
+  if(parts.length < minParts)
+    issues.push({t:'err', m:`Too few segments: found ${parts.length}, expected at least ${minParts}.`});
+
+  if(entity && !VALID_ENTITIES.includes(entity))
+    issues.push({t:'err', m:`Invalid entity: "${entity}". Use CLIENT or CG.`});
+  else if(entity) info.push({l:'Entity', v:entity});
+
+  let offset = 1;
+  if(isClient){
+    const payer = parts[1];
+    if(payer && !VALID_PAYERS.includes(payer))
+      issues.push({t:'warn', m:`Unknown payer: "${payer}". Use VA, LTC, PRV, GUIDE, or AAA.`});
+    else if(payer) info.push({l:'Payer', v:payer});
+    offset = 2;
+  }
+
+  const lastname  = parts[offset];
+  const firstname = parts[offset+1];
+  const doctype   = parts[offset+2];
+  const date      = parts[offset+3];
+  const source    = parts[offset+4];
+
+  if(lastname && !/^[A-Z]+$/.test(lastname))
+    issues.push({t:'warn', m:`Last name should be uppercase letters only: "${lastname}"`});
+  else if(lastname) info.push({l:'Last name', v:lastname});
+
+  if(firstname && !/^[A-Z]+$/.test(firstname))
+    issues.push({t:'warn', m:`First name should be uppercase letters only: "${firstname}"`});
+  else if(firstname) info.push({l:'First name', v:firstname});
+
+  const allCodes = [...DOCS.CLIENT,...DOCS.CG].map(d=>d.code);
+  if(doctype && !allCodes.includes(doctype))
+    issues.push({t:'warn', m:`Doc type not recognized: "${doctype}". Check the Reference tab.`});
+  else if(doctype) info.push({l:'Doc type', v:doctype});
+
+  if(date && !/^\d{4}-\d{2}-\d{2}$/.test(date))
+    issues.push({t:'err', m:`Date must be YYYY-MM-DD. Got: "${date}"`});
+  else if(date) info.push({l:'Date', v:date});
+
+  if(source && !VALID_SOURCES.includes(source))
+    issues.push({t:'warn', m:`Unknown source: "${source}". Use WS, PC, EXT, or INT.`});
+  else if(source) info.push({l:'Source', v:source});
+
+  const hasErr  = issues.some(i=>i.t==='err');
+  const hasWarn = issues.some(i=>i.t==='warn');
+  const status  = hasErr?'err':hasWarn?'warn':'ok';
+  const msgs    = {ok:'✓ Valid file name', warn:'⚠ Partially valid — review warnings', err:'✗ Does not meet the standard'};
+
+  let html = `<div class="val-head ${status}">${msgs[status]}</div>`;
+  if(issues.length)
+    html += `<ul class="val-issues">${issues.map(i=>`<li><span class="icon">${i.t==='err'?'✗':'⚠'}</span>${i.m}</li>`).join('')}</ul>`;
+  if(info.length)
+    html += `<div class="val-pills">${info.map(s=>`<span class="val-pill"><span style="color:#B4B2A9;font-size:10px">${s.l} </span><b>${s.v}</b></span>`).join('')}</div>`;
+
+  box.className = `val-result ${status}`;
+  box.innerHTML = html;
+  box.style.display = 'block';
+}
+
+function clearVal(){
+  document.getElementById('val-input').value='';
+  const box = document.getElementById('val-result');
+  box.style.display='none';
+}
+</script>
+</body>
+</html>
