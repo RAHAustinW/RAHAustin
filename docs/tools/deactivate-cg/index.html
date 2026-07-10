@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Inactive Caregivers by Office · Right at Home Central Texas</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#16212e; --ink-soft:#46566a; --muted:#8694a4;
+    --bg:#eef1f5; --surface:#ffffff; --line:#dce2ea; --line-soft:#e8edf2;
+    --accent:#11423b; --accent-ink:#0c2f2a;
+    --aw:#2f6db0; --mf:#2f9183; --ae:#6357ad; --ba:#b07636; --sm:#b04f6b; --none:#6b7787;
+    --warn-bg:#fbeceb; --warn-ink:#9a3b34;
+    --shadow:0 1px 2px rgba(22,33,46,.06),0 8px 24px rgba(22,33,46,.06);
+  }
+  *{box-sizing:border-box}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font-family:"Inter",system-ui,sans-serif; font-size:15px; line-height:1.5;
+    font-variant-numeric:tabular-nums; padding:32px 20px 80px;
+  }
+  .wrap{max-width:1020px; margin:0 auto}
+  .print-only{display:none}
+  .eyebrow{font:600 11px/1 "Inter"; letter-spacing:.14em; text-transform:uppercase; color:var(--accent); margin:0 0 10px}
+  h1{font-family:"Space Grotesk",sans-serif; font-weight:700; font-size:30px; line-height:1.1; letter-spacing:-.01em; margin:0 0 8px}
+  .lede{color:var(--ink-soft); margin:0 0 28px; max-width:62ch}
+
+  /* ---- Upload ---- */
+  .drop{
+    background:var(--surface); border:1.5px dashed var(--line); border-radius:14px;
+    display:block; padding:30px 24px; text-align:center; cursor:pointer; transition:border-color .15s,background .15s; box-shadow:var(--shadow);
+  }
+  .drop:hover,.drop:focus-visible{border-color:var(--accent); background:#fbfdfc; outline:none}
+  .drop.drag{border-color:var(--accent); background:#f1f7f5}
+  .drop .ico{width:34px;height:34px;margin:0 auto 10px;display:block;color:var(--accent)}
+  .drop strong{font-weight:600}
+  .drop small{display:block; color:var(--muted); margin-top:6px}
+  .drop .file{font-family:"Space Grotesk"; font-weight:600; color:var(--accent-ink)}
+  input[type=file]{display:none}
+
+  /* ---- Controls ---- */
+  .controls{display:flex; flex-wrap:wrap; gap:18px; align-items:flex-end; margin:22px 0 6px}
+  .ctl label{display:block; font:600 11px/1 "Inter"; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); margin-bottom:7px}
+  .ctl input{font:500 15px "Inter"; color:var(--ink); background:var(--surface); border:1px solid var(--line); border-radius:9px; padding:9px 11px}
+  .ctl input:focus-visible{outline:2px solid var(--accent); outline-offset:1px; border-color:var(--accent)}
+  .grow{flex:1}
+  .btn{
+    font:600 14px "Inter"; color:#fff; background:var(--accent); border:0; border-radius:9px;
+    padding:11px 18px; cursor:pointer; display:inline-flex; gap:8px; align-items:center; transition:background .15s,opacity .15s;
+  }
+  .btn:hover{background:var(--accent-ink)} .btn:focus-visible{outline:2px solid var(--accent); outline-offset:2px}
+  .btn[disabled]{opacity:.4; cursor:not-allowed}
+  .btn svg{width:16px;height:16px}
+
+  /* ---- Summary ---- */
+  .summary{display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin:26px 0 8px}
+  .stat{background:var(--surface); border:1px solid var(--line-soft); border-radius:12px; padding:16px 18px; box-shadow:var(--shadow)}
+  .stat .n{font-family:"Space Grotesk"; font-weight:700; font-size:28px; line-height:1; letter-spacing:-.01em}
+  .stat .k{font:500 12px/1.3 "Inter"; color:var(--muted); margin-top:7px; text-transform:uppercase; letter-spacing:.05em}
+  .stat.hl .n{color:var(--accent)}
+
+  /* ---- Office spine ---- */
+  .spine{display:flex; flex-wrap:wrap; gap:8px; margin:24px 0 18px}
+  .chip{display:inline-flex; align-items:center; gap:8px; background:var(--surface); border:1px solid var(--line);
+    border-radius:999px; padding:6px 13px 6px 10px; font:600 13px "Inter"; cursor:pointer; color:var(--ink-soft)}
+  .chip:hover{border-color:var(--ink-soft)}
+  .chip .dot{width:9px;height:9px;border-radius:50%}
+  .chip .c{font-family:"Space Grotesk"; color:var(--ink)}
+
+  /* ---- Office cards ---- */
+  .office{background:var(--surface); border:1px solid var(--line-soft); border-radius:14px; margin-bottom:16px; box-shadow:var(--shadow); overflow:hidden}
+  .office > header{display:flex; align-items:center; gap:12px; padding:15px 20px; border-left:4px solid var(--oc,#888)}
+  .office > header .name{font-family:"Space Grotesk"; font-weight:600; font-size:17px}
+  .office > header .count{margin-left:auto; font:600 13px "Inter"; color:var(--muted)}
+  .office > header .count b{color:var(--oc); font-family:"Space Grotesk"; font-size:16px}
+  table{width:100%; border-collapse:collapse; font-size:14px}
+  thead th{font:600 11px/1 "Inter"; letter-spacing:.05em; text-transform:uppercase; color:var(--muted); text-align:left; padding:10px 20px; border-top:1px solid var(--line-soft); background:#f8fafb}
+  tbody td{padding:11px 20px; border-top:1px solid var(--line-soft); vertical-align:top}
+  tbody tr:hover{background:#f8fafb}
+  td.days{text-align:right; font-family:"Space Grotesk"; font-weight:600; white-space:nowrap}
+  td.days.sev{color:var(--warn-ink)}
+  td.email a{color:var(--ink-soft); text-decoration:none} td.email a:hover{text-decoration:underline}
+  td.tags{color:var(--muted); font-size:12.5px; max-width:340px}
+  .nm{font-weight:600}
+
+  details.audit{margin-top:22px; background:var(--surface); border:1px solid var(--line-soft); border-radius:12px; box-shadow:var(--shadow)}
+  details.audit > summary{cursor:pointer; padding:14px 18px; font:600 14px "Inter"; color:var(--ink-soft); list-style:none}
+  details.audit > summary::-webkit-details-marker{display:none}
+  details.audit > summary::before{content:"\25B8"; margin-right:9px; color:var(--muted)}
+  details.audit[open] > summary::before{content:"\25BE"}
+  details.audit .body{padding:0 0 8px}
+
+  .empty,.error{background:var(--surface); border:1px solid var(--line-soft); border-radius:12px; padding:26px; text-align:center; box-shadow:var(--shadow); margin-top:24px}
+  .error{border-color:#e8c9c5; background:var(--warn-bg)}
+  .error b{color:var(--warn-ink)}
+  .empty h3{font-family:"Space Grotesk"; margin:0 0 6px}
+  .empty p{color:var(--muted); margin:0}
+  .hidden{display:none}
+  .foot{margin-top:34px; color:var(--muted); font-size:12.5px; text-align:center}
+
+  /* ---- Print report header / footer (screen-hidden) ---- */
+  .report-head{margin-bottom:16px}
+  .rh-top{display:flex; justify-content:space-between; align-items:flex-start; gap:24px}
+  .rh-org{font:600 11px/1 "Inter"; letter-spacing:.12em; text-transform:uppercase; color:var(--accent)}
+  .rh-meta{font:500 10.5px/1.6 "Inter"; color:#3a3a3a; text-align:right; white-space:nowrap}
+  .rh-title{font-family:"Space Grotesk"; font-weight:700; font-size:23px; letter-spacing:-.01em; margin:8px 0 10px}
+  .rh-rule{height:2.5px; background:var(--accent)}
+  .report-foot{margin-top:16px; padding-top:9px; border-top:1px solid #cfd6de; font:500 9.5px/1.5 "Inter"; color:#5a6573}
+
+  @media (max-width:680px){
+    .summary{grid-template-columns:repeat(2,1fr)}
+    h1{font-size:25px}
+    td.tags,thead th.tags{display:none}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+  /* ====== PRINT / SAVE AS PDF ====== */
+  @media print{
+    @page{ size:letter; margin:13mm 13mm 15mm; }
+    html,body{ background:#fff; padding:0; margin:0; color:#000; font-size:11px; }
+    .wrap{ max-width:none; margin:0; }
+    *{ -webkit-print-color-adjust:exact; print-color-adjust:exact; box-shadow:none !important; }
+    .screen-only{ display:none !important; }
+    .print-only{ display:block; }
+    .office{ border:1px solid #d4dbe3; border-radius:8px; margin-bottom:12px; break-inside:avoid; }
+    .office > header{ padding:8px 13px; }
+    .office > header .name{ font-size:14px; }
+    .office > header .count{ font-size:11px; }
+    thead{ display:table-header-group; }
+    tr{ break-inside:avoid; }
+    thead th{ padding:6px 13px; background:#f1f4f7 !important; }
+    tbody td{ padding:6px 13px; }
+    td.tags,thead th.tags{ display:table-cell; max-width:260px; font-size:9.5px; }
+    .empty{ border:1px solid #d4dbe3; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- Print-only report header -->
+  <div class="report-head print-only">
+    <div class="rh-top">
+      <div class="rh-org">Right at Home · Central Texas</div>
+      <div class="rh-meta" id="rhMeta"></div>
+    </div>
+    <div class="rh-title">Inactive Caregivers by Office</div>
+    <div class="rh-rule"></div>
+  </div>
+
+  <!-- Screen header -->
+  <div class="screen-only">
+    <p class="eyebrow">Right at Home · Central Texas</p>
+    <h1>Inactive caregivers by office</h1>
+    <p class="lede">Upload the WellSky caregivers report. The tool excludes staff accounts (first and last name in ALL CAPS), flags anyone 30+ days without a logged shift, and groups them by office. Everything is processed in your browser — nothing leaves your computer. Use <strong>Print / Save as PDF</strong> to export the report.</p>
+
+    <label class="drop" id="drop" tabindex="0" role="button" aria-label="Upload Excel report">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      <strong>Drag the Excel here, or click to choose it</strong>
+      <small>WellSky caregivers report (.xlsx) with a <em>Location</em> column</small>
+      <div class="file" id="fileName"></div>
+      <input type="file" id="file" accept=".xlsx,.xls">
+    </label>
+  </div>
+
+  <div id="panel" class="hidden">
+    <div class="controls screen-only">
+      <div class="ctl"><label for="asof">As-of date</label><input type="date" id="asof"></div>
+      <div class="ctl"><label for="thr">Threshold (days without shift)</label><input type="number" id="thr" min="1" value="30" style="width:96px"></div>
+      <div class="grow"></div>
+      <button class="btn" id="printBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+        Print / Save as PDF
+      </button>
+    </div>
+
+    <div class="summary screen-only" id="summary"></div>
+    <div class="spine screen-only" id="spine"></div>
+    <div id="offices"></div>
+    <details class="audit screen-only" id="auditWrap"><summary id="auditSummary">View excluded and non-candidates</summary><div class="body" id="audit"></div></details>
+
+    <div class="report-foot print-only">
+      Exclusion rule: First Name and Last Name both in ALL CAPS are treated as staff/office accounts and omitted. Confidential — contains caregiver PII.
+    </div>
+  </div>
+
+  <div id="errorBox" class="error hidden"></div>
+
+  <p class="foot screen-only">Exclusion rule: First Name and Last Name both in ALL CAPS → staff/office account, not included.</p>
+</div>
+
+<script>
+const DAY = 86400000;
+const REQUIRED = ["First Name","Last Name","Last Care Log Date","Location"];
+
+const OFFICES = [
+  {match:"1202 - Austin West",                 label:"Austin West",  color:"var(--aw)"},
+  {match:"1202b- Austin West (Marble Falls)",  label:"Marble Falls", color:"var(--mf)"},
+  {match:"1410 - Austin East",                 label:"Austin East",  color:"var(--ae)"},
+  {match:"1410b- Austin East (Bastrop)",       label:"Bastrop",      color:"var(--ba)"},
+  {match:"1355 - San Marcos",                  label:"San Marcos",   color:"var(--sm)"},
+];
+const SIN = {match:"Unassigned", label:"Unassigned", color:"var(--none)"};
+function officeFor(loc){
+  const v=(loc==null?"":String(loc)).trim();
+  if(!v) return SIN;
+  return OFFICES.find(o=>o.match===v) || {match:v,label:v,color:"var(--none)"};
+}
+
+let RAWROWS=null, LASTRESULT=null;
+
+/* WellSky exports ship a broken !ref (e.g. A1:C1) — recompute the true range */
+function fixRef(ws){
+  let maxR=0,maxC=0,minR=Infinity,minC=Infinity,found=false;
+  for(const k in ws){ if(k[0]==="!") continue; found=true;
+    const c=XLSX.utils.decode_cell(k);
+    if(c.r>maxR)maxR=c.r; if(c.r<minR)minR=c.r; if(c.c>maxC)maxC=c.c; if(c.c<minC)minC=c.c; }
+  if(found) ws["!ref"]=XLSX.utils.encode_range({s:{r:minR,c:minC},e:{r:maxR,c:maxC}});
+}
+
+const isUpperName = s => { s=(s==null?"":String(s)).trim(); return s.length>0 && s===s.toUpperCase() && s!==s.toLowerCase(); };
+function parseDate(v){ if(v==null||v==="") return null; if(v instanceof Date) return isNaN(v)?null:v; const d=new Date(v); return isNaN(d)?null:d; }
+const dayNum = d => Math.floor(Date.UTC(d.getUTCFullYear(),d.getUTCMonth(),d.getUTCDate())/DAY);
+function fmtDate(d){ if(!d) return ""; const p=n=>String(n).padStart(2,"0"); return d.getUTCFullYear()+"-"+p(d.getUTCMonth()+1)+"-"+p(d.getUTCDate()); }
+function today(){ const d=new Date(),p=n=>String(n).padStart(2,"0"); return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate()); }
+const esc = s => (s==null?"":String(s)).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+
+function readFile(file){
+  const fr=new FileReader();
+  fr.onload = e => {
+    try{
+      const wb=XLSX.read(new Uint8Array(e.target.result),{type:"array",cellDates:true});
+      const ws=wb.Sheets[wb.SheetNames[0]];
+      fixRef(ws);
+      const rows=XLSX.utils.sheet_to_json(ws,{defval:null});
+      if(!rows.length) return showError("The file has no readable rows. Is this the correct WellSky report?");
+      const cols=Object.keys(rows[0]).map(c=>c.trim());
+      const missing=REQUIRED.filter(r=>!cols.includes(r));
+      if(missing.length) return showError("The report is missing required column(s): <b>"+esc(missing.join(", "))+"</b>.<br>Columns found: "+esc(cols.join(", ")));
+      RAWROWS = rows.map(r=>{ const o={}; for(const k in r) o[k.trim()]=r[k]; return o; });
+      hideError();
+      document.getElementById("panel").classList.remove("hidden");
+      run();
+    }catch(err){ showError("Could not read the file: "+esc(err.message)); }
+  };
+  fr.readAsArrayBuffer(file);
+}
+
+function analyze(rows, asOf, threshold){
+  const asN=dayNum(asOf);
+  let excluded=[], neverWorked=[], recent=0;
+  const groups=new Map();
+  for(const r of rows){
+    const fn=r["First Name"], ln=r["Last Name"];
+    if(isUpperName(fn)&&isUpperName(ln)){ excluded.push(r); continue; }
+    const last=parseDate(r["Last Care Log Date"]);
+    if(!last){ neverWorked.push(r); continue; }
+    const days=asN-dayNum(last);
+    if(days<threshold){ recent++; continue; }
+    const office=officeFor(r["Location"]);
+    if(!groups.has(office.match)) groups.set(office.match,{office,rows:[]});
+    groups.get(office.match).rows.push({...r,_days:days,_last:last});
+  }
+  const order=[...OFFICES.map(o=>o.match), ...[...groups.keys()].filter(k=>!OFFICES.some(o=>o.match===k)&&k!==SIN.match), SIN.match];
+  const ordered=order.filter(k=>groups.has(k)).map(k=>{ const g=groups.get(k); g.rows.sort((a,b)=>b._days-a._days); return g; });
+  const candidates=ordered.reduce((n,g)=>n+g.rows.length,0);
+  return {total:rows.length, candidates, excluded, neverWorked, recent, groups:ordered, asOf, threshold};
+}
+
+function run(){
+  if(!RAWROWS) return;
+  const asOf=parseDate(document.getElementById("asof").value)||new Date();
+  const threshold=Math.max(1, parseInt(document.getElementById("thr").value,10)||30);
+  LASTRESULT=analyze(RAWROWS, asOf, threshold);
+  render(LASTRESULT);
+}
+
+function render(res){
+  document.getElementById("rhMeta").innerHTML =
+    `As of ${fmtDate(res.asOf)}&nbsp;&middot;&nbsp;Threshold ${res.threshold} days<br>`+
+    `${res.candidates} candidates across ${res.groups.length} office${res.groups.length===1?"":"s"}&nbsp;&middot;&nbsp;Generated ${today()}`;
+
+  document.getElementById("summary").innerHTML=[
+    ["Rows in report", res.total, ""],
+    ["Candidates", res.candidates, "hl"],
+    ["Excluded (staff)", res.excluded.length, ""],
+    ["Never worked", res.neverWorked.length, ""],
+  ].map(([k,n,c])=>`<div class="stat ${c}"><div class="n">${n}</div><div class="k">${k}</div></div>`).join("");
+
+  document.getElementById("spine").innerHTML=res.groups.map(g=>
+    `<button class="chip" onclick="document.getElementById('off-${esc(g.office.label)}').scrollIntoView({behavior:'smooth',block:'start'})">
+      <span class="dot" style="background:${g.office.color}"></span>${esc(g.office.label)} <span class="c">${g.rows.length}</span>
+    </button>`).join("");
+
+  const off=document.getElementById("offices");
+  if(!res.candidates){
+    off.innerHTML=`<div class="empty"><h3>No candidates</h3><p>No caregiver exceeds the ${res.threshold}-day threshold as of ${fmtDate(res.asOf)}.</p></div>`;
+  } else {
+    off.innerHTML=res.groups.map(g=>`
+      <section class="office" id="off-${esc(g.office.label)}" style="--oc:${g.office.color}">
+        <header><span class="name">${esc(g.office.label)}</span><span class="count"><b>${g.rows.length}</b> caregivers</span></header>
+        <table>
+          <thead><tr><th>Caregiver</th><th class="email">Email</th><th>Last shift</th><th style="text-align:right">Days</th><th class="tags">Tags</th></tr></thead>
+          <tbody>${g.rows.map(r=>`
+            <tr>
+              <td class="nm">${esc(r["First Name"])} ${esc(r["Last Name"])}</td>
+              <td class="email">${r["Email"]?`<a href="mailto:${esc(r["Email"])}">${esc(r["Email"])}</a>`:'<span style="color:var(--muted)">&mdash;</span>'}</td>
+              <td>${fmtDate(r._last)}</td>
+              <td class="days${r._days>=90?' sev':''}">${r._days}</td>
+              <td class="tags">${esc(r["Caregiver Tags"]||"")}</td>
+            </tr>`).join("")}</tbody>
+        </table>
+      </section>`).join("");
+  }
+
+  const auditRows=[
+    ...res.excluded.map(r=>({r,why:"Excluded · ALL CAPS rule"})),
+    ...res.neverWorked.map(r=>({r,why:"Never worked · no last shift"})),
+  ];
+  document.getElementById("auditSummary").textContent=
+    `View excluded and non-candidates (${res.excluded.length} staff · ${res.neverWorked.length} never worked)`;
+  document.getElementById("audit").innerHTML=auditRows.length?`
+    <table><thead><tr><th>Name</th><th>Reason</th><th>Location</th></tr></thead>
+    <tbody>${auditRows.map(({r,why})=>`<tr>
+      <td class="nm">${esc(r["First Name"])} ${esc(r["Last Name"])}</td>
+      <td style="color:var(--muted)">${why}</td>
+      <td style="color:var(--muted)">${esc(r["Location"]||"—")}</td></tr>`).join("")}</tbody></table>`
+    :`<p style="padding:14px 18px;color:var(--muted);margin:0">Nothing to show.</p>`;
+}
+
+function showError(html){ const b=document.getElementById("errorBox"); b.innerHTML=html; b.classList.remove("hidden"); document.getElementById("panel").classList.add("hidden"); }
+function hideError(){ document.getElementById("errorBox").classList.add("hidden"); }
+
+const drop=document.getElementById("drop"), fileInput=document.getElementById("file");
+function handleFiles(files){ if(!files||!files.length) return; const f=files[0]; document.getElementById("fileName").textContent=f.name; readFile(f); }
+drop.addEventListener("click",()=>fileInput.click());
+drop.addEventListener("keydown",e=>{ if(e.key==="Enter"||e.key===" "){e.preventDefault(); fileInput.click();} });
+fileInput.addEventListener("change",e=>handleFiles(e.target.files));
+["dragenter","dragover"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault(); drop.classList.add("drag");}));
+["dragleave","drop"].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault(); drop.classList.remove("drag");}));
+drop.addEventListener("drop",e=>handleFiles(e.dataTransfer.files));
+document.getElementById("asof").addEventListener("change",run);
+document.getElementById("thr").addEventListener("input",run);
+document.getElementById("printBtn").addEventListener("click",()=>window.print());
+document.getElementById("asof").value=today();
+</script>
+</body>
+</html>
