@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Inquiry ZIP Codes &amp; 2026 Rates — Central Texas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600;700&family=Public+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#E9EDF1; --surface:#fff; --ink:#0D1218; --muted:#5A6875;
+  --line:#D2DAE2; --line-soft:#E6EBF0; --warn:#8A5A00; --warnbg:#FFF4DA;
+  --display:'Archivo',system-ui,sans-serif;
+  --body:'Public Sans',system-ui,sans-serif;
+  --mono:'IBM Plex Mono',ui-monospace,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);
+  font-size:15px;line-height:1.5;
+  background-image:linear-gradient(var(--line-soft) 1px,transparent 1px),linear-gradient(90deg,var(--line-soft) 1px,transparent 1px);
+  background-size:28px 28px;background-position:-1px -1px;
+}
+.wrap{max-width:1180px;margin:0 auto;padding:32px 20px 72px}
+
+.eyebrow{font-family:var(--mono);font-size:11.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.eyebrow .rule{flex:1;height:1px;background:var(--line);min-width:20px}
+h1{font-family:var(--display);font-weight:800;font-size:clamp(30px,5.2vw,54px);line-height:1.02;letter-spacing:-.025em;margin:18px 0 0;max-width:17ch}
+.sub{margin:14px 0 0;max-width:60ch;color:var(--muted);font-size:16px}
+.topbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:6px}
+.langs{display:flex;border:1px solid var(--line);border-radius:2px;overflow:hidden;background:#fff;flex:0 0 auto}
+.langs button{border:0;background:transparent;font-family:var(--mono);font-size:11px;letter-spacing:.1em;padding:5px 10px;cursor:pointer;color:var(--muted)}
+.langs button.on{background:var(--ink);color:#fff}
+
+.quote{margin:26px 0 0;background:var(--surface);border:1px solid var(--line);border-radius:2px;display:grid;grid-template-columns:1fr 340px}
+.qleft{padding:16px 18px 18px;border-right:1px solid var(--line)}
+.qlabel{font-family:var(--mono);font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:2px}
+#q{width:100%;border:0;outline:0;background:transparent;font-family:var(--mono);font-size:32px;font-weight:600;color:var(--ink);letter-spacing:.02em;padding:0 0 8px}
+#q::placeholder{color:#B6C0CB;font-weight:500}
+#q:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+.controls{display:flex;flex-wrap:wrap;gap:7px;align-items:center;margin-top:10px;padding-top:12px;border-top:1px solid var(--line-soft)}
+.hrs{display:flex;align-items:center;border:1px solid var(--line);border-radius:2px;overflow:hidden}
+.hrs button{border:0;background:#F2F5F8;width:30px;height:32px;font-size:17px;cursor:pointer;color:var(--muted);font-family:var(--mono)}
+.hrs button:hover{background:#E4EAF0;color:var(--ink)}
+.hrs .val{font-family:var(--mono);font-weight:600;font-size:14px;min-width:64px;text-align:center;padding:0 6px}
+.tog{border:1px solid var(--line);background:#fff;border-radius:2px;padding:7px 11px;font-family:var(--body);font-size:12.5px;cursor:pointer;color:var(--muted);white-space:nowrap}
+.tog:hover{border-color:#9BA8B5}
+.tog.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.tog:focus-visible,.hrs button:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+.qright{padding:16px 18px 18px;background:#F2F5F8;display:flex;flex-direction:column;justify-content:center;min-height:154px}
+.qright.empty{color:var(--muted);font-size:13.5px}
+.qhead{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.qhead .sw{width:30px;height:30px;border-radius:2px;flex:0 0 auto}
+.qhead .oname{font-family:var(--display);font-weight:700;font-size:18px;line-height:1.1;letter-spacing:-.01em}
+.qhead .ometa{font-family:var(--mono);font-size:11px;color:var(--muted);letter-spacing:.06em;text-transform:uppercase}
+.qhead .ometa .cd{text-transform:none}
+.tierpill{align-self:flex-start;font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;padding:2px 7px;border-radius:2px;color:#fff}
+.big{font-family:var(--mono);font-size:38px;font-weight:700;line-height:1;letter-spacing:-.02em;margin-top:8px}
+.big small{font-size:14px;font-weight:500;color:var(--muted);letter-spacing:0}
+.qmath{font-family:var(--mono);font-size:11.5px;color:var(--muted);margin-top:6px;line-height:1.5}
+.qmath b{color:var(--ink);font-weight:600}
+.qwarn{background:var(--warnbg);color:var(--warn);border:1px solid #EBD9A8;padding:7px 9px;font-size:12px;border-radius:2px;margin-top:8px;line-height:1.4}
+
+.ratecard{margin:18px 0 0;background:var(--surface);border:1px solid var(--line);border-radius:2px;padding:16px 18px 18px}
+.ratecard h2{font-family:var(--display);font-size:15px;font-weight:700;margin:0 0 12px;letter-spacing:-.01em}
+table.rt{width:100%;border-collapse:collapse;font-size:14px}
+table.rt th{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);text-align:right;font-weight:500;padding:0 10px 7px;border-bottom:1px solid var(--line)}
+table.rt th:first-child{text-align:left;padding-left:0}
+table.rt td{padding:9px 10px;border-bottom:1px solid var(--line-soft);text-align:right;font-family:var(--mono);font-size:16px;font-weight:600}
+table.rt td:first-child{text-align:left;font-family:var(--body);font-size:14px;font-weight:500;padding-left:0;white-space:nowrap}
+table.rt tr:last-child td{border-bottom:0}
+.tdot{display:inline-block;width:11px;height:11px;border-radius:2px;margin-right:9px;vertical-align:-1px}
+.addons{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;padding-top:13px;border-top:1px solid var(--line)}
+.addon{border:1px solid var(--line);border-radius:2px;padding:8px 12px;font-size:13px;line-height:1.35}
+.addon b{font-family:var(--mono);font-size:14.5px;display:block;font-weight:700}
+.addon span{color:var(--muted);font-size:12px}
+.note{margin-top:12px;font-size:12.5px;color:var(--muted);line-height:1.5;max-width:82ch}
+
+.mapcard{margin:18px 0 0;background:var(--surface);border:1px solid var(--line);border-radius:2px}
+.maphead{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:14px 18px 0;flex-wrap:wrap}
+.maphead h2{font-family:var(--display);font-size:15px;font-weight:700;margin:0;letter-spacing:-.01em}
+.seg{display:flex;border:1px solid var(--line);border-radius:2px;overflow:hidden}
+.seg button{border:0;background:#fff;font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;padding:7px 12px;cursor:pointer;color:var(--muted)}
+.seg button.on{background:var(--ink);color:#fff}
+.seg button:focus-visible{outline:2px solid var(--ink);outline-offset:-2px}
+.mapbox{position:relative;padding:6px 10px 10px}
+svg.map{display:block;width:100%;height:auto}
+.county{fill:#F4F7F9;stroke:#CFD8E1;stroke-width:.9;vector-effect:non-scaling-stroke}
+.clabel{font-family:'IBM Plex Mono',monospace;font-size:9px;fill:#94A3AF;letter-spacing:.08em;text-transform:uppercase;pointer-events:none}
+.hull{stroke-width:1.4;stroke-dasharray:5 5;fill-opacity:.09;stroke-opacity:.42;transition:opacity .25s}
+.dot{stroke:#fff;stroke-width:1.4;cursor:pointer;transition:opacity .2s,fill .3s}
+.dot:hover{stroke-width:2.4}
+.dot.hit{stroke:var(--ink);stroke-width:2.4}
+g.off{transition:opacity .25s}
+body.iso g.off:not(.on){opacity:.10}
+body.iso .hull:not(.on){opacity:0}
+body.rateview .hull{opacity:0}
+@keyframes ping{0%{r:6;opacity:.55}100%{r:26;opacity:0}}
+.ping{fill:none;stroke:var(--ink);stroke-width:2;animation:ping 1.4s ease-out infinite}
+.inset{position:absolute;right:16px;bottom:14px;width:120px;opacity:.95}
+.inset svg{display:block;width:100%;height:auto}
+.tx{fill:#E4E9EE;stroke:#B9C4CE;stroke-width:1}
+.viewbox{fill:none;stroke:var(--ink);stroke-width:2}
+.legend{display:flex;flex-wrap:wrap;gap:8px;padding:12px 18px 18px;border-top:1px solid var(--line-soft);margin-top:4px}
+.legend.hide{display:none}
+.chip{display:flex;align-items:center;gap:9px;border:1px solid var(--line);background:#fff;border-radius:2px;padding:7px 12px 7px 9px;cursor:pointer;font-family:var(--body);font-size:13.5px;transition:border-color .15s,background .15s}
+.chip:hover{border-color:#9BA8B5}
+.chip .sw{width:13px;height:13px;border-radius:2px;flex:0 0 auto}
+.chip b{font-weight:600}
+.chip .n{font-family:var(--mono);font-size:11px;color:var(--muted)}
+.chip.on{background:var(--ink);border-color:var(--ink);color:#fff}
+.chip.on .n{color:#A7B4C1}
+.chip:focus-visible{outline:2px solid var(--ink);outline-offset:2px}
+
+.lists{margin:30px 0 0;display:grid;gap:18px}
+.office{background:var(--surface);border:1px solid var(--line);border-radius:2px;overflow:hidden;transition:opacity .25s}
+body.iso .office:not(.on){opacity:.28}
+.office.novis{display:none}
+.ohead{display:flex;align-items:center;gap:14px;padding:13px 18px;color:#fff;flex-wrap:wrap}
+.ohead .code{font-family:var(--mono);font-size:12px;letter-spacing:.12em;padding:3px 8px;border:1px solid rgba(255,255,255,.5);border-radius:2px}
+.ohead h3{font-family:var(--display);font-size:20px;font-weight:700;margin:0;letter-spacing:-.015em;flex:1}
+.ohead .count{font-family:var(--mono);font-size:11.5px;letter-spacing:.05em;opacity:.92}
+.zips{display:grid;grid-template-columns:repeat(auto-fill,minmax(258px,1fr))}
+.z{display:flex;align-items:center;gap:10px;padding:9px 14px 9px 0;border-bottom:1px solid var(--line-soft);border-right:1px solid var(--line-soft);min-width:0;border-left:5px solid transparent}
+.z .nm{min-width:0;flex:1;padding-left:11px}
+.z .num{font-family:var(--mono);font-weight:600;font-size:15.5px;letter-spacing:.03em;display:block}
+.z .city{font-family:var(--mono);font-size:10.5px;color:var(--muted);letter-spacing:.04em;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.z .rate{font-family:var(--mono);text-align:right;flex:0 0 auto;line-height:1.25}
+.z .rate .r1{font-size:15px;font-weight:700;display:block}
+.z .rate .r2{font-size:10.5px;color:var(--muted);letter-spacing:.05em;display:block}
+.z .rate .na{font-size:9.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--warn);background:var(--warnbg);border:1px solid #EBD9A8;padding:2px 6px;border-radius:2px;white-space:nowrap}
+.z.hit{background:#FFF7D6}
+.z.hide{display:none}
+.z .tag{font-family:var(--mono);font-size:9px;border:1px solid var(--line);padding:1px 4px;border-radius:2px;color:var(--muted);margin-left:5px;vertical-align:1px;font-weight:400}
+
+footer{margin:30px 0 0;border-top:1px solid var(--line);padding:18px 0 0;color:var(--muted);font-size:12.5px;display:grid;gap:8px}
+footer b{color:var(--ink);font-weight:600}
+
+#tip{position:fixed;z-index:40;pointer-events:none;background:var(--ink);color:#fff;padding:8px 11px;border-radius:2px;font-size:12.5px;line-height:1.4;opacity:0;transform:translateY(4px);transition:opacity .12s;max-width:230px}
+#tip.on{opacity:1;transform:none}
+#tip .t1{font-family:var(--mono);font-weight:600;letter-spacing:.04em}
+#tip .t2{color:#B9C6D3;font-size:11.5px}
+#tip .t3{font-family:var(--mono);font-size:12px;margin-top:4px;padding-top:4px;border-top:1px solid #333C46}
+
+@media (max-width:820px){
+  .quote{grid-template-columns:1fr}
+  .qleft{border-right:0;border-bottom:1px solid var(--line)}
+}
+@media (max-width:640px){
+  #q{font-size:27px}
+  .inset{width:86px;right:10px}
+  .zips{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+@media print{
+  body{background:#fff}
+  .quote,.legend,.langs,.seg{display:none}
+  .office,.mapcard,.ratecard{break-inside:avoid;border-color:#999}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="topbar">
+    <div class="eyebrow"><span>Right at Home · Central Texas</span><span class="rule"></span><span>2026</span></div>
+    <div class="langs"><button data-lang="en" class="on">EN</button><button data-lang="es">ES</button></div>
+  </div>
+
+  <h1 data-es="¿Qué oficina y qué tarifa aplican a este código postal?" data-en="Which office and which rate apply to this ZIP code?">Which office and which rate apply to this ZIP code?</h1>
+  <p class="sub" data-es="Los 95 códigos postales de admisión, cada uno con su oficina y su zona de tarifa 2026. Escribe un código, ajusta las horas y la calculadora da la tarifa por hora y el total del turno." data-en="All 95 inquiry ZIP codes, each with its office and its 2026 rate zone. Type a code, set the hours, and the calculator gives the hourly rate and the shift total.">All 95 inquiry ZIP codes, each with its office and its 2026 rate zone. Type a code, set the hours, and the calculator gives the hourly rate and the shift total.</p>
+
+  <div class="quote">
+    <div class="qleft">
+      <label class="qlabel" for="q" data-es="Buscar código postal o ciudad" data-en="Search ZIP code or city">Search ZIP code or city</label>
+      <input id="q" type="text" inputmode="numeric" autocomplete="off" placeholder="78745">
+      <div class="controls">
+        <div class="hrs">
+          <button id="minus" aria-label="Fewer hours">&minus;</button>
+          <span class="val" id="hval">4 hrs</span>
+          <button id="plus" aria-label="More hours">+</button>
+        </div>
+        <button class="tog" id="tPrn" data-es="PRN" data-en="PRN">PRN</button>
+        <button class="tog" id="tCouple" data-es="Couples care" data-en="Couples care">Couples care</button>
+        <button class="tog" id="tLive" data-es="Live-in" data-en="Live-in">Live-in</button>
+      </div>
+    </div>
+    <div class="qright empty" id="plate"></div>
+  </div>
+
+  <div class="ratecard">
+    <h2 data-es="Tarifas 2026" data-en="2026 rate card">2026 rate card</h2>
+    <table class="rt">
+      <thead><tr>
+        <th data-es="Zona" data-en="Zone">Zone</th>
+        <th data-es="Menos de 4 h" data-en="Under 4 hours">Under 4 hours</th>
+        <th data-es="4 h o más" data-en="4 hours or more">4 hours or more</th>
+      </tr></thead>
+      <tbody id="rtbody"></tbody>
+    </table>
+    <div class="addons">
+      <div class="addon"><b>2 hrs</b><span data-es="Mínimo facturable por turno" data-en="Billable minimum per visit">Billable minimum per visit</span></div>
+      <div class="addon"><b>$500</b><span data-es="Continuous care (live-in), por día" data-en="Continuous care (live-in), per day">Continuous care (live-in), per day</span></div>
+      <div class="addon"><b>+$5 /hr</b><span data-es="PRN — turnos menos que semanales" data-en="PRN — shifts less frequent than weekly">PRN — shifts less frequent than weekly</span></div>
+      <div class="addon"><b>+$5 /hr</b><span data-es="Couples care" data-en="Couples care">Couples care</span></div>
+    </div>
+    <p class="note" data-es="El mínimo de 2 horas aplica sobre la tarifa corta: un turno de 90 minutos en zona roja se factura como 2 h × $50 = $100. Ojo con el escalón — pasadas unas 3 horas, cotizar el turno completo de 4 h le sale más barato al cliente (rojo: 3.5 h × $50 = $175 frente a 4 h × $38 = $152)." data-en="The 2-hour minimum applies to the short rate: a 90-minute visit in a red ZIP bills as 2 hrs × $50 = $100. Watch the cliff — past roughly 3 hours, quoting the full 4-hour shift costs the client less (red: 3.5 hrs × $50 = $175 versus 4 hrs × $38 = $152).">The 2-hour minimum applies to the short rate: a 90-minute visit in a red ZIP bills as 2 hrs × $50 = $100. Watch the cliff — past roughly 3 hours, quoting the full 4-hour shift costs the client less (red: 3.5 hrs × $50 = $175 versus 4 hrs × $38 = $152).</p>
+  </div>
+
+  <div class="mapcard">
+    <div class="maphead">
+      <h2 data-es="Área de servicio" data-en="Service area">Service area</h2>
+      <div class="seg">
+        <button id="vOffice" class="on" data-es="Por oficina" data-en="By office">By office</button>
+        <button id="vRate" data-es="Por tarifa" data-en="By rate">By rate</button>
+      </div>
+    </div>
+    <div class="mapbox">
+      <svg class="map" id="svg" viewBox="0 0 1000.0 524.7" role="img" aria-label="Map of Central Texas ZIP codes"></svg>
+      <div class="inset"><svg id="inset" viewBox="0 0 300.0 280.9" aria-hidden="true"></svg></div>
+    </div>
+    <div class="legend" id="legend"></div>
+    <div class="legend hide" id="legend2"></div>
+  </div>
+
+  <div class="lists" id="lists"></div>
+
+  <footer>
+    <div data-es="<b>Clasificación en WellSky:</b> todas las llamadas de admisión deben registrarse con “Initial Call Screen”." data-en="<b>WellSky classification:</b> all inquiry calls must be logged using “Initial Call Screen”."><b>WellSky classification:</b> all inquiry calls must be logged using “Initial Call Screen”.</div>
+    <div data-es="<b>Marketers:</b> Anna Rose 512-797-4553 · Elizabeth Lopez 830-201-844 ext. 1021" data-en="<b>Marketers:</b> Anna Rose 512-797-4553 · Elizabeth Lopez 830-201-844 ext. 1021"><b>Marketers:</b> Anna Rose 512-797-4553 · Elizabeth Lopez 830-201-844 ext. 1021</div>
+    <div data-es="Oficinas y códigos: 2026 Zip Code List, hoja “Office Service Area”. Zonas de tarifa: 2026 rate increase zip codes (color de celda). Los puntos van en el centroide de cada código; las áreas sombreadas son guía visual, no un límite oficial. Las cifras de la calculadora son estimados de cotización, no una factura." data-en="Offices and codes: 2026 Zip Code List, “Office Service Area” sheet. Rate zones: 2026 rate increase zip codes (cell colour). Dots sit at each ZIP’s centroid; shaded areas are a visual guide, not an official boundary. Calculator figures are quote estimates, not an invoice.">Offices and codes: 2026 Zip Code List, “Office Service Area” sheet. Rate zones: 2026 rate increase zip codes (cell colour). Dots sit at each ZIP’s centroid; shaded areas are a visual guide, not an official boundary. Calculator figures are quote estimates, not an invoice.</div>
+  </footer>
+</div>
+
+<div id="tip" role="status"></div>
+
+<script>
+const DATA = {"tiers":{"Red":{"short":50,"long":38,"color":"#D42B2B"},"Yellow":{"short":45,"long":34,"color":"#D9930A"},"Green":{"short":40,"long":32,"color":"#2E8F4E"},"None":{"short":null,"long":null,"color":"#94A3AF"}},"addons":{"live_in":500,"prn":5,"couples":5,"min_hours":2,"break_hours":4},"orphans":[{"zip":"75745","file":"austin","real":null,"tier":"Yellow","en":"Not a valid USPS ZIP \u2014 likely a typo for 78745 (South Austin)","es":"No es un ZIP v\u00e1lido de USPS \u2014 probable error de 78745 (South Austin)"},{"zip":"76550","file":"lampasas","real":"Lampasas, Lampasas Co.","tier":"Yellow","en":"Outside the office service-area list","es":"Fuera del listado de oficinas"},{"zip":"77418","file":"bellville","real":"Bellville, Austin Co.","tier":"Yellow","en":"Outside the office service-area list","es":"Fuera del listado de oficinas"},{"zip":"78070","file":"spring branch","real":"Spring Branch, Comal Co.","tier":"Red","en":"Outside the office service-area list","es":"Fuera del listado de oficinas"},{"zip":"78521","file":"elgin","real":"Brownsville, Cameron Co.","tier":"Yellow","en":"Not Elgin \u2014 likely a typo for 78621","es":"No es Elgin \u2014 probable error de 78621"},{"zip":"78567","file":"cottonwood shores","real":"Los Indios, Cameron Co.","tier":"Yellow","en":"Not Cottonwood Shores \u2014 likely a typo for 78657","es":"No es Cottonwood Shores \u2014 probable error de 78657"},{"zip":"78609","file":"buchanan dam","real":"Buchanan Dam, Llano Co.","tier":"Red","en":"Outside the office service-area list","es":"Fuera del listado de oficinas"},{"zip":"78645","file":"lagrange","real":"Leander, Travis Co.","tier":"Yellow","en":"Not La Grange (78945)","es":"No es La Grange (78945)"},{"zip":"78649","file":"kyle","real":null,"tier":"Yellow","en":"Not a valid USPS ZIP \u2014 Kyle is 78640","es":"No es un ZIP v\u00e1lido de USPS \u2014 Kyle es 78640"},{"zip":"78727","file":"austin","real":"Austin, Travis Co.","tier":"Yellow","en":"Outside the office service-area list","es":"Fuera del listado de oficinas"},{"zip":"78934","file":"columbus","real":"Columbus, Colorado Co.","tier":"Yellow","en":"Outside the office service-area list","es":"Fuera del listado de oficinas"},{"zip":"78949","file":"muldoon","real":"Muldoon, Fayette Co.","tier":"Yellow","en":"Outside the office service-area list","es":"Fuera del listado de oficinas"},{"zip":"78962","file":"weimer","real":"Weimar, Colorado Co.","tier":"Yellow","en":"Outside the office service-area list \u2014 \u201cWeimar\u201d in the file is spelled \u201cweimer\u201d","es":"Fuera del listado de oficinas \u2014 en el archivo dice \u201cweimer\u201d, es Weimar"}],"offices":[{"name":"Austin","code":"1202","color":"#1F4FD8","zips":[{"zip":"73301","city":"Austin","county":"Travis","x":351.4,"y":223.7,"hood":"","unique":true,"tier":"None"},{"zip":"73344","city":"Austin","county":"Travis","x":351.4,"y":223.7,"hood":"","unique":true,"tier":"None"},{"zip":"78701","city":"Austin","county":"Travis","x":361.4,"y":245.7,"hood":"Downtown","unique":false,"tier":"None"},{"zip":"78702","city":"Austin","county":"Travis","x":370.3,"y":248.7,"hood":"East Austin","unique":false,"tier":"Yellow"},{"zip":"78703","city":"Austin","county":"Travis","x":353.7,"y":237.9,"hood":"Tarrytown / Clarksville","unique":false,"tier":"None"},{"zip":"78704","city":"Austin","county":"Travis","x":353.3,"y":257.1,"hood":"South Congress / Zilker","unique":false,"tier":"Yellow"},{"zip":"78705","city":"Austin","county":"Travis","x":362.4,"y":238.4,"hood":"UT / West Campus","unique":false,"tier":"None"},{"zip":"78710","city":"Austin","county":"Travis","x":370.9,"y":213.4,"hood":"UT area","unique":false,"tier":"None"},{"zip":"78712","city":"Austin","county":"Travis","x":363.8,"y":240.1,"hood":"UT campus","unique":false,"tier":"None"},{"zip":"78719","city":"Austin","county":"Travis","x":387.6,"y":282.1,"hood":"Del Valle / ABIA","unique":false,"tier":"None"},{"zip":"78721","city":"Austin","county":"Travis","x":380.6,"y":245.4,"hood":"East MLK","unique":false,"tier":"None"},{"zip":"78722","city":"Austin","county":"Travis","x":370.9,"y":238.5,"hood":"Cherrywood","unique":false,"tier":"None"},{"zip":"78723","city":"Austin","county":"Travis","x":381.3,"y":230.8,"hood":"Windsor Park / Mueller","unique":false,"tier":"Yellow"},{"zip":"78724","city":"Austin","county":"Travis","x":396.9,"y":235.8,"hood":"Northeast Austin","unique":false,"tier":"None"},{"zip":"78725","city":"Austin","county":"Travis","x":402.2,"y":251.7,"hood":"Hornsby Bend","unique":false,"tier":"None"},{"zip":"78730","city":"Austin","county":"Travis","x":333.2,"y":210.0,"hood":"River Place","unique":false,"tier":"Yellow"},{"zip":"78731","city":"Austin","county":"Travis","x":355.0,"y":215.4,"hood":"Northwest Hills","unique":false,"tier":"Yellow"},{"zip":"78732","city":"Austin","county":"Travis","x":306.7,"y":204.2,"hood":"Stiener Ranch","unique":false,"tier":"Red"},{"zip":"78733","city":"Austin","county":"Travis","x":318.5,"y":221.7,"hood":"Barton Creek","unique":false,"tier":"None"},{"zip":"78735","city":"Austin","county":"Travis","x":327.2,"y":254.6,"hood":"Travis Country","unique":false,"tier":"Red"},{"zip":"78739","city":"Austin","county":"Travis","x":314.4,"y":285.4,"hood":"Circle C","unique":false,"tier":"Yellow"},{"zip":"78741","city":"Austin","county":"Travis","x":368.4,"y":261.6,"hood":"Riverside","unique":false,"tier":"Yellow"},{"zip":"78742","city":"Austin","county":"Travis","x":386.3,"y":261.7,"hood":"Montopolis SE","unique":false,"tier":"None"},{"zip":"78744","city":"Austin","county":"Travis","x":359.8,"y":279.1,"hood":"Southeast Austin","unique":false,"tier":"Yellow"},{"zip":"78745","city":"Austin","county":"Travis","x":343.0,"y":271.7,"hood":"South Austin","unique":false,"tier":"Yellow"},{"zip":"78746","city":"Austin","county":"Travis","x":335.3,"y":235.4,"hood":"Westlake","unique":false,"tier":"None"},{"zip":"78747","city":"Austin","county":"Travis","x":361.1,"y":306.0,"hood":"Onion Creek","unique":false,"tier":"Yellow"},{"zip":"78748","city":"Austin","county":"Travis","x":333.8,"y":284.5,"hood":"Southwest Austin","unique":false,"tier":"Yellow"},{"zip":"78749","city":"Austin","county":"Travis","x":324.0,"y":267.6,"hood":"Oak Hill","unique":false,"tier":"Yellow"},{"zip":"78751","city":"Austin","county":"Travis","x":367.7,"y":230.5,"hood":"Hyde Park","unique":false,"tier":"None"},{"zip":"78752","city":"Austin","county":"Travis","x":375.9,"y":221.6,"hood":"St. Johns","unique":false,"tier":"None"},{"zip":"78753","city":"Austin","county":"Travis","x":382.0,"y":208.3,"hood":"North Lamar","unique":false,"tier":"Yellow"},{"zip":"78754","city":"Austin","county":"Travis","x":387.4,"y":217.3,"hood":"Harris Branch","unique":false,"tier":"None"},{"zip":"78756","city":"Austin","county":"Travis","x":362.6,"y":225.3,"hood":"Rosedale","unique":false,"tier":"None"},{"zip":"78757","city":"Austin","county":"Travis","x":365.2,"y":216.8,"hood":"Crestview","unique":false,"tier":"Yellow"},{"zip":"78758","city":"Austin","county":"Travis","x":373.4,"y":203.7,"hood":"North Austin","unique":false,"tier":"None"},{"zip":"78772","city":"Austin","county":"Travis","x":351.4,"y":223.7,"hood":"","unique":true,"tier":"None"}],"hull":"M297.5,245.4 Q293.3,195.5 334.4,191.7 Q375.5,187.8 381.7,190.6 Q387.9,193.4 392.4,198.9 Q396.9,204.4 404.6,218.0 Q412.3,231.5 415.1,243.4 Q417.8,255.3 406.3,275.8 Q394.9,296.3 377.1,309.1 Q359.3,321.9 330.6,308.6 Q301.8,295.2 297.5,245.4Z","tally":{"Red":2,"Yellow":14,"Green":0,"None":21}},{"name":"Marble Falls","code":"1202b","color":"#A81B57","zips":[{"zip":"78605","city":"Bertram","county":"Burnet","x":254.2,"y":57.9,"hood":"","unique":false,"tier":"None"},{"zip":"78606","city":"Blanco","county":"Blanco","x":130.6,"y":319.2,"hood":"","unique":false,"tier":"None"},{"zip":"78611","city":"Burnet","county":"Burnet","x":181.2,"y":43.7,"hood":"","unique":false,"tier":"Yellow"},{"zip":"78620","city":"Dripping Springs","county":"Hays","x":236.9,"y":263.5,"hood":"","unique":false,"tier":"Red"},{"zip":"78636","city":"Johnson City","county":"Blanco","x":144.9,"y":236.3,"hood":"","unique":false,"tier":"None"},{"zip":"78639","city":"Kingsland","county":"Llano","x":117.8,"y":87.9,"hood":"","unique":false,"tier":"Yellow"},{"zip":"78643","city":"Llano","county":"Llano","x":61.4,"y":68.3,"hood":"","unique":false,"tier":"Yellow"},{"zip":"78654","city":"Marble Falls","county":"Burnet","x":177.4,"y":122.9,"hood":"","unique":false,"tier":"Yellow"},{"zip":"78657","city":"Horseshoe Bay","county":"Llano","x":143.3,"y":136.6,"hood":"","unique":false,"tier":"None"},{"zip":"78663","city":"Round Mountain","county":"Blanco","x":121.6,"y":177.1,"hood":"","unique":false,"tier":"Yellow"},{"zip":"78669","city":"Spicewood","county":"Travis","x":253.8,"y":198.3,"hood":"","unique":false,"tier":"Red"},{"zip":"78734","city":"Austin","county":"Travis","x":292.2,"y":206.0,"hood":"Lakeway","unique":false,"tier":"Red"},{"zip":"78736","city":"Austin","county":"Travis","x":301.5,"y":256.4,"hood":"Dripping Spring","unique":false,"tier":"Red"},{"zip":"78737","city":"Austin","county":"Hays","x":292.2,"y":269.9,"hood":"Bear Creek","unique":false,"tier":"Red"},{"zip":"78738","city":"Austin","county":"Travis","x":278.5,"y":220.8,"hood":"Beecave","unique":false,"tier":"Red"}],"hull":"M85.3,196.1 Q48.2,59.2 112.6,43.7 Q177.1,28.2 218.1,35.5 Q259.2,42.7 283.1,127.4 Q307.0,212.1 310.0,239.8 Q313.0,267.5 307.6,274.9 Q302.2,282.4 212.3,307.7 Q122.5,333.0 85.3,196.1Z","tally":{"Red":6,"Yellow":5,"Green":0,"None":4}},{"name":"San Marcos","code":"1355","color":"#6D28D9","zips":[{"zip":"78610","city":"Buda","county":"Hays","x":323.1,"y":317.4,"hood":"","unique":false,"tier":"Yellow"},{"zip":"78616","city":"Dale","county":"Caldwell","x":417.2,"y":373.0,"hood":"","unique":false,"tier":"Yellow"},{"zip":"78617","city":"Del Valle","county":"Travis","x":406.0,"y":284.4,"hood":"","unique":false,"tier":"Yellow"},{"zip":"78619","city":"Driftwood","county":"Hays","x":261.1,"y":311.3,"hood":"Driftwood SM","unique":false,"tier":"Red"},{"zip":"78622","city":"Fentress","county":"Caldwell","x":349.7,"y":451.6,"hood":"","unique":false,"tier":"None"},{"zip":"78640","city":"Kyle","county":"Hays","x":330.0,"y":355.5,"hood":"","unique":false,"tier":"Yellow"},{"zip":"78644","city":"Lockhart","county":"Caldwell","x":384.1,"y":399.4,"hood":"","unique":false,"tier":"Yellow"},{"zip":"78648","city":"Luling","county":"Caldwell","x":393.4,"y":481.0,"hood":"","unique":false,"tier":"Yellow"},{"zip":"78652","city":"Manchaca","county":"Travis","x":328.0,"y":304.6,"hood":"Manchach","unique":false,"tier":"Yellow"},{"zip":"78655","city":"Martindale","county":"Caldwell","x":324.0,"y":418.3,"hood":"","unique":false,"tier":"None"},{"zip":"78656","city":"Maxwell","county":"Caldwell","x":336.6,"y":396.0,"hood":"","unique":false,"tier":"None"},{"zip":"78666","city":"San Marcos","county":"Hays","x":293.0,"y":403.9,"hood":"","unique":false,"tier":"Green"},{"zip":"78676","city":"Wimberley","county":"Hays","x":233.6,"y":343.5,"hood":"Wimberly","unique":false,"tier":"Red"}],"hull":"M248.8,375.2 Q218.5,338.4 233.8,319.5 Q249.2,300.6 332.3,286.1 Q415.5,271.5 424.3,321.7 Q433.2,371.9 417.2,433.5 Q401.2,495.0 376.9,481.2 Q352.6,467.3 315.9,439.7 Q279.2,412.0 248.8,375.2Z","tally":{"Red":2,"Yellow":7,"Green":1,"None":3}},{"name":"Bastrop","code":"1410b","color":"#C2410C","zips":[{"zip":"78602","city":"Bastrop","county":"Bastrop","x":517.0,"y":298.7,"hood":"","unique":false,"tier":"Yellow"},{"zip":"78612","city":"Cedar Creek","county":"Bastrop","x":446.0,"y":315.5,"hood":"","unique":false,"tier":"Yellow"},{"zip":"78615","city":"Coupland","county":"Travis","x":490.9,"y":159.4,"hood":"","unique":false,"tier":"None"},{"zip":"78621","city":"Elgin","county":"Bastrop","x":488.8,"y":225.0,"hood":"","unique":false,"tier":"Yellow"},{"zip":"78650","city":"Mc Dade","county":"Bastrop","x":544.0,"y":241.8,"hood":"","unique":false,"tier":"Yellow"},{"zip":"78653","city":"Manor","county":"Travis","x":434.0,"y":218.7,"hood":"","unique":false,"tier":"Yellow"},{"zip":"78659","city":"Paige","county":"Bastrop","x":576.5,"y":279.9,"hood":"","unique":false,"tier":"None"},{"zip":"78660","city":"Pflugerville","county":"Travis","x":400.3,"y":177.4,"hood":"","unique":false,"tier":"Yellow"},{"zip":"78662","city":"Red Rock","county":"Bastrop","x":476.9,"y":357.9,"hood":"","unique":false,"tier":"None"},{"zip":"78953","city":"Rosanky","county":"Bastrop","x":510.1,"y":384.5,"hood":"","unique":false,"tier":"Yellow"},{"zip":"78957","city":"Smithville","county":"Bastrop","x":566.3,"y":347.0,"hood":"","unique":false,"tier":"Yellow"}],"hull":"M410.9,244.2 Q389.9,165.2 440.1,154.3 Q490.4,143.4 541.4,210.8 Q592.4,278.2 585.5,317.6 Q578.7,357.1 545.6,378.7 Q512.5,400.3 492.7,386.8 Q472.8,373.4 452.4,348.2 Q431.9,323.1 410.9,244.2Z","tally":{"Red":0,"Yellow":8,"Green":0,"None":3}},{"name":"Brenham","code":"1410","color":"#0E7C6B","zips":[{"zip":"76578","city":"Thrall","county":"Williamson","x":517.9,"y":117.5,"hood":"","unique":false,"tier":"None"},{"zip":"77426","city":"Chappell Hill","county":"Washington","x":882.3,"y":280.9,"hood":"","unique":false,"tier":"None"},{"zip":"77445","city":"Hempstead","county":"Waller","x":938.6,"y":317.4,"hood":"","unique":false,"tier":"None"},{"zip":"77833","city":"Brenham","county":"Washington","x":824.2,"y":283.2,"hood":"","unique":false,"tier":"Green"},{"zip":"77835","city":"Burton","county":"Washington","x":758.7,"y":283.5,"hood":"","unique":false,"tier":"Green"},{"zip":"77836","city":"Caldwell","county":"Burleson","x":716.6,"y":142.4,"hood":"","unique":false,"tier":"Yellow"},{"zip":"77853","city":"Dime Box","county":"Lee","x":678.4,"y":211.1,"hood":"","unique":false,"tier":"Yellow"},{"zip":"77879","city":"Somerville","county":"Burleson","x":778.2,"y":191.2,"hood":"","unique":false,"tier":"Yellow"},{"zip":"78932","city":"Carmine","county":"Fayette","x":726.3,"y":298.0,"hood":"","unique":false,"tier":"None"},{"zip":"78940","city":"Fayetteville","county":"Fayette","x":740.1,"y":399.4,"hood":"","unique":false,"tier":"Yellow"},{"zip":"78942","city":"Giddings","county":"Lee","x":641.0,"y":283.1,"hood":"","unique":false,"tier":"Yellow"},{"zip":"78944","city":"Industry","county":"Austin","x":796.0,"y":358.0,"hood":"","unique":false,"tier":"Yellow"},{"zip":"78945","city":"La Grange","county":"Fayette","x":657.3,"y":392.5,"hood":"","unique":false,"tier":"Yellow"},{"zip":"78946","city":"Ledbetter","county":"Lee","x":700.3,"y":258.9,"hood":"","unique":false,"tier":"Yellow"},{"zip":"78947","city":"Lexington","county":"Lee","x":599.8,"y":186.6,"hood":"","unique":false,"tier":"Yellow"},{"zip":"78948","city":"Lincoln","county":"Lee","x":628.2,"y":227.1,"hood":"","unique":false,"tier":"Yellow"},{"zip":"78950","city":"New Ulm","county":"Austin","x":792.0,"y":388.7,"hood":"","unique":false,"tier":"None"},{"zip":"78954","city":"Round Top","county":"Fayette","x":709.7,"y":337.7,"hood":"","unique":false,"tier":"Red"},{"zip":"78956","city":"Schulenburg","county":"Fayette","x":648.8,"y":478.8,"hood":"","unique":false,"tier":"None"}],"hull":"M575.0,301.0 Q505.3,107.7 611.7,117.1 Q718.1,126.5 836.1,223.7 Q954.2,321.0 799.5,407.6 Q644.7,494.3 575.0,301.0Z","tally":{"Red":1,"Yellow":10,"Green":2,"None":6}}],"counties":[{"n":"Williamson","d":"M490.2,186.4 L418.8,153.6 L350.1,182.3 L287.4,103.0 L255.2,104.7 L285.3,40.1 L331.7,-8.1 L401.9,6.2 L508.9,53.4 L524.1,60.1 L564.3,171.3 L502.3,193.1 L490.2,186.4Z","x":409.7,"y":92.5},{"n":"Bastrop","d":"M601.2,299.0 L609.4,333.6 L508.8,439.4 L394.0,327.2 L393.5,327.0 L447.7,270.2 L449.9,266.0 L476.3,213.7 L487.6,191.4 L490.2,186.4 L502.3,193.1 L589.6,250.5 L601.2,299.0Z","x":501.5,"y":312.9},{"n":"Blanco","d":"M68.0,154.3 L130.3,153.4 L151.2,159.8 L229.1,183.8 L212.7,211.7 L169.6,338.9 L129.4,379.1 L69.3,298.6 L68.0,154.3Z","x":148.6,"y":266.3},{"n":"Burnet","d":"M302.9,-59.5 L327.6,-17.3 L331.7,-8.1 L285.3,40.1 L255.2,104.7 L229.9,160.4 L229.1,183.8 L151.2,159.8 L120.8,85.0 L144.0,58.2 L123.2,39.8 L142.2,20.4 L118.4,-14.2 L120.5,-57.4 L302.9,-59.5Z","x":225.1,"y":62.1},{"n":"Fayette","d":"M508.1,440.2 L508.8,439.4 L609.4,333.6 L611.3,341.3 L688.9,290.0 L739.7,296.1 L748.5,336.4 L766.5,369.5 L702.8,451.9 L661.3,500.9 L568.6,502.8 L572.8,496.7 L508.1,440.2Z","x":637.3,"y":396.4},{"n":"Gonzales","d":"M534.9,600.1 L406.1,710.0 L366.2,665.2 L321.2,612.8 L327.6,603.2 L399.2,494.1 L411.4,501.7 L508.1,440.2 L572.8,496.7 L568.6,502.8 L547.4,521.8 L534.9,600.1Z","x":447.0,"y":575.1},{"n":"Grimes","d":"M1030.9,256.0 L1030.7,255.9 L1017.9,256.8 L1007.6,257.8 L1007.5,257.8 L931.1,264.1 L933.7,238.6 L909.9,222.1 L912.5,201.1 L935.7,182.2 L921.3,176.9 L898.5,114.8 L905.2,25.2 L1010.6,8.7 L1022.0,102.2 L1030.9,219.1 L1030.9,256.0Z","x":964.7,"y":136.4},{"n":"Caldwell","d":"M508.8,439.4 L508.1,440.2 L411.4,501.7 L399.2,494.1 L368.5,481.2 L315.5,410.8 L309.1,400.6 L372.5,344.3 L391.5,325.0 L393.5,327.0 L394.0,327.2 L508.8,439.4Z","x":408.9,"y":413.4},{"n":"Comal","d":"M119.1,466.2 L82.3,449.8 L49.2,456.0 L49.7,455.5 L129.4,379.1 L169.6,338.9 L261.9,414.7 L272.7,453.1 L241.4,480.6 L165.0,516.2 L141.8,489.0 L155.5,465.3 L119.1,466.2Z","x":161.0,"y":427.6},{"n":"Robertson","d":"M842.6,-10.2 L805.2,56.6 L767.5,76.1 L766.8,73.8 L757.5,68.3 L756.2,62.9 L748.7,62.0 L735.0,22.5 L726.7,-8.1 L702.1,-16.5 L676.9,-87.9 L757.1,-133.9 L853.1,-188.3 L849.0,-146.4 L880.1,-35.1 L872.4,-31.2 L847.2,-14.3 L842.6,-10.2Z","x":778.5,"y":-56.1},{"n":"Travis","d":"M476.3,213.7 L449.9,266.0 L447.7,270.2 L393.5,327.0 L391.5,325.0 L372.5,344.3 L268.5,257.3 L212.7,211.7 L229.1,183.8 L229.9,160.4 L255.2,104.7 L287.4,103.0 L350.1,182.3 L418.8,153.6 L490.2,186.4 L487.6,191.4 L476.3,213.7Z","x":351.5,"y":223.7},{"n":"Washington","d":"M741.9,235.5 L835.8,208.2 L839.3,205.2 L845.7,207.1 L855.3,200.5 L860.0,202.6 L894.4,201.1 L909.9,222.1 L933.7,238.6 L931.1,264.1 L908.4,271.5 L897.2,300.3 L912.9,326.1 L862.2,315.7 L748.5,336.4 L739.7,296.1 L688.9,290.0 L710.6,256.7 L741.9,235.5Z","x":811.3,"y":268.5},{"n":"Austin","d":"M748.5,336.4 L862.2,315.7 L912.9,326.1 L934.1,352.1 L920.9,366.7 L921.4,417.3 L946.3,432.8 L952.0,462.9 L954.7,512.9 L932.6,513.3 L902.7,500.5 L873.8,486.5 L844.3,422.0 L820.6,424.1 L766.5,369.5 L748.5,336.4Z","x":851.6,"y":414.5},{"n":"Bexar","d":"M173.3,650.9 L131.7,708.1 L-5.6,653.6 L-6.2,477.8 L3.4,466.0 L49.2,456.0 L82.3,449.8 L119.1,466.2 L155.5,465.3 L141.8,489.0 L165.0,516.2 L169.3,529.5 L178.2,533.6 L228.6,561.1 L226.1,577.3 L225.0,577.8 L173.3,650.9Z","x":111.2,"y":578.9},{"n":"Lavaca","d":"M639.1,728.5 L636.2,725.0 L636.1,724.8 L635.9,724.5 L626.0,712.2 L534.9,600.1 L547.4,521.8 L568.6,502.8 L661.3,500.9 L689.3,523.1 L769.7,619.8 L735.9,648.4 L639.1,728.5Z","x":652.3,"y":614.7},{"n":"Lee","d":"M609.4,333.6 L601.2,299.0 L589.6,250.5 L502.3,193.1 L564.3,171.3 L630.4,131.4 L707.5,226.8 L741.9,235.5 L710.6,256.7 L688.9,290.0 L611.3,341.3 L609.4,333.6Z","x":622.1,"y":236.4},{"n":"Milam","d":"M676.9,-87.9 L702.1,-16.5 L726.7,-8.1 L735.0,22.5 L748.7,62.0 L630.4,131.4 L564.3,171.3 L524.1,60.1 L508.9,53.4 L528.4,-1.4 L593.6,-40.1 L676.9,-87.9Z","x":628.8,"y":41.7},{"n":"Wharton","d":"M932.6,513.3 L947.9,529.1 L942.4,563.4 L972.5,589.4 L984.9,610.7 L981.7,620.6 L999.8,627.9 L1004.9,647.2 L1016.0,648.9 L1017.9,650.4 L1006.8,662.0 L975.4,695.1 L856.5,768.5 L742.1,654.8 L842.7,591.5 L857.0,548.2 L902.7,500.5 L932.6,513.3Z","x":880.0,"y":634.5},{"n":"Bandera","d":"M-281.4,503.1 L-281.2,394.4 L-280.6,391.0 L-134.1,396.1 L-44.6,441.5 L2.6,465.7 L3.4,466.0 L-6.2,477.8 L-47.8,529.1 L-67.4,504.6 L-215.3,503.0 L-281.4,503.1Z","x":-139.0,"y":460.1},{"n":"Bell","d":"M593.6,-40.1 L528.4,-1.4 L508.9,53.4 L401.9,6.2 L331.7,-8.1 L327.6,-17.3 L302.9,-59.5 L302.2,-71.9 L304.5,-73.3 L473.3,-173.5 L499.2,-143.2 L521.8,-157.4 L593.6,-40.1Z","x":447.9,"y":-60.1},{"n":"Brazos","d":"M767.5,76.1 L805.2,56.6 L842.6,-10.2 L847.2,-14.3 L872.4,-31.2 L880.1,-35.1 L905.2,25.2 L898.5,114.8 L921.3,176.9 L935.7,182.2 L912.5,201.1 L909.9,222.1 L894.4,201.1 L860.0,202.6 L861.7,202.2 L861.4,200.0 L857.5,197.6 L858.8,194.5 L860.5,194.1 L860.1,190.1 L864.3,189.6 L867.0,191.3 L869.1,190.6 L869.4,187.8 L866.2,188.3 L863.8,185.7 L865.7,183.6 L864.4,180.8 L864.7,174.9 L862.8,176.7 L839.4,137.6 L787.0,103.2 L755.5,98.1 L758.0,93.3 L761.4,90.7 L762.0,88.8 L761.5,81.1 L762.4,78.8 L765.7,78.8 L767.5,76.1Z","x":845.6,"y":93.5},{"n":"Colorado","d":"M742.1,654.8 L741.4,654.1 L741.1,653.8 L735.9,648.4 L769.7,619.8 L689.3,523.1 L661.3,500.9 L702.8,451.9 L766.5,369.5 L820.6,424.1 L844.3,422.0 L873.8,486.5 L902.7,500.5 L857.0,548.2 L842.7,591.5 L742.1,654.8Z","x":782.0,"y":512.1},{"n":"Gillespie","d":"M-45.4,298.9 L-177.0,300.5 L-177.2,239.6 L-178.0,154.3 L-60.7,154.9 L68.0,154.3 L69.3,298.6 L-45.4,298.9Z","x":-54.3,"y":227.4},{"n":"Guadalupe","d":"M226.1,577.3 L228.6,561.1 L178.2,533.6 L169.3,529.5 L165.0,516.2 L241.4,480.6 L272.7,453.1 L315.5,410.8 L368.5,481.2 L399.2,494.1 L327.6,603.2 L243.2,602.1 L226.1,577.3Z","x":282.1,"y":507.0},{"n":"Hays","d":"M212.7,211.7 L268.5,257.3 L372.5,344.3 L309.1,400.6 L315.5,410.8 L272.7,453.1 L261.9,414.7 L169.6,338.9 L212.7,211.7Z","x":271.1,"y":332.4},{"n":"Llano","d":"M-60.7,154.9 L-60.6,154.0 L-60.8,-14.1 L118.4,-14.2 L142.2,20.4 L123.2,39.8 L144.0,58.2 L120.8,85.0 L151.2,159.8 L130.3,153.4 L68.0,154.3 L-60.7,154.9Z","x":45.2,"y":72.8},{"n":"Madison","d":"M1095.3,-17.8 L1010.6,8.7 L905.2,25.2 L880.1,-35.1 L972.4,-82.4 L1044.7,-83.2 L1079.6,-79.1 L1073.5,-40.4 L1095.3,-17.8Z","x":987.7,"y":-29.0},{"n":"Fort Bend","d":"M1071.0,469.7 L1071.1,469.8 L1071.4,470.0 L1098.0,487.2 L1122.9,500.7 L1154.4,517.6 L1156.6,518.8 L1158.3,519.8 L1162.3,521.9 L1155.7,549.9 L1149.0,578.3 L1118.8,578.6 L1108.6,617.9 L1082.7,637.5 L1048.7,624.1 L1016.0,648.9 L1004.9,647.2 L999.8,627.9 L981.7,620.6 L984.9,610.7 L972.5,589.4 L942.4,563.4 L947.9,529.1 L932.6,513.3 L954.7,512.9 L952.0,462.9 L1023.4,438.8 L1071.0,469.7Z","x":1047.4,"y":543.8},{"n":"Harris","d":"M1071.0,469.7 L1023.4,438.8 L976.9,288.8 L1031.3,318.1 L1082.4,310.6 L1118.3,285.9 L1134.3,296.1 L1217.6,341.3 L1275.4,287.3 L1298.0,356.8 L1313.8,365.2 L1315.2,400.4 L1340.3,424.0 L1332.6,484.5 L1331.5,482.6 L1330.9,477.0 L1328.6,474.9 L1320.5,473.9 L1318.2,480.1 L1312.6,485.1 L1306.9,490.3 L1306.8,490.4 L1306.6,490.9 L1306.1,491.6 L1305.0,493.7 L1304.7,494.1 L1304.4,495.2 L1304.0,496.3 L1303.4,498.2 L1303.4,498.3 L1304.1,502.1 L1304.1,502.3 L1304.7,502.9 L1308.5,506.3 L1308.6,506.4 L1309.0,506.7 L1309.1,506.8 L1312.6,510.0 L1314.0,512.3 L1314.7,513.3 L1314.8,513.5 L1314.7,513.6 L1314.7,513.6 L1312.6,517.5 L1306.1,524.3 L1303.2,530.3 L1303.1,530.4 L1303.0,530.6 L1303.0,530.6 L1302.5,532.0 L1302.5,532.1 L1302.5,532.2 L1252.1,554.8 L1234.0,531.6 L1206.0,515.4 L1162.3,521.9 L1158.3,519.8 L1156.6,518.8 L1154.4,517.6 L1122.9,500.7 L1098.0,487.2 L1071.4,470.0 L1071.1,469.8 L1071.0,469.7Z","x":1158.6,"y":420.3},{"n":"Kendall","d":"M-44.6,441.5 L-45.4,298.9 L69.3,298.6 L129.4,379.1 L49.7,455.5 L49.2,456.0 L3.4,466.0 L2.6,465.7 L-44.6,441.5Z","x":42.0,"y":382.3},{"n":"Waller","d":"M1007.6,257.8 L1017.9,256.8 L1030.7,255.9 L1030.9,256.0 L1031.3,318.1 L976.9,288.8 L1023.4,438.8 L952.0,462.9 L946.3,432.8 L921.4,417.3 L920.9,366.7 L934.1,352.1 L912.9,326.1 L897.2,300.3 L908.4,271.5 L931.1,264.1 L1007.5,257.8 L1007.6,257.8Z","x":964.2,"y":359.4},{"n":"Burleson","d":"M835.8,208.2 L741.9,235.5 L707.5,226.8 L630.4,131.4 L748.7,62.0 L756.2,62.9 L757.5,68.3 L766.8,73.8 L767.5,76.1 L765.7,78.8 L762.4,78.8 L761.5,81.1 L762.0,88.8 L761.4,90.7 L758.0,93.3 L755.5,98.1 L787.0,103.2 L839.4,137.6 L862.8,176.7 L864.7,174.9 L864.4,180.8 L865.7,183.6 L863.8,185.7 L866.2,188.3 L869.4,187.8 L869.1,190.6 L867.0,191.3 L864.3,189.6 L860.1,190.1 L860.5,194.1 L858.8,194.5 L857.5,197.6 L861.4,200.0 L861.7,202.2 L860.0,202.6 L855.3,200.5 L845.7,207.1 L839.3,205.2 L835.8,208.2Z","x":749.9,"y":148.8}],"map":{"w":1000.0,"h":524.7},"inset":{"w":300.0,"h":280.9,"path":"M110.5,0.0 L151.9,0.0 L151.9,51.3 L153.7,51.0 L158.8,56.1 L161.6,55.2 L168.9,55.5 L170.5,60.6 L175.1,60.3 L180.1,62.6 L184.6,62.3 L186.5,64.5 L189.4,62.0 L193.8,63.2 L195.7,66.1 L198.9,66.5 L200.7,70.1 L204.7,66.7 L210.1,68.7 L212.1,70.9 L214.7,69.9 L216.6,73.2 L222.3,67.2 L224.0,70.3 L229.0,70.3 L233.7,72.2 L235.5,74.5 L240.0,70.4 L244.9,69.1 L247.1,70.6 L252.5,68.0 L253.8,69.4 L259.7,69.6 L261.2,67.2 L267.1,69.9 L269.3,72.9 L278.1,75.8 L280.5,78.3 L285.0,77.0 L288.2,78.1 L288.2,92.2 L288.2,119.3 L293.2,125.1 L293.4,130.9 L299.6,141.6 L300.0,147.3 L297.6,154.1 L295.4,156.8 L296.1,160.4 L294.5,163.2 L296.2,168.3 L290.9,177.7 L292.9,180.3 L289.1,180.4 L277.2,184.1 L272.9,182.0 L272.2,177.7 L269.2,180.7 L267.1,180.0 L265.9,183.8 L268.3,185.4 L268.7,190.3 L264.4,195.5 L257.5,202.0 L243.8,209.0 L242.4,207.8 L238.2,209.6 L238.1,208.0 L232.5,209.1 L229.9,205.8 L228.2,206.5 L234.2,213.3 L229.9,215.5 L225.7,214.2 L225.1,219.0 L220.0,223.9 L214.7,233.1 L211.3,242.6 L208.8,241.9 L208.2,245.4 L210.8,244.5 L209.6,251.5 L207.8,251.7 L207.7,255.7 L209.8,257.8 L210.4,265.8 L212.9,268.6 L213.6,273.6 L215.6,278.1 L208.6,280.9 L205.7,277.4 L200.3,276.1 L193.2,276.4 L187.0,272.0 L182.4,271.6 L178.9,268.1 L174.1,267.0 L170.9,263.6 L168.7,255.7 L164.6,250.9 L165.1,246.8 L163.2,242.5 L163.8,238.7 L161.0,234.5 L158.6,234.1 L154.7,230.3 L153.4,225.5 L150.1,221.2 L145.2,217.5 L142.8,209.6 L140.5,207.4 L137.5,201.0 L136.5,195.8 L133.7,192.0 L128.8,188.7 L127.6,186.4 L123.1,184.4 L119.6,178.6 L109.6,177.3 L103.6,177.5 L98.5,175.5 L97.3,178.3 L91.8,179.1 L87.7,184.6 L85.2,193.5 L83.8,193.6 L80.7,198.8 L76.9,199.0 L71.3,194.9 L57.1,188.4 L54.4,184.9 L48.9,181.6 L45.0,174.1 L44.7,167.3 L40.8,161.7 L40.0,157.0 L37.5,153.9 L28.6,149.4 L23.8,143.3 L19.9,141.2 L15.8,135.9 L10.0,133.2 L6.0,126.2 L2.6,124.8 L0.0,121.7 L0.6,119.1 L81.8,119.1 L81.8,92.6 L82.3,65.8 L82.4,0.0 L83.3,0.0 L110.5,0.0Z","box":{"x":179.6,"y":148.6,"w":66.2,"h":34.7}}};
+const T = DATA.tiers, A = DATA.addons;
+const NS = 'http://www.w3.org/2000/svg';
+const el = (n, a) => { const e = document.createElementNS(NS, n); for (const k in a) e.setAttribute(k, a[k]); return e; };
+let lang = 'en', hours = 4, prn = false, couples = false, live = false, current = null, active = null;
+
+const S = {
+  tier:   { Red: { en: 'Red', es: 'Roja' }, Yellow: { en: 'Yellow', es: 'Amarilla' }, Green: { en: 'Green', es: 'Verde' }, None: { en: 'No zone', es: 'Sin zona' } },
+  empty:  { en: 'Type a 5-digit code to see the office and the rate.', es: 'Escribe un código de 5 dígitos para ver la oficina y la tarifa.' },
+  none:   { en: 'No office covers that code. Check the list or ask a marketer.', es: 'Ninguna oficina cubre ese código. Revisa la lista o consulta a un marketer.' },
+  perhr:  { en: '/hr', es: '/hora' },
+  perday: { en: '/day', es: '/día' },
+  total:  { en: 'shift total', es: 'total del turno' },
+  billed: { en: 'billed', es: 'facturadas' },
+  minapp: { en: '2-hr minimum', es: 'mínimo de 2 h' },
+  noRate: { en: 'This ZIP has no rate zone in the 2026 file. Confirm with the office before quoting.', es: 'Este código no tiene zona de tarifa en el archivo 2026. Confirma con la oficina antes de cotizar.' },
+  liveNote: { en: 'Flat daily rate. The rate sheet does not say whether PRN or couples care add on top — confirm with the office.', es: 'Tarifa plana diaria. El rate sheet no dice si PRN o couples care se suman encima — confirma con la oficina.' },
+  hrs:    { en: 'hrs', es: 'h' },
+};
+const t = (k) => S[k][lang];
+const tn = (k) => S.tier[k][lang];
+
+function quote(tier) {
+  if (live) return { flat: true, rate: A.live_in, total: A.live_in };
+  const cfg = T[tier];
+  if (!cfg || cfg.short === null) return null;
+  const longShift = hours >= A.break_hours;
+  const base = longShift ? cfg.long : cfg.short;
+  const rate = base + (prn ? A.prn : 0) + (couples ? A.couples : 0);
+  const billedHrs = longShift ? hours : Math.max(hours, A.min_hours);
+  return { flat: false, base, rate, billedHrs, minApplied: !longShift && hours < A.min_hours, total: rate * billedHrs };
+}
+
+/* ---------- map ---------- */
+const svg = document.getElementById('svg');
+const gc = el('g'); svg.appendChild(gc);
+DATA.counties.forEach(c => gc.appendChild(el('path', { d: c.d, class: 'county' })));
+DATA.counties.forEach(c => { const x = el('text', { x: c.x, y: c.y, class: 'clabel', 'text-anchor': 'middle' }); x.textContent = c.n; gc.appendChild(x); });
+const gh = el('g'); svg.appendChild(gh);
+DATA.offices.forEach((o, i) => { if (o.hull) gh.appendChild(el('path', { d: o.hull, class: 'hull o' + i, fill: o.color, stroke: o.color })); });
+DATA.offices.forEach((o, i) => {
+  const g = el('g', { class: 'off o' + i });
+  o.zips.forEach(z => {
+    if (z.unique) return;
+    const c = el('circle', { cx: z.x, cy: z.y, r: 5.4, fill: o.color, class: 'dot', 'data-zip': z.zip, 'data-tier': z.tier });
+    c.addEventListener('mouseenter', e => showTip(e, o, z));
+    c.addEventListener('mouseleave', hideTip);
+    c.addEventListener('click', () => { document.getElementById('q').value = z.zip; run(z.zip); });
+    g.appendChild(c);
+  });
+  svg.appendChild(g);
+});
+const ins = document.getElementById('inset');
+ins.appendChild(el('path', { d: DATA.inset.path, class: 'tx' }));
+ins.appendChild(el('rect', { class: 'viewbox', x: DATA.inset.box.x, y: DATA.inset.box.y, width: DATA.inset.box.w, height: DATA.inset.box.h }));
+
+const tip = document.getElementById('tip');
+function showTip(e, o, z) {
+  const qt = quote(z.tier);
+  const line = qt ? (qt.flat ? '$' + qt.rate + ' ' + t('perday')
+    : '$' + qt.rate + t('perhr') + ' &middot; $' + qt.total + ' ' + t('total')) : t('noRate');
+  tip.innerHTML = '<div class="t1">' + z.zip + '</div><div>' + z.city + (z.hood ? ' · ' + z.hood : '') + '</div>' +
+    '<div class="t2">' + o.name + ' · ' + o.code + ' · ' + tn(z.tier) + '</div><div class="t3">' + line + '</div>';
+  tip.classList.add('on');
+  const r = e.target.getBoundingClientRect();
+  tip.style.left = Math.min(window.innerWidth - 244, r.left) + 'px';
+  tip.style.top = (r.top - tip.offsetHeight - 10) + 'px';
+}
+function hideTip() { tip.classList.remove('on'); }
+
+/* ---------- legends ---------- */
+const legend = document.getElementById('legend'), legend2 = document.getElementById('legend2');
+DATA.offices.forEach((o, i) => {
+  const b = document.createElement('button');
+  b.className = 'chip'; b.dataset.i = i;
+  b.innerHTML = '<span class="sw" style="background:' + o.color + '"></span><b>' + o.name + '</b> <span class="n">' + o.code + ' · ' + o.zips.length + '</span>';
+  b.addEventListener('click', () => iso(i));
+  legend.appendChild(b);
+});
+const tally = {}; Object.keys(T).forEach(k => tally[k] = 0);
+DATA.offices.forEach(o => o.zips.forEach(z => tally[z.tier]++));
+['Red', 'Yellow', 'Green', 'None'].forEach(k => {
+  const b = document.createElement('div');
+  b.className = 'chip'; b.style.cursor = 'default'; b.dataset.tier = k;
+  const r = T[k].short === null ? '—' : '$' + T[k].short + ' / $' + T[k].long;
+  b.innerHTML = '<span class="sw" style="background:' + T[k].color + '"></span><b class="tnm">' + tn(k) + '</b> <span class="n">' + r + ' · ' + tally[k] + '</span>';
+  legend2.appendChild(b);
+});
+
+function iso(i) {
+  active = (active === i) ? null : i;
+  document.body.classList.toggle('iso', active !== null);
+  document.querySelectorAll('.chip[data-i]').forEach((c, j) => c.classList.toggle('on', j === active));
+  document.querySelectorAll('g.off, .hull, .office').forEach(n => n.classList.toggle('on', active !== null && n.classList.contains('o' + active)));
+}
+
+/* ---------- view toggle ---------- */
+const vOffice = document.getElementById('vOffice'), vRate = document.getElementById('vRate');
+function setView(rate) {
+  document.body.classList.toggle('rateview', rate);
+  vOffice.classList.toggle('on', !rate); vRate.classList.toggle('on', rate);
+  legend.classList.toggle('hide', rate); legend2.classList.toggle('hide', !rate);
+  if (rate && active !== null) iso(active);
+  document.querySelectorAll('.dot').forEach(d => {
+    const o = DATA.offices.find(o => o.zips.some(z => z.zip === d.dataset.zip));
+    d.setAttribute('fill', rate ? T[d.dataset.tier].color : o.color);
+  });
+}
+vOffice.addEventListener('click', () => setView(false));
+vRate.addEventListener('click', () => setView(true));
+
+/* ---------- rate card ---------- */
+function drawRateCard() {
+  document.getElementById('rtbody').innerHTML = ['Red', 'Yellow', 'Green'].map(k =>
+    '<tr><td><span class="tdot" style="background:' + T[k].color + '"></span>' + tn(k) + '</td>' +
+    '<td>$' + T[k].short + '</td><td>$' + T[k].long + '</td></tr>').join('');
+}
+
+/* ---------- lists ---------- */
+const lists = document.getElementById('lists');
+function drawLists() {
+  lists.innerHTML = DATA.offices.map((o, i) => {
+    const zi = o.zips.map(z => {
+      const qt = quote(z.tier);
+      const rate = qt ? (qt.flat
+        ? '<span class="r1">$' + qt.rate + '</span><span class="r2">' + t('perday') + '</span>'
+        : '<span class="r1">$' + qt.rate + '</span><span class="r2">$' + qt.total + ' / ' + qt.billedHrs + t('hrs') + '</span>')
+        : '<span class="na">' + tn('None') + '</span>';
+      return '<div class="z" data-zip="' + z.zip + '" data-city="' + (z.city + ' ' + z.hood).toLowerCase() + '" style="border-left-color:' + T[z.tier].color + '">' +
+        '<span class="nm"><span class="num">' + z.zip + (z.unique ? '<span class="tag">admin</span>' : '') + '</span>' +
+        '<span class="city">' + z.city + (z.hood ? ' · ' + z.hood : '') + '</span></span>' +
+        '<span class="rate">' + rate + '</span></div>';
+    }).join('');
+    const cnt = ['Red', 'Yellow', 'Green', 'None'].filter(k => o.tally[k]).map(k => o.tally[k] + ' ' + tn(k).toLowerCase()).join(' · ');
+    return '<section class="office o' + i + '"><div class="ohead" style="background:' + o.color + '">' +
+      '<span class="code">' + o.code + '</span><h3>' + o.name + '</h3>' +
+      '<span class="count">' + o.zips.length + ' ZIP · ' + cnt + '</span></div><div class="zips">' + zi + '</div></section>';
+  }).join('');
+  if (active !== null) document.querySelectorAll('.office').forEach(n => n.classList.toggle('on', n.classList.contains('o' + active)));
+}
+
+/* ---------- controls ---------- */
+const STEPS = [1, 2, 3, 4, 5, 6, 8, 10, 12, 24];
+function setHours(d) {
+  let i = STEPS.indexOf(hours); if (i < 0) i = 3;
+  hours = STEPS[Math.max(0, Math.min(STEPS.length - 1, i + d))];
+  document.getElementById('hval').textContent = hours + ' ' + t('hrs');
+  refresh();
+}
+document.getElementById('minus').addEventListener('click', () => setHours(-1));
+document.getElementById('plus').addEventListener('click', () => setHours(1));
+function bindTog(id, get, set) {
+  const b = document.getElementById(id);
+  b.addEventListener('click', () => { set(!get()); b.classList.toggle('on', get()); refresh(); });
+}
+bindTog('tPrn', () => prn, v => prn = v);
+bindTog('tCouple', () => couples, v => couples = v);
+bindTog('tLive', () => live, v => {
+  live = v;
+  document.querySelector('.hrs').style.opacity = v ? .35 : 1;
+  document.querySelectorAll('.hrs button').forEach(x => x.disabled = v);
+});
+
+/* ---------- search ---------- */
+const q = document.getElementById('q'), plate = document.getElementById('plate');
+q.addEventListener('input', () => run(q.value));
+
+function run(v) {
+  v = (v || '').trim().toLowerCase();
+  document.querySelectorAll('.z').forEach(n => n.classList.remove('hit', 'hide'));
+  document.querySelectorAll('.dot').forEach(n => n.classList.remove('hit'));
+  document.querySelectorAll('.office').forEach(n => n.classList.remove('novis'));
+  const op = document.getElementById('ping'); if (op) op.remove();
+  if (!v) { current = null; drawPlate(); return; }
+  let found = null;
+  document.querySelectorAll('.z').forEach(n => {
+    const m = n.dataset.zip.startsWith(v) || n.dataset.city.includes(v);
+    n.classList.toggle('hide', !m);
+    if (m) {
+      n.classList.add('hit');
+      const d = document.querySelector('.dot[data-zip="' + n.dataset.zip + '"]');
+      if (d) d.classList.add('hit');
+      if (!found) found = n;
+    }
+  });
+  document.querySelectorAll('.office').forEach(n => n.classList.toggle('novis', !n.querySelector('.z:not(.hide)')));
+  if (!found) { current = null; drawPlate('none'); return; }
+  const zip = found.dataset.zip;
+  const o = DATA.offices.find(o => o.zips.some(z => z.zip === zip));
+  current = { o: o, z: o.zips.find(z => z.zip === zip) };
+  drawPlate();
+  if (!current.z.unique) svg.appendChild(el('circle', { cx: current.z.x, cy: current.z.y, r: 6, class: 'ping', id: 'ping' }));
+  found.scrollIntoView({ block: 'center', behavior: 'smooth' });
+}
+
+function drawPlate(mode) {
+  if (mode === 'none') { plate.className = 'qright empty'; plate.textContent = t('none'); return; }
+  if (!current) { plate.className = 'qright empty'; plate.textContent = t('empty'); return; }
+  const o = current.o, z = current.z, cfg = T[z.tier], qt = quote(z.tier);
+  plate.className = 'qright';
+  let html = '<div class="qhead"><span class="sw" style="background:' + o.color + '"></span><span>' +
+    '<span class="oname">' + o.name + '</span><br><span class="ometa"><span class="cd">' + o.code + '</span> · ' + z.zip + ' ' + z.city + '</span></span></div>' +
+    '<span class="tierpill" style="background:' + cfg.color + '">' + tn(z.tier) + '</span>';
+  if (!qt) {
+    html += '<div class="qwarn">' + t('noRate') + '</div>';
+  } else if (qt.flat) {
+    html += '<div class="big">$' + qt.rate + ' <small>' + t('perday') + '</small></div><div class="qwarn">' + t('liveNote') + '</div>';
+  } else {
+    const parts = ['$' + qt.base + t('perhr')];
+    if (prn) parts.push('+$' + A.prn + ' PRN');
+    if (couples) parts.push('+$' + A.couples + (lang === 'es' ? ' pareja' : ' couples'));
+    html += '<div class="big">$' + qt.rate + ' <small>' + t('perhr') + '</small></div>' +
+      '<div class="qmath">' + parts.join(' ') + '<br>' + qt.billedHrs + ' ' + t('hrs') + ' ' + t('billed') +
+      (qt.minApplied ? ' <b>(' + t('minapp') + ')</b>' : '') + ' &rarr; <b>$' + qt.total + ' ' + t('total') + '</b></div>';
+  }
+  plate.innerHTML = html;
+}
+
+function refresh() {
+  drawLists();
+  if (q.value.trim()) run(q.value); else drawPlate();
+}
+
+/* ---------- language ---------- */
+document.querySelectorAll('.langs button').forEach(b => b.addEventListener('click', () => {
+  lang = b.dataset.lang;
+  document.querySelectorAll('.langs button').forEach(x => x.classList.toggle('on', x === b));
+  document.documentElement.lang = lang;
+  document.querySelectorAll('[data-en]').forEach(n => { n.innerHTML = n.dataset[lang]; });
+  document.querySelectorAll('#legend2 .chip').forEach(c => c.querySelector('.tnm').textContent = tn(c.dataset.tier));
+  document.getElementById('hval').textContent = hours + ' ' + t('hrs');
+  drawRateCard(); refresh();
+}));
+
+drawRateCard(); drawLists(); drawPlate();
+document.getElementById('hval').textContent = hours + ' ' + t('hrs');
+</script>
+</body>
+</html>
