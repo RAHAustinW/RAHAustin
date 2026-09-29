@@ -99,6 +99,9 @@ header h1{font-size:16px;font-weight:600;color:var(--text);letter-spacing:-0.01e
 .stat-dot.d-action{background:var(--coral-deep);}
 .stat-dot.d-verify{background:var(--butter-deep);}
 .stat-dot.d-mileage{background:var(--sage-deep);}
+.stat-card.is-guide{background:linear-gradient(135deg,#ffffff,var(--lavender-soft,#ece8f7));}
+.stat-dot.d-guide{background:var(--lavender-deep,#7b6bb0);}
+.guide-note{background:var(--surface-soft);border:1px solid var(--border);border-radius:var(--radius);padding:12px 16px;font-size:13px;color:var(--text-soft);margin-bottom:14px;line-height:1.5;}
 .stat-label{font-size:11px;font-weight:600;color:var(--text-soft);text-transform:uppercase;letter-spacing:0.06em;}
 .stat-value{font-size:34px;font-weight:700;line-height:1;color:var(--text);letter-spacing:-0.02em;}
 
@@ -230,11 +233,16 @@ tbody td{padding:13px 18px;color:var(--text-soft);}
         <div class="stat-top"><span class="stat-dot d-mileage"></span><span class="stat-label">Mileage Entries</span></div>
         <div class="stat-value" id="stat-mileage">0</div>
       </div>
+      <div class="stat-card is-guide">
+        <div class="stat-top"><span class="stat-dot d-guide"></span><span class="stat-label">Pay Guideline Rows</span></div>
+        <div class="stat-value" id="stat-guide">0</div>
+      </div>
     </div>
 
     <div class="tabs">
       <button class="tab-btn active" data-tab="flags">Flags</button>
       <button class="tab-btn" data-tab="mileage">Mileage</button>
+      <button class="tab-btn" data-tab="guide">Pay Guideline</button>
     </div>
 
     <div class="tab-panel active" id="tab-flags">
@@ -270,19 +278,47 @@ tbody td{padding:13px 18px;color:var(--text-soft);}
       </div>
       <div class="empty-state" id="mile-empty"><div class="big">🌿</div><p>No mileage entries found.</p></div>
     </div>
+
+    <div class="tab-panel" id="tab-guide">
+      <div class="guide-note">Informational only — not counted as errors. CG pay compared to Kate's guideline (AAA $14.50 · VA $15 · PP $32/$34 → $15 · $38 → $16 · $40 → $18 · $45 → $20 · $50 → $22). One row per caregiver/client/rate. Rates above the guideline need Kate's prior approval; GUIDE clients are not checked.</div>
+      <div class="toolbar">
+        <div class="search-box">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <input type="text" id="guide-search" placeholder="Search by caregiver, client, or type...">
+        </div>
+        <button class="export-btn" id="export-guide-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Export CSV
+        </button>
+      </div>
+      <div class="mile-wrap">
+        <table>
+          <thead><tr><th>Client</th><th>Caregiver</th><th>Type</th><th>Bill Rate</th><th>CG Pay</th><th>Guideline</th><th>Difference</th><th>Shifts</th></tr></thead>
+          <tbody id="guide-body"></tbody>
+        </table>
+      </div>
+      <div class="empty-state" id="guide-empty"><div class="big">🌿</div><p>Every caregiver is paid at the guideline rate.</p></div>
+    </div>
   </div>
 </div>
 <script>
 pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-let billingFile=null,payrollFile=null,allFlags=[],allMileage=[],activeFilter='all',searchTerm='';
+let billingFile=null,payrollFile=null,allFlags=[],allMileage=[],allGuide=[],activeFilter='all',searchTerm='';
 
 const TYPE_LABELS={
   rate:'Rate Inconsistency',hours:'Hours / Visit',zero:'$0.00 / Missing Note',
   '15min':'15-Min Increment',holiday:'Holiday Rate',ot:'Overtime',
   livein:'Live-In',overlap:'Shift Overlap',mileage:'Mileage',
-  va_rate:'VA/AAA/GUIDE Rate',cross:'Billing/Payroll Mismatch',
-  paydontbill:'Pay Don\'t Bill'
+  va_rate:'VA/AAA Rate',cross:'Billing/Payroll Mismatch',
+  paydontbill:'Pay Don\'t Bill',billhours:'Non-Billable w/ Hours',
+  cancel:'Cancellation Fee',tier:'Short/Long Rate Tier',visit:'Still on Visit Rate'
 };
+
+// Kate's CG pay guideline table (Sept 2026). Key = bill rate → expected CG pay.
+const PAY_GUIDE_PP={32:15,34:15,38:16,40:18,45:20,50:22};
+const PAY_GUIDE_AUTH={aaa:14.5,va:15};
+const STANDARD_LONG_RATES=[32,34,38];
+const STANDARD_VISIT_RATES=[90,110,130,150];  // 4+ hr PP rates; a <4 hr shift at one of these is suspect
 
 ['billing','payroll'].forEach(type=>{
   const input=document.getElementById('file-'+type),zone=document.getElementById('zone-'+type),status=document.getElementById('status-'+type);
@@ -304,6 +340,7 @@ document.querySelectorAll('.tab-btn').forEach(btn=>{
 
 document.getElementById('search-input').addEventListener('input',e=>{searchTerm=e.target.value.toLowerCase();renderFlags();});
 document.getElementById('mile-search').addEventListener('input',e=>{renderMileage(e.target.value.toLowerCase());});
+document.getElementById('guide-search').addEventListener('input',e=>{renderGuide(e.target.value.toLowerCase());});
 
 async function extractText(file){
   const buf=await file.arrayBuffer();
@@ -325,7 +362,7 @@ function setProgress(p){document.getElementById('progress-fill').style.width=p+'
 
 document.getElementById('run-btn').addEventListener('click',async()=>{
   const btn=document.getElementById('run-btn');btn.disabled=true;btn.textContent='Analyzing...';
-  document.getElementById('log-box').innerHTML='';allFlags=[];allMileage=[];
+  document.getElementById('log-box').innerHTML='';allFlags=[];allMileage=[];allGuide=[];
   document.getElementById('progress-bar').style.display='block';setProgress(5);
   try{
     log('Extracting billing PDF...');const bText=await extractText(billingFile);setProgress(30);log('Billing extracted ✓','log-ok');
@@ -333,11 +370,11 @@ document.getElementById('run-btn').addEventListener('click',async()=>{
     log('Running audit rules...');
     const bResult=parseBilling(bText);
     const pResult=parsePayroll(pText,bResult.billingMap,bResult.zeroNoteKeys);
-    const crossFlags=crossCheck(bResult.billingMap,pResult.payrollMap);
-    allFlags=[...bResult.flags,...pResult.flags,...crossFlags];
+    const cross=crossCheck(bResult.billingMap,pResult.payrollMap);
+    allFlags=[...bResult.flags,...pResult.flags,...cross.flags];
     allFlags=dedup(allFlags);
-    allMileage=bResult.mileage;
-    setProgress(90);log(`Found ${allFlags.length} flags, ${allMileage.length} mileage entries.`,'log-ok');
+    allMileage=bResult.mileage;allGuide=cross.guide;
+    setProgress(90);log(`Found ${allFlags.length} flags, ${allMileage.length} mileage entries, ${allGuide.length} pay-guideline rows.`,'log-ok');
     const wm=bText.match(/(\d{2}\/\d{2}\/\d{4})\s*-\s*(\d{2}\/\d{2}\/\d{4})/);
     if(wm)document.getElementById('week-label').textContent='Week: '+wm[1]+' – '+wm[2];
     renderResults();document.getElementById('results').style.display='block';setProgress(100);
@@ -351,9 +388,11 @@ function renderResults(){
   document.getElementById('stat-action').textContent=allFlags.filter(f=>f.severity==='action').length;
   document.getElementById('stat-verify').textContent=allFlags.filter(f=>f.severity==='verify').length;
   document.getElementById('stat-mileage').textContent=allMileage.length;
+  document.getElementById('stat-guide').textContent=allGuide.length;
   renderFilters();
   renderFlags();
   renderMileage('');
+  renderGuide('');
   setupExport();
 }
 
@@ -441,6 +480,16 @@ function renderMileage(search){
   }).join('');
 }
 
+function renderGuide(search){
+  let rows=allGuide;
+  if(search)rows=rows.filter(g=>(g.client+' '+g.cg+' '+g.kind).toLowerCase().includes(search));
+  document.getElementById('guide-empty').style.display=rows.length?'none':'block';
+  document.getElementById('guide-body').innerHTML=rows.map(g=>{
+    const badge=g.diff>0?`<span class="badge badge-sev-action">+$${g.diff.toFixed(2)}</span>`:`<span class="badge badge-type">−$${Math.abs(g.diff).toFixed(2)}</span>`;
+    return `<tr><td class="td-name">${esc(g.client)}</td><td>${esc(g.cg)}</td><td>${esc(g.kind)}</td><td class="td-miles">$${g.bill}</td><td class="td-miles">$${g.pay}</td><td class="td-miles">$${g.expected}</td><td>${badge}</td><td>${g.shifts}</td></tr>`;
+  }).join('');
+}
+
 function setupExport(){
   document.getElementById('export-btn').onclick=()=>{
     const rows=[['Report','Entity','Counterpart','Date','Flag Type','Detail','Severity']];
@@ -449,6 +498,12 @@ function setupExport(){
     allMileage.forEach(m=>rows.push(['',m.client,m.cg,m.miles,m.note,m.authType]));
     const csv=rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n');
     const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='rah_audit.csv';a.click();
+  };
+  document.getElementById('export-guide-btn').onclick=()=>{
+    const rows=[['Client','Caregiver','Type','Bill Rate','CG Pay Rate','Guideline','Difference','Shifts This Week']];
+    allGuide.forEach(g=>rows.push([g.client,g.cg,g.kind,g.bill,g.pay,g.expected,g.diff,g.shifts]));
+    const csv=rows.map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n');
+    const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='rah_pay_guideline.csv';a.click();
   };
 }
 
@@ -512,13 +567,41 @@ function dedup(flags){
 function parseBilling(text){
   const flags=[],mileage=[],billingMap={},zeroNoteKeys=new Map();
 
-  function processPendingHourly(pending,authDays){
+  // Short hourly shifts (<4 hrs, private pay). Sept 2026: these are valid but bill at the
+  // short-shift tier with a 2-hour minimum. Same-day auth hours make a short PP shift count as 4+.
+  function processPendingHourly(pending,authDays,longRates,clientName){
+    const shortRates=new Set();
     for(const p of pending){
       if(authDays.has(p.day))continue;
-      if(p.reg<=3.25) flags.push({report:'Billing',entity:p.entity,counterpart:p.cp,date:p.date,type:'hours',
-        detail:`Hourly shift is only ${p.reg} hrs (≤3.25) — should be visit rate`,severity:'action'});
-      else flags.push({report:'Billing',entity:p.entity,counterpart:p.cp,date:p.date,type:'hours',
-        detail:`Hourly shift is ${p.reg} hrs (>3.25 but <4) — should be rounded to 4 hrs hourly`,severity:'action'});
+      if(p.reg<2){
+        flags.push({report:'Billing',entity:p.entity,counterpart:p.cp,date:p.date,type:'hours',
+          detail:`Hourly shift is only ${p.reg} hrs — under the 2-hour minimum, bill at least 2 hrs`,severity:'action'});
+      }
+      // Only flag short shifts billed at a standard 4+ hr rate ($32/$34/$38) — higher rates already use the short tier
+      if(STANDARD_LONG_RATES.includes(p.amt))flags.push({report:'Billing',entity:p.entity,counterpart:p.cp,date:p.date,type:'hours',
+        detail:`Hourly shift under 4 hrs (${p.reg} hrs) billed at $${p.amt}/hr, a standard 4+ hr rate — verify short-shift rate tier applied`,severity:'verify'});
+      shortRates.add(p.amt);
+    }
+    // Tier check: same rate used for both <4 hr and 4+ hr shifts on this client
+    for(const r of shortRates){
+      if(longRates.has(r)){
+        flags.push({report:'Billing',entity:clientName,counterpart:'—',date:'',type:'tier',
+          detail:`Short (<4 hr) and long (4+ hr) shifts both billed at $${r}/hr — short shifts should use the higher short-shift rate`,severity:'verify'});
+      }
+    }
+  }
+
+  // PP hourly rate consistency, compared within tier (short <4 vs long 4+); auth-day short shifts count as long
+  function finalizePPHourly(cgRateMap,authDays,clientName){
+    for(const[cgName,cm] of Object.entries(cgRateMap)){
+      if(!cm.pvHr||!cm.pvHr.length)continue;
+      const short=new Set(),long=new Set();
+      for(const e of cm.pvHr){(e.reg<4&&!authDays.has(e.day)?short:long).add(e.amt);}
+      const lastDate=cm.pvHr[cm.pvHr.length-1].date;
+      if(short.size>1)flags.push({report:'Billing',entity:clientName,counterpart:cgName,date:lastDate,type:'rate',
+        detail:`Private hourly (<4 hr) rate inconsistency for same client: ${[...short].map(x=>'$'+x).join(' vs ')}`,severity:'action'});
+      if(long.size>1)flags.push({report:'Billing',entity:clientName,counterpart:cgName,date:lastDate,type:'rate',
+        detail:`Private hourly (4+ hr) rate inconsistency for same client: ${[...long].map(x=>'$'+x).join(' vs ')}`,severity:'action'});
     }
   }
 
@@ -526,17 +609,18 @@ function parseBilling(text){
     const lines=page.split('\n').map(l=>l.trim()).filter(Boolean);
     let client=null,isLIClient=false,isAuthClient=false,lastCG=null;
     let cgRateMap={};
-    let clientAuthDays=new Set(),pendingHourly=[];
+    let clientAuthDays=new Set(),pendingHourly=[],longRates=new Set();
 
     for(let li=0;li<lines.length;li++){
       const line=lines[li];
       if(SKIP.test(line))continue;
       if(/^[A-Z][a-zA-Z"' -]+,\s+[A-Z]/.test(line)&&/Date/.test(line)&&/Reg/.test(line)){
-        processPendingHourly(pendingHourly,clientAuthDays);
+        processPendingHourly(pendingHourly,clientAuthDays,longRates,client);
+        if(client)finalizePPHourly(cgRateMap,clientAuthDays,client);
         client=F(line)[0];
         if(isRAH(client)){client=null;continue;}
         isLIClient=false;isAuthClient=false;lastCG=null;cgRateMap={};
-        clientAuthDays=new Set();pendingHourly=[];continue;
+        clientAuthDays=new Set();pendingHourly=[];longRates=new Set();continue;
       }
       if(!client)continue;
 
@@ -557,9 +641,10 @@ function parseBilling(text){
         const aType=isAuthClient?'AUTH':'PRIVATE';
         mileage.push({client,cg:lastCG||'—',date:'',miles:milesVal,note,authType:aType});
         if(isAuthClient){
-          const mLabel=isGuide(client)?'GUIDE':'VA/AAA';
-          flags.push({report:'Billing',entity:client,counterpart:lastCG||'—',date:'',type:'mileage',
-            detail:`${mLabel} client mileage: "${note}" (${milesVal} mi) — verify authorization`,severity:'verify'});
+          if(isGuide(client))flags.push({report:'Billing',entity:client,counterpart:lastCG||'—',date:'',type:'mileage',
+            detail:`GUIDE client mileage: "${note}" (${milesVal} mi) — GUIDE does not allow mileage, remove it`,severity:'action'});
+          else flags.push({report:'Billing',entity:client,counterpart:lastCG||'—',date:'',type:'mileage',
+            detail:`VA/AAA client mileage: "${note}" (${milesVal} mi) — verify authorization`,severity:'verify'});
         }
         continue;
       }
@@ -572,9 +657,10 @@ function parseBilling(text){
           const aType=isAuthClient?'AUTH':'PRIVATE';
           mileage.push({client,cg:lastCG||'—',date:'',miles:milesVal,note:'(mileage detected from billing line)',authType:aType});
           if(isAuthClient){
-            const mLabel=isGuide(client)?'GUIDE':'VA/AAA';
-            flags.push({report:'Billing',entity:client,counterpart:lastCG||'—',date:'',type:'mileage',
-              detail:`${mLabel} client mileage: ${milesVal} mi — verify authorization`,severity:'verify'});
+            if(isGuide(client))flags.push({report:'Billing',entity:client,counterpart:lastCG||'—',date:'',type:'mileage',
+              detail:`GUIDE client mileage: ${milesVal} mi — GUIDE does not allow mileage, remove it`,severity:'action'});
+            else flags.push({report:'Billing',entity:client,counterpart:lastCG||'—',date:'',type:'mileage',
+              detail:`VA/AAA client mileage: ${milesVal} mi — verify authorization`,severity:'verify'});
           }
           continue;
         }
@@ -608,11 +694,14 @@ function parseBilling(text){
       const shiftDay=(date.match(/(\d{1,2}\/\d+)/)||[])[1]||'';
       if(isAuthOrGuide&&shiftDay)clientAuthDays.add(shiftDay);
 
+      const isCancel=rt==='visit'&&Math.abs(amt-50)<0.01;   // $50/visit = cancellation fee line
+      const aKind=isGuide(client)?'guide':aType;             // 'va' | 'aaa' | 'guide' | null
+
       // Index for cross-check
       const[start]=shiftTimes(date);
       if(start!==null&&!isZero){
         const key=normName(cgName)+'|'+normName(client)+'|'+shiftDay+'|'+start;
-        billingMap[key]={rt,rate,client,cg:cgName,date,auth:isAuthOrGuide};
+        billingMap[key]={rt,rate,client,cg:cgName,date,auth:isAuthOrGuide,aKind,isCancel,reg};
       }
 
       // $0.00
@@ -627,7 +716,14 @@ function parseBilling(text){
           const zKey=normName(cgName)+'|'+normName(client)+'|'+shiftDay+'|'+start;
           zeroNoteKeys.set(zKey,zFlag);
         }
+        // Non-billable shift still carrying bill hours (Allison: "bill hours must be 0")
+        if(reg>0)flags.push({report:'Billing',entity:client,counterpart:cgName,date,type:'billhours',
+          detail:`Non-billable shift still shows ${reg} bill hrs — set bill hours to 0`,severity:'action'});
       }
+
+      // Cancellation fee line ($50/visit, CG paid $25)
+      if(isCancel&&!isZero)flags.push({report:'Billing',entity:client,counterpart:cgName,date,type:'cancel',
+        detail:`Cancellation fee $50 — verify <24 hr notice applies (not emergency hospitalization) and CG pay is $25${hasNote?'':'; no note found'}`,severity:'verify'});
 
       // Holiday
       if(isHoliday)flags.push({report:'Billing',entity:client,counterpart:cgName,date,type:'holiday',
@@ -637,8 +733,12 @@ function parseBilling(text){
       if(ot>0&&!isLIRate)flags.push({report:'Billing',entity:client,counterpart:cgName,date,type:'ot',
         detail:`OT: ${ot} hrs — verify authorization`,severity:'verify'});
 
-      // Visit rules
-      if(rt==='visit'&&!isZero&&reg%1!==0){
+      // All clients migrated to hourly (Sept 2026): any remaining /visit line (not cancellation) → VERIFY
+      if(rt==='visit'&&!isZero&&!isCancel&&!isLIRate&&!isLIClient)flags.push({report:'Billing',entity:client,counterpart:cgName,date,type:'visit',
+        detail:`Shift still billed at a visit rate (${rate}) — all clients should be hourly, confirm migration`,severity:'verify'});
+
+      // Visit rules (legacy flat rate; cancellation line excluded)
+      if(rt==='visit'&&!isZero&&!isCancel&&reg%1!==0){
         if(reg>3.25)flags.push({report:'Billing',entity:client,counterpart:cgName,date,type:'hours',
           detail:`Visit shift is ${reg} hrs — exceeds 3-hour visit limit, must change to hourly`,severity:'action'});
         else if(reg===3.25)flags.push({report:'Billing',entity:client,counterpart:cgName,date,type:'hours',
@@ -647,9 +747,10 @@ function parseBilling(text){
           detail:`Visit has non-whole hours: ${reg} hrs — must be whole number, adjust clock time`,severity:'action'});
       }
 
-      // Hourly < 4 hrs (private pay only, skip A/B segments, check auth exception later)
-      if(rt==='hourly'&&!isZero&&!isAuthOrGuide&&!isLIRate&&reg>0&&reg<4&&!/\([AB]\)/.test(line)){
-        pendingHourly.push({entity:client,cp:cgName,date,day:shiftDay,reg});
+      // Hourly private pay: track short (<4) vs long (4+) shifts. Skip A/B segments.
+      if(rt==='hourly'&&!isZero&&!isAuthOrGuide&&!isLIRate&&reg>0&&!/\([AB]\)/.test(line)){
+        if(reg<4)pendingHourly.push({entity:client,cp:cgName,date,day:shiftDay,reg,amt});
+        else longRates.add(amt);
       }
 
       // Auth/GUIDE rules
@@ -660,8 +761,8 @@ function parseBilling(text){
         if(bt)flags.push({report:'Billing',entity:client,counterpart:cgName,date,type:'15min',
           detail:`Non-15-min clock time: ${bt} — ${aLabel} shifts must be :00, :15, :30, or :45`,severity:'action'});
         // GUIDE minimum 4 hours
-        if(isGuide(client)&&reg>0&&reg<4)flags.push({report:'Billing',entity:client,counterpart:cgName,date,type:'hours',
-          detail:`GUIDE shift is ${reg} hrs — minimum is 4 hours`,severity:'action'});
+        if(isGuide(client)&&reg>0&&Math.abs(reg/4-Math.round(reg/4))>0.001)flags.push({report:'Billing',entity:client,counterpart:cgName,date,type:'hours',
+          detail:`GUIDE shift is ${reg} hrs — GUIDE shifts must be in 4-hour increments (4, 8, 12…)`,severity:'action'});
         // VA rate validation $38/hr
         if(aType==='va'&&rt==='hourly'&&amt>0&&Math.abs(amt-38.0)>0.01)flags.push({report:'Billing',entity:client,counterpart:cgName,date,type:'va_rate',
           detail:`VA shift billed at ${rate} — must be $38.00/hr`,severity:'action'});
@@ -669,19 +770,19 @@ function parseBilling(text){
         if(aType==='aaa'&&!isGuide(client)&&rt==='hourly'&&amt>0&&Math.abs(amt-29.0)>0.01&&Math.abs(amt-30.0)>0.01)flags.push({report:'Billing',entity:client,counterpart:cgName,date,type:'va_rate',
           detail:`AAA shift billed at ${rate} — must be $29.00/hr or $30.00/hr`,severity:'action'});
         // GUIDE rate validation $32.81/hr
-        if(isGuide(client)&&rt==='hourly'&&amt>0&&Math.abs(amt-32.81)>0.02)flags.push({report:'Billing',entity:client,counterpart:cgName,date,type:'va_rate',
-          detail:`GUIDE shift billed at ${rate} — must be $32.81/hr`,severity:'action'});
+        // GUIDE rate varies by area — not checked.
       }
 
-      // Rate inconsistency (same type only, VA+private intentional, visit by duration)
-      if(!isZero&&rate&&!isLIRate){
-        if(!cgRateMap[cgName])cgRateMap[cgName]={va:new Set(),aaa:new Set(),guide:new Set(),pvVisit:{},pvHr:new Set()};
+      // Rate inconsistency (same type only, VA+private intentional, visit by duration).
+      // PP hourly is deferred to finalize so short (<4) and long (4+) tiers are compared separately.
+      if(!isZero&&rate&&!isLIRate&&!isCancel){
+        if(!cgRateMap[cgName])cgRateMap[cgName]={va:new Set(),aaa:new Set(),guide:new Set(),pvVisit:{},pvHr:[]};
         const cm=cgRateMap[cgName];
         if(isGuide(client))cm.guide.add(amt);
         else if(aType==='va')cm.va.add(amt);
         else if(aType==='aaa')cm.aaa.add(amt);
         else if(rt==='visit'){const dur=Math.floor(reg);if(!cm.pvVisit[dur])cm.pvVisit[dur]=new Set();cm.pvVisit[dur].add(amt);}
-        else cm.pvHr.add(amt);
+        else if(!/\([AB]\)/.test(line))cm.pvHr.push({amt,reg,day:shiftDay,date});
         const check=(set,label)=>{
           if(set.size>1){
             flags.push({report:'Billing',entity:client,counterpart:cgName,date,type:'rate',
@@ -689,17 +790,18 @@ function parseBilling(text){
             set.clear();set.add(amt);
           }
         };
-        check(cm.va,'VA');check(cm.aaa,'AAA');check(cm.guide,'GUIDE');check(cm.pvHr,'Private hourly');
+        check(cm.va,'VA');check(cm.aaa,'AAA'); // GUIDE rate varies by area — not checked
         Object.entries(cm.pvVisit).forEach(([dur,set])=>check(set,`Private visit (${dur}hr)`));
       }
 
       // Live-in client billed at visit
-      if(isLIClient&&rt==='visit')flags.push({report:'Billing',entity:client,counterpart:cgName,date,type:'livein',
+      if(isLIClient&&rt==='visit'&&!isCancel)flags.push({report:'Billing',entity:client,counterpart:cgName,date,type:'livein',
         detail:`Live-in client billed at /visit — should be hourly or live-in rate`,severity:'action'});
     }
 
-    // Process pending hourly < 4 checks
-    processPendingHourly(pendingHourly,clientAuthDays);
+    // Finalize client: short-shift checks, tier check, and PP hourly rate consistency per tier
+    processPendingHourly(pendingHourly,clientAuthDays,longRates,client);
+    if(client)finalizePPHourly(cgRateMap,clientAuthDays,client);
 
     // Overlap detection for ALL clients
     if(client){
@@ -741,14 +843,24 @@ function parseBilling(text){
 function parsePayroll(text,billingMap,zeroNoteKeys){
   const flags=[],payrollMap={};
 
+  // Payroll side of short PP hourly shifts: same VERIFY as billing (dedups to B+P). The
+  // 2-hour minimum is a billing rule — CG is paid actual hours — so no ACTION here.
   function processPendingHourlyP(pending,authDaysMap){
-    for(const p of pending){
-      const ad=authDaysMap[p.client]||new Set();
-      if(ad.has(p.day))continue;
-      if(p.reg<=3.25) flags.push({report:'Payroll',entity:p.entity,counterpart:p.client,date:p.date,type:'hours',
-        detail:`Hourly shift is only ${p.reg} hrs (≤3.25) — should be visit rate`,severity:'action'});
-      else flags.push({report:'Payroll',entity:p.entity,counterpart:p.client,date:p.date,type:'hours',
-        detail:`Hourly shift is ${p.reg} hrs (>3.25 but <4) — should be rounded to 4 hrs hourly`,severity:'action'});
+    // Short-shift tier is checked on the billing side only (pay side has no defined short tier).
+  }
+
+  // PP hourly pay-rate consistency per tier (short <4 vs long 4+), per CG → client
+  function finalizePPHourlyP(clientRateMap,authDaysMap,cgName){
+    for(const[clientName,cm] of Object.entries(clientRateMap)){
+      if(!cm.pvHr||!cm.pvHr.length)continue;
+      const ad=authDaysMap[clientName]||new Set();
+      const short=new Set(),long=new Set();
+      for(const e of cm.pvHr){(e.reg<4&&!ad.has(e.day)?short:long).add(e.amt);}
+      const lastDate=cm.pvHr[cm.pvHr.length-1].date;
+      if(short.size>1)flags.push({report:'Payroll',entity:cgName,counterpart:clientName,date:lastDate,type:'rate',
+        detail:`Private hourly (<4 hr) pay rate inconsistency for same client: ${[...short].map(x=>'$'+x).join(' vs ')}`,severity:'action'});
+      if(long.size>1)flags.push({report:'Payroll',entity:cgName,counterpart:clientName,date:lastDate,type:'rate',
+        detail:`Private hourly (4+ hr) pay rate inconsistency for same client: ${[...long].map(x=>'$'+x).join(' vs ')}`,severity:'action'});
     }
   }
 
@@ -762,9 +874,9 @@ function parsePayroll(text,billingMap,zeroNoteKeys){
     for(const line of lines){
       if(SKIP.test(line))continue;
       const cgH=line.match(/Payroll Report for (.+?)\s+-\s+\d{2}\/\d{2}\/\d{4}/);
-      if(cgH){processPendingHourlyP(pendingHourlyP,clientAuthDaysP);cg=cgH[1].trim();if(isRAH(cg)){cg=null;continue;}clientRateMap={};clientIsLI={};clientAuthDaysP={};pendingHourlyP=[];payDontBillKeys=new Set();continue;}
+      if(cgH){processPendingHourlyP(pendingHourlyP,clientAuthDaysP);if(cg)finalizePPHourlyP(clientRateMap,clientAuthDaysP,cg);cg=cgH[1].trim();if(isRAH(cg)){cg=null;continue;}clientRateMap={};clientIsLI={};clientAuthDaysP={};pendingHourlyP=[];payDontBillKeys=new Set();continue;}
       if(/^[A-Z][a-zA-Z"'-]+,\s+[A-Z]/.test(line)&&/Date/.test(line)&&/Reg/.test(line)){
-        processPendingHourlyP(pendingHourlyP,clientAuthDaysP);cg=F(line)[0];if(isRAH(cg)){cg=null;continue;}clientRateMap={};clientIsLI={};clientAuthDaysP={};pendingHourlyP=[];payDontBillKeys=new Set();continue;
+        processPendingHourlyP(pendingHourlyP,clientAuthDaysP);if(cg)finalizePPHourlyP(clientRateMap,clientAuthDaysP,cg);cg=F(line)[0];if(isRAH(cg)){cg=null;continue;}clientRateMap={};clientIsLI={};clientAuthDaysP={};pendingHourlyP=[];payDontBillKeys=new Set();continue;
       }
       if(!cg||!/\d{1,2}\/\d{1,2}/.test(line)||/^Travel Time:/i.test(line))continue;
       const f=F(line);if(!f.length)continue;
@@ -796,23 +908,26 @@ function parsePayroll(text,billingMap,zeroNoteKeys){
         clientAuthDaysP[client].add(shiftDay);
       }
 
+      const isCancelPay=rt==='visit'&&Math.abs(amt-25)<0.01&&reg>0.017;  // $25/visit CG cancellation pay (food stipend is ≤1 min)
+
       // Index for cross-check
       const[start]=shiftTimes(date);
       if(start!==null&&!isZero&&!isLIRate){
         const key=normName(cg)+'|'+normName(client)+'|'+shiftDay+'|'+start;
-        payrollMap[key]={rt,rate,cg,client,date};
+        payrollMap[key]={rt,rate,cg,client,date,isCancel:isCancelPay};
       }
 
-      // Pay but Don't Bill detection
+      // Pay but Don't Bill detection — now requires Kate's prior approval (Sept 2026)
       if(start!==null&&!isZero&&amt>0){
         const zKey=normName(cg)+'|'+normName(client)+'|'+shiftDay+'|'+start;
         const billingZero=zeroNoteKeys.get(zKey);
         if(billingZero){
           const noteStatus=hasNote
-            ?'documented in billing and payroll — verify'
+            ?'documented in billing and payroll'
             :'note missing in payroll — add documentation';
-          billingZero.detail=`Pay but Don't Bill: CG paid ${rate} (${reg} hrs), client not billed — ${noteStatus}`;
+          billingZero.detail=`Pay but Don't Bill: CG paid ${rate} (${reg} hrs), client not billed — ${noteStatus}; confirm Kate approved this non-billable`;
           billingZero.type='paydontbill';
+          billingZero.severity='action';
           payDontBillKeys.add(zKey);
         }
       }
@@ -841,8 +956,8 @@ function parsePayroll(text,billingMap,zeroNoteKeys){
       if(clientIsLI[client]&&rt==='visit')flags.push({report:'Payroll',entity:cg,counterpart:client,date,type:'livein',
         detail:`Live-in client paid at /visit — should be hourly or live-in`,severity:'action'});
 
-      // Visit rules
-      if(rt==='visit'&&!isZero&&reg%1!==0){
+      // Visit rules (cancellation pay line excluded)
+      if(rt==='visit'&&!isZero&&!isCancelPay&&reg%1!==0){
         if(reg>3.25)flags.push({report:'Payroll',entity:cg,counterpart:client,date,type:'hours',
           detail:`Visit shift is ${reg} hrs — exceeds 3-hour visit limit, must change to hourly`,severity:'action'});
         else if(reg===3.25)flags.push({report:'Payroll',entity:cg,counterpart:client,date,type:'hours',
@@ -855,7 +970,7 @@ function parsePayroll(text,billingMap,zeroNoteKeys){
       if(rt==='hourly'&&!isZero&&!isAuthOrGuide&&!isLIRate&&reg>0&&reg<4&&!/\([AB]\)/.test(line)){
         const hKey=normName(cg)+'|'+normName(client)+'|'+shiftDay+'|'+(start||0);
         if(!payDontBillKeys.has(hKey)){
-          pendingHourlyP.push({entity:cg,client,date,day:shiftDay,reg});
+          pendingHourlyP.push({entity:cg,client,date,day:shiftDay,reg,amt});
         }
       }
 
@@ -866,20 +981,20 @@ function parsePayroll(text,billingMap,zeroNoteKeys){
         const bt=non15Time(line);
         if(bt)flags.push({report:'Payroll',entity:cg,counterpart:client,date,type:'15min',
           detail:`Non-15-min clock time: ${bt} — ${aLabel} shifts must be :00, :15, :30, or :45`,severity:'action'});
-        if(isGuide(client)&&reg>0&&reg<4)flags.push({report:'Payroll',entity:cg,counterpart:client,date,type:'hours',
-          detail:`GUIDE shift is ${reg} hrs — minimum is 4 hours`,severity:'action'});
+        if(isGuide(client)&&reg>0&&Math.abs(reg/4-Math.round(reg/4))>0.001)flags.push({report:'Payroll',entity:cg,counterpart:client,date,type:'hours',
+          detail:`GUIDE shift is ${reg} hrs — GUIDE shifts must be in 4-hour increments (4, 8, 12…)`,severity:'action'});
       }
 
-      // Rate inconsistency (same type only, visit by duration)
-      if(!isZero&&rate&&!isLIRate){
-        if(!clientRateMap[client])clientRateMap[client]={va:new Set(),aaa:new Set(),guide:new Set(),pvVisit:{},pvHr:new Set()};
+      // Rate inconsistency (same type only, visit by duration; PP hourly deferred to finalize per tier)
+      if(!isZero&&rate&&!isLIRate&&!isCancelPay){
+        if(!clientRateMap[client])clientRateMap[client]={va:new Set(),aaa:new Set(),guide:new Set(),pvVisit:{},pvHr:[]};
         const cm=clientRateMap[client];
         const aType=authType(f);
         if(isGuide(client))cm.guide.add(amt);
         else if(aType==='va')cm.va.add(amt);
         else if(aType==='aaa')cm.aaa.add(amt);
         else if(rt==='visit'){const dur=Math.floor(reg);if(!cm.pvVisit[dur])cm.pvVisit[dur]=new Set();cm.pvVisit[dur].add(amt);}
-        else cm.pvHr.add(amt);
+        else if(!/\([AB]\)/.test(line))cm.pvHr.push({amt,reg,day:shiftDay,date});
         const check=(set,label)=>{
           if(set.size>1){
             flags.push({report:'Payroll',entity:cg,counterpart:client,date,type:'rate',
@@ -887,40 +1002,59 @@ function parsePayroll(text,billingMap,zeroNoteKeys){
             set.clear();set.add(amt);
           }
         };
-        check(cm.va,'VA');check(cm.aaa,'AAA');check(cm.guide,'GUIDE');check(cm.pvHr,'Private hourly');
+        check(cm.va,'VA');check(cm.aaa,'AAA'); // GUIDE rate varies by area — not checked
         Object.entries(cm.pvVisit).forEach(([dur,set])=>check(set,`Private visit (${dur}hr)`));
       }
     }
     processPendingHourlyP(pendingHourlyP,clientAuthDaysP);
+    if(cg)finalizePPHourlyP(clientRateMap,clientAuthDaysP,cg);
   }
   return{flags,payrollMap};
 }
 
 // ── CROSS-CHECK BILLING vs PAYROLL ────────────────────────────────────────────
 function crossCheck(billingMap,payrollMap){
-  const flags=[];
+  const flags=[],guide=[];const seenPair={};
   for(const[key,b] of Object.entries(billingMap)){
     if(!(key in payrollMap))continue;
     const p=payrollMap[key];
-    // Rate type mismatch
+    const bAmt=rateAmt(b.rate),pAmt=rateAmt(p.rate);
+
+    // 1. Bill method / pay method must match (image: "that's a flag, not something to leave as-is")
     if(b.rt!==p.rt&&b.rt!=='livein'&&p.rt!=='livein'){
       flags.push({report:'Billing+Payroll',entity:b.client,counterpart:b.cg,date:b.date,type:'cross',
-        detail:`Billing is ${b.rt} (${b.rate}) but payroll is ${p.rt} (${p.rate}) — must match`,severity:'action'});
+        detail:`Bill method is ${b.rt} (${b.rate}) but pay method is ${p.rt} (${p.rate}) — both must match`,severity:'action'});
+      continue;
     }
-    // Pay = billing / 2 check (private pay only, same rate type)
-    if(!b.auth&&b.rt===p.rt&&b.rt!=='livein'){
-      const bAmt=rateAmt(b.rate);
-      const pAmt=rateAmt(p.rate);
-      if(bAmt>0&&pAmt>0){
-        const expected=bAmt/2;
-        if(Math.abs(pAmt-expected)>0.51){
-          flags.push({report:'Billing+Payroll',entity:b.client,counterpart:b.cg,date:b.date,type:'cross',
-            detail:`Pay rate $${pAmt} is not half of bill rate $${bAmt} (expected ~$${expected.toFixed(2)})`,severity:'verify'});
-        }
+    if(b.rt==='livein'||p.rt==='livein'||bAmt<=0||pAmt<=0)continue;
+
+    // 2. Cancellation: $50 bill → $25 CG pay
+    if(b.isCancel){
+      if(Math.abs(pAmt-25)>0.01)flags.push({report:'Billing+Payroll',entity:b.client,counterpart:b.cg,date:b.date,type:'cancel',
+        detail:`Cancellation fee billed $50 but CG paid ${p.rate} — CG cancellation pay is $25`,severity:'verify'});
+      continue;
+    }
+
+    // 3. CG pay vs Kate's guideline table (hourly). Informational — goes to the Pay Guideline tab,
+    //    not to the flag list. One row per CG/client/rate combination; above and below guideline.
+    if(b.rt==='hourly'){
+      let expected=null,label='';
+      if(b.aKind==='guide')continue;   // GUIDE rate varies by area — no guideline check
+      if(b.aKind&&PAY_GUIDE_AUTH[b.aKind]!=null){expected=PAY_GUIDE_AUTH[b.aKind];label=b.aKind.toUpperCase();}
+      else if(!b.auth&&PAY_GUIDE_PP[bAmt]!=null){expected=PAY_GUIDE_PP[bAmt];label=`PP $${bAmt}`;}
+      if(expected!==null&&Math.abs(pAmt-expected)>0.01){
+        const pk=`${normName(b.cg)}|${normName(b.client)}|${pAmt}|${bAmt}`;
+        if(!seenPair[pk]){seenPair[pk]=true;
+          guide.push({client:b.client,cg:b.cg,kind:label,bill:bAmt,pay:pAmt,expected,diff:+(pAmt-expected).toFixed(2),shifts:1,firstDate:b.date});
+        }else{const g=guide.find(g=>normName(g.cg)===normName(b.cg)&&normName(g.client)===normName(b.client)&&g.pay===pAmt&&g.bill===bAmt);if(g)g.shifts++;}
       }
+      continue;
     }
+
+    // 4. Visit lines: all clients are hourly now — any /visit line is flagged in billing ('Still on Visit Rate').
   }
-  return flags;
+  guide.sort((a,b)=>b.diff-a.diff||a.client.localeCompare(b.client));
+  return{flags,guide};
 }
 </script>
 </body>
