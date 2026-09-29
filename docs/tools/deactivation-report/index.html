@@ -1,0 +1,499 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Client Deactivation Report</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--ink:#1c2430;--mute:#5d6b7c;--line:#dde2e9;--brand:#0f5c8c;--brand2:#e8f1f7;--warn:#a15c00;--warnbg:#fff4e0;--bad:#b3261e;--badbg:#fdecea;--ok:#1b6e3c;--okbg:#e6f4ea}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+header{background:var(--brand);color:#fff;padding:18px 24px}
+header h1{margin:0;font-size:20px}
+header p{margin:4px 0 0;opacity:.85;font-size:13px}
+main{max-width:1180px;margin:0 auto;padding:20px 16px 60px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:16px 18px;margin-bottom:16px}
+.card h2{margin:0 0 10px;font-size:16px}
+.card h3{margin:16px 0 6px;font-size:14px}
+.grid{display:grid;gap:12px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(260px,1fr))}
+.g4{grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+.gw{grid-template-columns:repeat(auto-fit,minmax(400px,1fr))}
+label{display:block;font-weight:600;margin-bottom:4px}
+.hint{color:var(--mute);font-size:12px;font-weight:400}
+input[type=file],input[type=number],input[type=month]{width:100%;padding:7px;border:1px solid var(--line);border-radius:6px;background:#fff;font:inherit}
+button{font:inherit;padding:9px 16px;border-radius:7px;border:1px solid var(--brand);background:var(--brand);color:#fff;cursor:pointer;font-weight:600}
+button.sec{background:#fff;color:var(--brand)}
+button:disabled{opacity:.45;cursor:not-allowed}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px}
+.kpi{background:var(--brand2);border-radius:8px;padding:10px 12px}
+.kpi b{display:block;font-size:22px;line-height:1.15}
+.kpi span{color:var(--mute);font-size:12px}
+.kpi.warn{background:var(--warnbg)}
+table{border-collapse:collapse;width:100%;font-size:13px}
+th,td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{background:#f0f3f7;font-weight:600;white-space:nowrap}
+td.n,th.n{text-align:right;font-variant-numeric:tabular-nums}
+tr.hl td{background:var(--warnbg)}
+.bar{height:8px;background:var(--brand);border-radius:4px;min-width:1px}
+.msg{padding:9px 12px;border-radius:7px;margin:8px 0;font-size:13px}
+.msg.warn{background:var(--warnbg);color:var(--warn)}
+.msg.bad{background:var(--badbg);color:var(--bad)}
+.msg.ok{background:var(--okbg);color:var(--ok)}
+.tag{display:inline-block;padding:1px 7px;border-radius:10px;font-size:11px;background:var(--brand2);color:var(--brand);margin:1px 2px 1px 0}
+.tag.r{background:var(--badbg);color:var(--bad)}
+.scroll{overflow-x:auto}
+details summary{cursor:pointer;font-weight:600;margin:6px 0}
+.note{color:var(--mute);font-size:12px;margin:6px 0 0}
+#results{display:none}
+@media print{header,#inputs,.noprint{display:none!important}body{background:#fff}.card{break-inside:avoid;border:1px solid #ccc}}
+</style>
+</head>
+<body>
+<header>
+  <h1>Client Deactivation Report</h1>
+  <p>Weekly hours lost from client deactivations, by month &mdash; Right at Home Central Texas. Files are processed only in your browser; nothing is uploaded.</p>
+</header>
+<main>
+
+<section class="card" id="inputs">
+  <h2>1. Load the WellSky exports</h2>
+  <div class="grid g2">
+    <div>
+      <label for="fClients">Clients report (.xls) <span class="hint">all clients, as exported from WellSky</span></label>
+      <input type="file" id="fClients" accept=".xls,.xlsx,.csv">
+    </div>
+    <div>
+      <label for="fLogs">Care logs by client (.xls) <span class="hint">the 2 months up to the end of the month analyzed; several files allowed</span></label>
+      <input type="file" id="fLogs" accept=".xls,.xlsx,.csv" multiple>
+    </div>
+  </div>
+  <h2 style="margin-top:18px">2. Parameters</h2>
+  <div class="grid g4">
+    <div><label for="month">Month to analyze</label><input type="month" id="month"></div>
+    <div><label for="lookback">Look-back window (weeks) <span class="hint">before last completed visit</span></label><input type="number" id="lookback" value="4" min="1" max="12"></div>
+    <div><label for="thr24">24-hour care threshold (hrs/week) <span class="hint">at or above = separate category</span></label><input type="number" id="thr24" value="100" min="40" max="168"></div>
+    <div><label for="thrCancel">Cancellation alert (%) <span class="hint">client or caregiver, last 4 wks</span></label><input type="number" id="thrCancel" value="25" min="5" max="100"></div>
+    <div><label for="thrDrop">Hours-drop alert (%) <span class="hint">last 2 wks vs previous 2 wks</span></label><input type="number" id="thrDrop" value="30" min="5" max="100"></div>
+  </div>
+  <div class="row">
+    <button id="run" disabled>Run report</button>
+    <span id="status" class="hint"></span>
+  </div>
+  <div id="loadMsgs"></div>
+</section>
+
+<div id="results">
+  <div class="row noprint" style="margin:0 0 12px">
+    <button id="dlx" class="sec">Download Excel</button>
+    <button id="prt" class="sec">Print / Save PDF</button>
+  </div>
+  <div id="warnings"></div>
+
+  <section class="card">
+    <h2 id="title">Summary</h2>
+    <div class="grid g4" id="kpis"></div>
+    <p class="note" id="method"></p>
+  </section>
+
+  <section class="card">
+    <h2>Weekly hours lost by deactivation reason <span class="hint">(regular clients)</span></h2>
+    <div class="scroll" id="tReason"></div>
+    <p class="note">&ldquo;On Hold&rdquo; is shown as its own row and counts as lost hours.</p>
+  </section>
+
+  <section class="card">
+    <h2>24-hour care clients <span class="hint">(separate category)</span></h2>
+    <div class="scroll" id="t24"></div>
+  </section>
+
+  <section class="card">
+    <h2>Where the loss is concentrated <span class="hint">(regular clients)</span></h2>
+    <div class="grid gw">
+      <div><h3>By office</h3><div class="scroll" id="tOffice"></div></div>
+      <div><h3>By payer</h3><div class="scroll" id="tPayer"></div></div>
+      <div><h3>By tenure (start of care to last visit)</h3><div class="scroll" id="tTenure"></div></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h2>Behavior before deactivation</h2>
+    <p class="note" style="margin-top:0">Last 4 weeks before deactivation vs. active clients in the same period. Clients with fewer than 3 scheduled visits in the window are excluded. This shows association, not cause.</p>
+    <div class="scroll" id="tBehavior"></div>
+    <h3>Active clients showing warning signs</h3>
+    <p class="note" style="margin-top:0">Flags: client cancellations, caregiver cancellations or a drop in hours, using the thresholds above.</p>
+    <div class="scroll" id="tRisk"></div>
+  </section>
+
+  <section class="card">
+    <h2>Deactivated clients &mdash; detail</h2>
+    <div class="scroll" id="tDetail"></div>
+    <details><summary id="noVisTitle">Deactivated with no completed visits in the care logs</summary>
+      <div class="scroll" id="tNoVis"></div>
+      <p class="note">Not included in averages or totals: no hours could be measured. Typical for clients On Hold for a long time, or for care logs that do not cover their last weeks.</p>
+    </details>
+  </section>
+</div>
+</main>
+
+<script>
+"use strict";
+const $ = id => document.getElementById(id);
+const EPOCH = Date.UTC(1899, 11, 30);
+const DAY = 864e5;
+const UNAVOIDABLE = /deceased|hospital|moved to care facility|moved out of area/i;
+const state = { clientsRows: null, logRows: [], result: null };
+
+/* ---------- helpers ---------- */
+function toDay(v) {
+  if (v == null || v === "") return null;
+  if (v instanceof Date) return Math.floor((Date.UTC(v.getFullYear(), v.getMonth(), v.getDate()) - EPOCH) / DAY);
+  if (typeof v === "number") return Math.floor(v);
+  const s = String(v).trim();
+  let m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (m) return Math.floor((Date.UTC(+m[1], m[2] - 1, +m[3]) - EPOCH) / DAY);
+  m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (m) return Math.floor((Date.UTC(+m[3], m[1] - 1, +m[2]) - EPOCH) / DAY);
+  return null;
+}
+const dayISO = d => d == null ? "" : new Date(EPOCH + d * DAY).toISOString().slice(0, 10);
+const monthBounds = ym => {
+  const [y, m] = ym.split("-").map(Number);
+  return [Math.floor((Date.UTC(y, m - 1, 1) - EPOCH) / DAY), Math.floor((Date.UTC(y, m, 0) - EPOCH) / DAY)];
+};
+const norm = s => String(s == null ? "" : s).toLowerCase().replace(/\s+/g, " ").trim();
+const isTrue = v => v === true || String(v).trim().toLowerCase() === "true";
+const esc = s => String(s == null ? "" : s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const sum = a => a.reduce((x, y) => x + y, 0);
+const mean = a => a.length ? sum(a) / a.length : 0;
+const median = a => { if (!a.length) return 0; const s = [...a].sort((x, y) => x - y), m = s.length >> 1; return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2; };
+const f1 = n => (Math.round(n * 10) / 10).toLocaleString("en-US", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+const f0 = n => Math.round(n).toLocaleString("en-US");
+const pct = n => (n * 100).toFixed(0) + "%";
+
+async function readSheet(file, required) {
+  const buf = await file.arrayBuffer();
+  const wb = XLSX.read(new Uint8Array(buf), { type: "array" });
+  const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, raw: true, defval: null });
+  let h = rows.findIndex((r, i) => i < 15 && r.some(c => String(c || "").trim() === required[0]));
+  if (h < 0) throw new Error(`"${file.name}": column "${required[0]}" not found. Is this the right report?`);
+  const hdr = rows[h].map(c => String(c == null ? "" : c).trim());
+  const missing = required.filter(c => !hdr.includes(c));
+  if (missing.length) throw new Error(`"${file.name}" is missing column(s): ${missing.join(", ")}`);
+  return rows.slice(h + 1).filter(r => r.some(v => v != null && v !== "")).map(r => {
+    const o = {}; hdr.forEach((k, i) => { if (k) o[k] = r[i]; }); return o;
+  });
+}
+
+/* ---------- file loading ---------- */
+const CLIENT_COLS = ["First Name", "Last Name", "Deactivated", "Date deactivated", "Deactivation Reason"];
+const LOG_COLS = ["Client Name", "Status", "Scheduled Clock In", "Bill Total Hours", "Caregiver Name"];
+
+function msg(kind, text) { return `<div class="msg ${kind}">${text}</div>`; }
+function refreshRun() { $("run").disabled = !(state.clientsRows && state.logRows.length && $("month").value); }
+
+$("fClients").addEventListener("change", async e => {
+  state.clientsRows = null;
+  const f = e.target.files[0]; if (!f) return refreshRun();
+  try {
+    state.clientsRows = await readSheet(f, CLIENT_COLS);
+    $("loadMsgs").insertAdjacentHTML("beforeend", msg("ok", `Clients: ${f.name} &mdash; ${state.clientsRows.length.toLocaleString()} rows.`));
+    // default month = the latest month that has deactivations (previous month if today is early)
+    const days = state.clientsRows.filter(r => isTrue(r["Deactivated"])).map(r => toDay(r["Date deactivated"])).filter(d => d != null);
+    if (days.length && !$("month").value) {
+      const now = new Date(); const prev = new Date(Date.UTC(now.getFullYear(), now.getMonth() - 1, 1));
+      $("month").value = prev.toISOString().slice(0, 7);
+    }
+  } catch (err) { $("loadMsgs").insertAdjacentHTML("beforeend", msg("bad", esc(err.message))); }
+  refreshRun();
+});
+
+$("fLogs").addEventListener("change", async e => {
+  state.logRows = [];
+  const files = [...e.target.files]; if (!files.length) return refreshRun();
+  const map = new Map();
+  try {
+    for (const f of files) {
+      const rows = await readSheet(f, LOG_COLS);
+      for (const r of rows) {
+        const key = [norm(r["Client Name"]), r["Scheduled Clock In"], r["Scheduled Clock Out"], norm(r["Caregiver Name"])].join("|");
+        map.set(key, r); // later files override earlier ones (overlapping exports)
+      }
+      $("loadMsgs").insertAdjacentHTML("beforeend", msg("ok", `Care logs: ${f.name} &mdash; ${rows.length.toLocaleString()} rows.`));
+    }
+    state.logRows = [...map.values()];
+  } catch (err) { $("loadMsgs").insertAdjacentHTML("beforeend", msg("bad", esc(err.message))); }
+  refreshRun();
+});
+$("month").addEventListener("input", refreshRun);
+
+/* ---------- analysis ---------- */
+function payerOf(tags) {
+  const m = [...String(tags || "").matchAll(/Pay:\s*([A-Za-z0-9]+)/g)].map(x => x[1]);
+  return m.length ? [...new Set(m)].sort().join(" + ") : "Not tagged";
+}
+function tenureBucket(startDay, lastDay) {
+  if (startDay == null || lastDay == null) return "Unknown";
+  const mo = (lastDay - startDay) / 30.44;
+  if (mo < 3) return "Under 3 months";
+  if (mo < 6) return "3 to 6 months";
+  if (mo < 12) return "6 to 12 months";
+  if (mo < 24) return "1 to 2 years";
+  return "2+ years";
+}
+const TENURE_ORDER = ["Under 3 months", "3 to 6 months", "6 to 12 months", "1 to 2 years", "2+ years", "Unknown"];
+
+function behavior(rows, endDay, days) {
+  const win = rows.filter(r => r.day > endDay - days && r.day <= endDay);
+  if (win.length < 3) return null;
+  const cnt = s => win.filter(r => r.status.startsWith(s)).length;
+  const comp = win.filter(r => r.status === "complete");
+  const half = days / 2;
+  const recent = sum(comp.filter(r => r.day > endDay - half).map(r => r.hrs));
+  const prior = sum(comp.filter(r => r.day <= endDay - half).map(r => r.hrs));
+  return {
+    visits: win.length,
+    cancelClient: cnt("cancelled by client") / win.length,
+    cancelCG: cnt("cancelled by caregiver") / win.length,
+    cancelOther: (cnt("cancelled by office") + cnt("caregiver no show")) / win.length,
+    caregivers: new Set(comp.map(r => r.cg)).size,
+    drop: prior >= 8 ? (prior - recent) / prior : null,
+    hrsWk: sum(comp.map(r => r.hrs)) / (days / 7),
+  };
+}
+
+function analyze() {
+  const P = {
+    ym: $("month").value,
+    days: Math.max(1, +$("lookback").value || 4) * 7,
+    thr24: +$("thr24").value || 100,
+    thrCancel: (+$("thrCancel").value || 25) / 100,
+    thrDrop: (+$("thrDrop").value || 30) / 100,
+  };
+  const [mStart, mEnd] = monthBounds(P.ym);
+
+  // care logs -> objects grouped by client name
+  const logs = state.logRows.map(r => ({
+    n: norm(r["Client Name"]), dob: toDay(r["Client DOB"]), day: toDay(r["Scheduled Clock In"]),
+    status: norm(r["Status"]), hrs: Number(r["Bill Total Hours"]) || 0, cg: norm(r["Caregiver Name"]),
+  })).filter(r => r.day != null);
+  const byName = new Map();
+  logs.forEach(r => { if (!byName.has(r.n)) byName.set(r.n, []); byName.get(r.n).push(r); });
+  const minDay = Math.min(...logs.map(r => r.day)), maxDay = Math.max(...logs.map(r => r.day));
+
+  // clients
+  const clients = state.clientsRows.map(r => ({
+    n: norm(`${r["First Name"] || ""} ${r["Last Name"] || ""}`),
+    name: `${r["First Name"] || ""} ${r["Last Name"] || ""}`.trim(),
+    dob: toDay(r["Date of Birth"]), deact: isTrue(r["Deactivated"]), dd: toDay(r["Date deactivated"]),
+    reason: r["Deactivation Reason"] ? String(r["Deactivation Reason"]).trim() : "(none)",
+    loc: r["Location"] ? String(r["Location"]).trim() : "Unknown",
+    payer: payerOf(r["Profile Tags"]), start: toDay(r["Start Date"]),
+  }));
+  const nameCount = new Map();
+  clients.forEach(c => nameCount.set(c.n, (nameCount.get(c.n) || 0) + 1));
+  const rowsOf = c => {
+    let rs = byName.get(c.n) || [];
+    if (c.dob != null) rs = rs.filter(r => r.dob == null || r.dob === c.dob);
+    return rs;
+  };
+
+  const warnings = [];
+  const needFrom = mStart - P.days;
+  if (minDay > needFrom) warnings.push(["warn", `Care logs start on ${dayISO(minDay)}, but ${dayISO(needFrom)} is needed to cover the ${P.days / 7}-week look-back for clients deactivated on ${dayISO(mStart)}. Early-month results may be understated.`]);
+  if (maxDay < mEnd) warnings.push(["warn", `Care logs end on ${dayISO(maxDay)}, before the end of the month (${dayISO(mEnd)}). Late-month deactivations and the weekly-volume percentage may be incomplete.`]);
+
+  // deactivated clients in the month
+  const inMonth = clients.filter(c => c.deact && c.dd != null && c.dd >= mStart && c.dd <= mEnd);
+  const measured = [], noVisits = [];
+  inMonth.forEach(c => {
+    const rs = rowsOf(c);
+    const comp = rs.filter(r => r.status === "complete" && r.day <= c.dd);
+    const base = { name: c.name, reason: c.reason, loc: c.loc, payer: c.payer, deactDay: c.dd, start: c.start };
+    const notes = [];
+    if (nameCount.get(c.n) > 1 && c.dob == null) notes.push("Duplicate name in clients list: verify match");
+    if (!comp.length) { noVisits.push({ ...base, notes }); return; }
+    const last = Math.max(...comp.map(r => r.day));
+    const win = comp.filter(r => r.day > last - P.days);
+    const hrs = sum(win.map(r => r.hrs));
+    if (c.start != null && c.start > last - P.days) notes.push(`New client (started ${dayISO(c.start)}): average may be understated`);
+    measured.push({
+      ...base, lastVisit: last, gapDays: c.dd - last, hrs, wk: hrs / (P.days / 7),
+      visitDays: new Set(win.map(r => r.day)).size, notes,
+      is24: hrs / (P.days / 7) >= P.thr24, tenure: tenureBucket(c.start, last),
+      beh: behavior(rs, c.dd, 28),
+    });
+  });
+  const regular = measured.filter(m => !m.is24), c24 = measured.filter(m => m.is24);
+
+  // weekly volume for the month
+  const covEnd = Math.min(maxDay, mEnd), covDays = Math.max(1, covEnd - mStart + 1);
+  const monthHrs = sum(logs.filter(r => r.status === "complete" && r.day >= mStart && r.day <= covEnd).map(r => r.hrs));
+  const weeklyVolume = monthHrs / (covDays / 7);
+
+  // active clients: behavior + risk
+  const endRef = Math.min(maxDay, mEnd);
+  const active = [];
+  clients.filter(c => !c.deact).forEach(c => {
+    const rs = rowsOf(c); if (!rs.length) return;
+    const b = behavior(rs, endRef, 28); if (!b) return;
+    const flags = [];
+    if (b.cancelClient >= P.thrCancel) flags.push(`Client cancellations ${pct(b.cancelClient)}`);
+    if (b.cancelCG >= P.thrCancel) flags.push(`Caregiver cancellations ${pct(b.cancelCG)}`);
+    if (b.drop != null && b.drop >= P.thrDrop) flags.push(`Hours down ${pct(b.drop)}`);
+    active.push({ name: c.name, loc: c.loc, payer: c.payer, beh: b, flags });
+  });
+
+  return { P, mStart, mEnd, inMonth, measured, regular, c24, noVisits, weeklyVolume, monthHrs, covDays, active, warnings, minDay, maxDay };
+}
+
+/* ---------- rendering ---------- */
+function table(cols, rows, opts = {}) {
+  if (!rows.length) return '<p class="note">None.</p>';
+  const head = cols.map(c => `<th class="${c.n ? "n" : ""}">${esc(c.h)}</th>`).join("");
+  const body = rows.map(r => `<tr class="${opts.hl && opts.hl(r) ? "hl" : ""}">` + cols.map(c => `<td class="${c.n ? "n" : ""}">${c.raw ? c.f(r) : esc(c.f(r))}</td>`).join("") + "</tr>").join("");
+  return `<table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
+}
+function groupTable(list, keyFn, order) {
+  const g = new Map();
+  list.forEach(m => { const k = keyFn(m); if (!g.has(k)) g.set(k, []); g.get(k).push(m); });
+  const total = sum(list.map(m => m.wk)) || 1;
+  let rows = [...g.entries()].map(([k, a]) => ({ k, n: a.length, tot: sum(a.map(m => m.wk)), avg: mean(a.map(m => m.wk)) }));
+  rows = order ? rows.sort((a, b) => order.indexOf(a.k) - order.indexOf(b.k)) : rows.sort((a, b) => b.tot - a.tot);
+  return { rows, total };
+}
+function renderGroup(el, list, keyFn, label, order) {
+  const { rows, total } = groupTable(list, keyFn, order);
+  const cols = [
+    { h: label, f: r => r.k },
+    { h: "Clients", n: 1, f: r => r.n },
+    { h: "Hrs/wk lost", n: 1, f: r => f1(r.tot) },
+    { h: "Avg per client", n: 1, f: r => f1(r.avg) },
+    { h: "Share", n: 1, raw: 1, f: r => `${pct(r.tot / total)} <div class="bar" style="width:${Math.round(r.tot / total * 100)}%"></div>` },
+  ];
+  $(el).innerHTML = table(cols, rows, { hl: r => /^on hold/i.test(r.k) });
+}
+
+function render(R) {
+  const { P, regular, c24, noVisits, measured } = R;
+  const monthName = new Date(Date.UTC(+P.ym.slice(0, 4), +P.ym.slice(5) - 1, 1)).toLocaleString("en-US", { month: "long", year: "numeric", timeZone: "UTC" });
+  $("title").textContent = `Summary - ${monthName}`;
+
+  $("warnings").innerHTML = R.warnings.map(w => msg(w[0], esc(w[1]))).join("");
+
+  const totReg = sum(regular.map(m => m.wk)), tot24 = sum(c24.map(m => m.wk));
+  const kp = [
+    ["Clients deactivated", R.inMonth.length, "", `${measured.length} with measurable hours`],
+    ["Weekly hours lost (all)", f0(totReg + tot24), "", "regular + 24-hour care"],
+    ["Weekly hours lost (regular)", f0(totReg), "", `${regular.length} clients`],
+    ["Average per client (regular)", f1(mean(regular.map(m => m.wk))), "", "hrs per week"],
+    ["Median per client (regular)", f1(median(regular.map(m => m.wk))), "", "hrs per week"],
+    ["24-hour care clients", `${c24.length} / ${f0(tot24)} h`, c24.length ? "warn" : "", "separate category, hrs/wk"],
+    ["% of weekly volume lost", R.weeklyVolume ? pct((totReg + tot24) / R.weeklyVolume) : "n/a", "", `volume ≈ ${f0(R.weeklyVolume)} h/wk this month`],
+    ["Regular only, % of volume", R.weeklyVolume ? pct(totReg / R.weeklyVolume) : "n/a", "", "without 24-hour care"],
+  ];
+  $("kpis").innerHTML = kp.map(k => `<div class="kpi ${k[2]}"><b>${esc(k[1])}</b>${esc(k[0])}<br><span>${esc(k[3])}</span></div>`).join("");
+  $("method").textContent = `Method: for each client deactivated in the month, completed billed hours in the ${P.days / 7} weeks ending on the last completed visit, divided by ${P.days / 7}. Cancelled visits are not counted as hours. 24-hour care = ${P.thr24}+ hrs/week. Clients with no completed visits (${noVisits.length}) are listed separately and excluded from averages.`;
+
+  renderGroup("tReason", regular, m => m.reason, "Reason");
+  $("t24").innerHTML = table([
+    { h: "Client", f: m => m.name }, { h: "Reason", f: m => m.reason }, { h: "Office", f: m => m.loc },
+    { h: "Deactivated", f: m => dayISO(m.deactDay) }, { h: "Hrs/wk", n: 1, f: m => f1(m.wk) },
+  ], c24.sort((a, b) => b.wk - a.wk));
+  renderGroup("tOffice", regular, m => m.loc, "Office");
+  renderGroup("tPayer", regular, m => m.payer, "Payer");
+  renderGroup("tTenure", regular, m => m.tenure, "Tenure", TENURE_ORDER);
+
+  // behavior comparison
+  const grp = (label, arr, key) => {
+    const b = arr.map(key).filter(Boolean);
+    if (!b.length) return { label, n: 0 };
+    const withDrop = b.filter(x => x.drop != null);
+    return {
+      label, n: b.length, visits: mean(b.map(x => x.visits)), cc: mean(b.map(x => x.cancelClient)),
+      cg: mean(b.map(x => x.cancelCG)), oth: mean(b.map(x => x.cancelOther)), cgs: mean(b.map(x => x.caregivers)),
+      drop: withDrop.length ? withDrop.filter(x => x.drop >= P.thrDrop).length / withDrop.length : null,
+    };
+  };
+  const dAll = measured, dAvoid = measured.filter(m => !UNAVOIDABLE.test(m.reason));
+  const gs = [
+    grp("Deactivated - all reasons", dAll, m => m.beh),
+    grp("Deactivated - avoidable reasons*", dAvoid, m => m.beh),
+    grp("Deactivated - 24-hour care", c24, m => m.beh),
+    grp("Active clients", R.active, m => m.beh),
+  ];
+  $("tBehavior").innerHTML = table([
+    { h: "Group", f: g => g.label }, { h: "Clients", n: 1, f: g => g.n },
+    { h: "Scheduled visits", n: 1, f: g => g.n ? f1(g.visits) : "-" },
+    { h: "Client cancels", n: 1, f: g => g.n ? pct(g.cc) : "-" },
+    { h: "Caregiver cancels", n: 1, f: g => g.n ? pct(g.cg) : "-" },
+    { h: "Office cancels / no-shows", n: 1, f: g => g.n ? pct(g.oth) : "-" },
+    { h: "Different caregivers", n: 1, f: g => g.n ? f1(g.cgs) : "-" },
+    { h: "With hours drop", n: 1, f: g => g.n && g.drop != null ? pct(g.drop) : "-" },
+  ], gs) + `<p class="note">*Avoidable = excludes Deceased, Hospitalization, Moved To Care Facility and Moved Out Of Area. Averages are per client.</p>`;
+
+  const risk = R.active.filter(a => a.flags.length).sort((a, b) => b.flags.length - a.flags.length || b.beh.hrsWk - a.beh.hrsWk);
+  $("tRisk").innerHTML = table([
+    { h: "Client", f: a => a.name }, { h: "Office", f: a => a.loc }, { h: "Payer", f: a => a.payer },
+    { h: "Hrs/wk", n: 1, f: a => f1(a.beh.hrsWk) }, { h: "Visits", n: 1, f: a => a.beh.visits },
+    { h: "Flags", raw: 1, f: a => a.flags.map(x => `<span class="tag r">${esc(x)}</span>`).join("") },
+  ], risk.slice(0, 30)) + `<p class="note">${risk.length} of ${R.active.length} active clients with enough visits show at least one flag${risk.length > 30 ? " (top 30 shown; the Excel download has all)" : ""}.</p>`;
+
+  $("tDetail").innerHTML = table([
+    { h: "Client", f: m => m.name }, { h: "Deactivated", f: m => dayISO(m.deactDay) }, { h: "Last visit", f: m => dayISO(m.lastVisit) },
+    { h: "Reason", f: m => m.reason }, { h: "Office", f: m => m.loc }, { h: "Payer", f: m => m.payer },
+    { h: "Hrs/wk", n: 1, f: m => f1(m.wk) }, { h: "Category", f: m => m.is24 ? "24-hour care" : (/^on hold/i.test(m.reason) ? "On Hold" : "Regular") },
+    { h: "Notes", f: m => m.notes.join("; ") },
+  ], [...measured].sort((a, b) => b.wk - a.wk));
+  $("noVisTitle").textContent = `Deactivated with no completed visits in the care logs (${noVisits.length})`;
+  $("tNoVis").innerHTML = table([
+    { h: "Client", f: m => m.name }, { h: "Deactivated", f: m => dayISO(m.deactDay) }, { h: "Reason", f: m => m.reason },
+    { h: "Office", f: m => m.loc }, { h: "Notes", f: m => m.notes.join("; ") },
+  ], noVisits);
+
+  $("results").style.display = "block";
+  $("results").scrollIntoView({ behavior: "smooth" });
+}
+
+/* ---------- export ---------- */
+function download(R) {
+  const { P, regular, c24, noVisits, measured } = R;
+  const wb = XLSX.utils.book_new();
+  const totReg = sum(regular.map(m => m.wk)), tot24 = sum(c24.map(m => m.wk));
+  const summary = [
+    ["Client Deactivation Report", P.ym], [],
+    ["Clients deactivated", R.inMonth.length], ["With measurable hours", measured.length], ["No completed visits", noVisits.length],
+    ["Weekly hours lost (all)", +(totReg + tot24).toFixed(1)], ["Weekly hours lost (regular)", +totReg.toFixed(1)], ["Weekly hours lost (24-hour care)", +tot24.toFixed(1)],
+    ["Average per client (regular)", +mean(regular.map(m => m.wk)).toFixed(1)], ["Median per client (regular)", +median(regular.map(m => m.wk)).toFixed(1)],
+    ["Approx. weekly volume (hrs)", +R.weeklyVolume.toFixed(1)], [],
+    ["Look-back weeks", P.days / 7], ["24-hour care threshold (hrs/wk)", P.thr24], [], ["Reason (regular)", "Clients", "Hrs/wk lost", "Avg per client"],
+    ...groupTable(regular, m => m.reason).rows.map(r => [r.k, r.n, +r.tot.toFixed(1), +r.avg.toFixed(1)]),
+  ];
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(summary), "Summary");
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(measured.map(m => ({
+    Client: m.name, Deactivated: dayISO(m.deactDay), "Last completed visit": dayISO(m.lastVisit), Reason: m.reason, Office: m.loc, Payer: m.payer,
+    "Hrs per week": +m.wk.toFixed(2), Category: m.is24 ? "24-hour care" : (/^on hold/i.test(m.reason) ? "On Hold" : "Regular"), Notes: m.notes.join("; "),
+  }))), "Detail");
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(noVisits.map(m => ({
+    Client: m.name, Deactivated: dayISO(m.deactDay), Reason: m.reason, Office: m.loc, Notes: m.notes.join("; "),
+  }))), "No completed visits");
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(R.active.filter(a => a.flags.length).map(a => ({
+    Client: a.name, Office: a.loc, Payer: a.payer, "Hrs per week": +a.beh.hrsWk.toFixed(1), Visits: a.beh.visits,
+    "Client cancel %": Math.round(a.beh.cancelClient * 100), "Caregiver cancel %": Math.round(a.beh.cancelCG * 100), Flags: a.flags.join("; "),
+  }))), "Active at risk");
+  XLSX.writeFile(wb, `deactivation-report-${P.ym}.xlsx`);
+}
+
+$("run").addEventListener("click", () => {
+  $("status").textContent = "Working...";
+  setTimeout(() => {
+    try { state.result = analyze(); render(state.result); $("status").textContent = "Done."; }
+    catch (err) { console.error(err); $("status").textContent = ""; $("loadMsgs").insertAdjacentHTML("beforeend", msg("bad", "Error: " + esc(err.message))); }
+  }, 30);
+});
+$("dlx").addEventListener("click", () => state.result && download(state.result));
+$("prt").addEventListener("click", () => window.print());
+</script>
+</body>
+</html>
