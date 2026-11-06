@@ -1,0 +1,365 @@
+{
+  "updated": "2026-11-06T18:54:14Z",
+  "people": [
+    {
+      "id": "edwin-young",
+      "name": "Edwin Young",
+      "title": "Owner",
+      "ext": "",
+      "email": "edwin@rahaustinwest.com",
+      "office": "Austin",
+      "start": "2009-02-18",
+      "trillian": ""
+    },
+    {
+      "id": "kate-gumbert",
+      "name": "Kate Gumbert",
+      "title": "Administrator",
+      "ext": "1017",
+      "email": "info@rahaustinwest.com",
+      "office": "Marble Falls",
+      "start": "2018-03-11",
+      "trillian": "kate.vanbenthuysen"
+    },
+    {
+      "id": "anna-rose",
+      "name": "Anna Rose",
+      "title": "Director of Partnership Development / Marketer",
+      "ext": "",
+      "email": "care@rahaustinwest.com",
+      "office": "Austin",
+      "start": "2020-05-03",
+      "trillian": "austinofficsgm"
+    },
+    {
+      "id": "dani-jimenez",
+      "name": "Dani Jimenez",
+      "title": "Administrative Assistant / Recruiting Manager",
+      "ext": "1022",
+      "email": "admin@rahaustinwest.com",
+      "office": "SOLVO",
+      "start": "2021-07-14",
+      "trillian": "rahadmin"
+    },
+    {
+      "id": "brandi-young",
+      "name": "Brandi Young",
+      "title": "Business Specialist",
+      "ext": "",
+      "email": "brandi@rahaustinwest.com",
+      "office": "Austin",
+      "start": "2022-05-29",
+      "trillian": ""
+    },
+    {
+      "id": "jessica-reyna",
+      "name": "Jessica Reyna",
+      "title": "Director of Client Success",
+      "ext": "1019",
+      "email": "staffing@rahbrenham.com",
+      "office": "Brenham",
+      "start": "2022-08-07",
+      "trillian": "brenhamassistant1"
+    },
+    {
+      "id": "elizabeth-lopez",
+      "name": "Elizabeth Lopez",
+      "title": "Intake/Inquiries Specialist / Inside Sales Director",
+      "ext": "1021",
+      "email": "staffing@rahmarblefalls.com",
+      "office": "Marble Falls",
+      "start": "2022-11-06",
+      "trillian": "marblefalls.ccm"
+    },
+    {
+      "id": "allison-vanegas",
+      "name": "Allison Vanegas",
+      "title": "Payroll/Billing Specialist",
+      "ext": "1014",
+      "email": "staffing2@rahaustinwest.com",
+      "office": "SOLVO",
+      "start": "2023-02-01",
+      "trillian": "allison_solvoccm"
+    },
+    {
+      "id": "bo-hodges",
+      "name": "Bo Hodges",
+      "title": "Director of Client Success / Live-ins",
+      "ext": "1011",
+      "email": "care2@rahmarblefalls.com",
+      "office": "Marble Falls",
+      "start": "2023-08-10",
+      "trillian": "rahcarespecialist"
+    },
+    {
+      "id": "aaliyah-houston",
+      "name": "Aaliyah Houston",
+      "title": "Director of Client Success / Intake Specialist",
+      "ext": "1027",
+      "email": "intake@rahbrenham.com",
+      "office": "Brenham / Bastrop",
+      "start": "2024-10-23",
+      "trillian": "intakespecialist_1410"
+    },
+    {
+      "id": "andrea-toro",
+      "name": "Andrea Toro",
+      "title": "Recruiter",
+      "ext": "1015",
+      "email": "recruiting@rahmarblefalls.com",
+      "office": "SOLVO",
+      "start": "2024-12-06",
+      "trillian": "rahrecruiter"
+    },
+    {
+      "id": "miguel-guzman",
+      "name": "Miguel Guzman",
+      "title": "Marketing Assistant",
+      "ext": "1025",
+      "email": "assistantmarketing@rahaustinwest.com",
+      "office": "SOLVO",
+      "start": "2025-06-09",
+      "trillian": "ma_solvo"
+    },
+    {
+      "id": "angel-pabuence",
+      "name": "Angel Pabuence",
+      "title": "Data Analyst",
+      "ext": "1028",
+      "email": "staffing3@rahmarblefalls.com",
+      "office": "SOLVO",
+      "start": "2025-06-27",
+      "trillian": "mf_ccm"
+    },
+    {
+      "id": "william-arrieta",
+      "name": "William Arrieta",
+      "title": "Care Coordinator",
+      "ext": "1029",
+      "email": "staffing3@rahbrenham.com",
+      "office": "SOLVO / San Marcos",
+      "start": "2025-07-17",
+      "trillian": "solvoccm_will"
+    },
+    {
+      "id": "natalia-ladino",
+      "name": "Natalia Ladino",
+      "title": "Care Coordinator",
+      "ext": "1026",
+      "email": "staffing3@rahaustinwest.com",
+      "office": "SOLVO / Brenham",
+      "start": "2026-01-14",
+      "trillian": "solvoccm_nat"
+    },
+    {
+      "id": "aspen-jeffrey",
+      "name": "Aspen Jeffrey",
+      "title": "Director of Client Success / HR Specialist",
+      "ext": "1024",
+      "email": "care2@rahsanmarcos.com",
+      "office": "San Marcos",
+      "start": "2026-01-20",
+      "trillian": "smccm_aspen"
+    },
+    {
+      "id": "juan-tobon",
+      "name": "Juan Tobon",
+      "title": "",
+      "ext": "1010",
+      "email": "juan@rahaustinwest.com",
+      "office": "SOLVO",
+      "start": "2026-02-16",
+      "trillian": "juan_gm"
+    },
+    {
+      "id": "ivy-mibei",
+      "name": "Ivy Mibei",
+      "title": "Care Coordinator",
+      "ext": "1033",
+      "email": "staffing6@rahaustinwest.com",
+      "office": "SOLVO / Marble Falls",
+      "start": "2026-04-08",
+      "trillian": "SolvoCCM_Ivy"
+    },
+    {
+      "id": "samuel-kimani",
+      "name": "Samuel Kimani",
+      "title": "Care Coordinator",
+      "ext": "1032",
+      "email": "staffing7@rahaustinwest.com",
+      "office": "SOLVO / Austin",
+      "start": "2026-04-08",
+      "trillian": "SolvoCCM_Sam"
+    },
+    {
+      "id": "krystel-gayle-vergara",
+      "name": "Krystel Gayle Vergara",
+      "title": "Care Coordinator",
+      "ext": "1034",
+      "email": "staffing8@rahaustinwest.com",
+      "office": "Philippines / Bastrop",
+      "start": "2026-04-20",
+      "trillian": "CCM_Krystel"
+    },
+    {
+      "id": "rafaela-alcantara",
+      "name": "Rafaela Alcantara",
+      "title": "Care Coordinator",
+      "ext": "1023",
+      "email": "staffing5@rahaustinwest.com",
+      "office": "Philippines / Austin",
+      "start": "2026-06-15",
+      "trillian": "CCM_Rafaela"
+    },
+    {
+      "id": "donna-king-hodges",
+      "name": "Donna King-Hodges",
+      "title": "Director of Client Success",
+      "ext": "1030",
+      "email": "infomf@rahmarblefalls.com",
+      "office": "Marble Falls",
+      "start": "2026-07-13",
+      "trillian": "DOCSMF_Donna"
+    },
+    {
+      "id": "apple-grace-gumafelix",
+      "name": "Apple Grace Gumafelix",
+      "title": "Care Coordinator",
+      "ext": "1037",
+      "email": "staffing11@rahbrenham.com",
+      "office": "Philippines / Brenham",
+      "start": "2026-07-27",
+      "trillian": "CCC_Apple"
+    },
+    {
+      "id": "katriona-reine-inting",
+      "name": "Katriona Reine Inting",
+      "title": "Care Coordinator",
+      "ext": "1036",
+      "email": "katriona@rahsanmarcos.com",
+      "office": "Philippines / San Marcos",
+      "start": "2026-07-27",
+      "trillian": "CCC_Kat"
+    },
+    {
+      "id": "sushi-gwen-varias",
+      "name": "Sushi Gwen Varias",
+      "title": "Recruiter",
+      "ext": "1038",
+      "email": "recruiting12@rahaustinwest.com",
+      "office": "Philippines / Austin",
+      "start": "2026-07-27",
+      "trillian": "Recruiter_Sushi"
+    },
+    {
+      "id": "christofer-rian-ondiano",
+      "name": "Christofer Rian Ondiano",
+      "title": "Care Coordinator",
+      "ext": "1039",
+      "email": "staffing12@rahaustinwest.com",
+      "office": "Philippines / Marble Falls",
+      "start": "2026-07-29",
+      "trillian": "CCC_Rian"
+    },
+    {
+      "id": "mitra-roshanfar",
+      "name": "Mitra Roshanfar",
+      "title": "Director of Partnership Development / Marketer",
+      "ext": "",
+      "email": "care2@rahaustinwest.com",
+      "office": "Austin",
+      "start": "2026-08-01",
+      "trillian": "Marketer_Mitra"
+    },
+    {
+      "id": "jestine-peralta",
+      "name": "Jestine Peralta",
+      "title": "Recruiter",
+      "ext": "1012",
+      "email": "recruiting@rahaustinwest.com",
+      "office": "Philippines / Austin",
+      "start": "2026-08-08",
+      "trillian": "rahrecruiter"
+    },
+    {
+      "id": "christine-alfanza",
+      "name": "Christine Alfanza",
+      "title": "Recruiter",
+      "ext": "1040",
+      "email": "recruiting1@rahaustinwest.com",
+      "office": "Philippines / Austin",
+      "start": "2026-08-08",
+      "trillian": "Recruiter_Christine"
+    },
+    {
+      "id": "grace-famisan",
+      "name": "Grace Famisan",
+      "title": "Care Coordinator",
+      "ext": "1041",
+      "email": "staffing05@rahbrenham.com",
+      "office": "Philippines / Brenham",
+      "start": "2026-10-21",
+      "trillian": "CCBrenham_Grace"
+    },
+    {
+      "id": "alexandra-chozas",
+      "name": "Alexandra Chozas",
+      "title": "Care Coordinator",
+      "ext": "1042",
+      "email": "staffingbastrop01@rahaustinwest.com",
+      "office": "Philippines / Bastrop",
+      "start": "2026-10-21",
+      "trillian": "CCBastrop_Alex"
+    },
+    {
+      "id": "joy-angely-castro",
+      "name": "Joy Angely Castro",
+      "title": "Care Coordinator",
+      "ext": "1043",
+      "email": "staffingaustin01@rahaustinwest.com",
+      "office": "Philippines / Weekends",
+      "start": "2026-10-21",
+      "trillian": "CCWeekend_Joy"
+    },
+    {
+      "id": "coretta-king-hoggard",
+      "name": "Coretta King-Hoggard",
+      "title": "Director of Client Success",
+      "ext": "1016",
+      "email": "austindocs1@rahaustinwest.com",
+      "office": "Austin",
+      "start": "2026-11-03",
+      "trillian": "DOCS_Coretta"
+    },
+    {
+      "id": "monica-white",
+      "name": "Monica White",
+      "title": "Director of Client Success",
+      "ext": "1044",
+      "email": "austindocs2@rahaustinwest.com",
+      "office": "Austin",
+      "start": "2026-10-28",
+      "trillian": "DOCSA_Monica"
+    },
+    {
+      "id": "jessa-mae-villavicencio",
+      "name": "Jessa Mae Villavicencio",
+      "title": "Inside Sales Representative",
+      "ext": "1035",
+      "email": "rahsales01@rahaustinwest.com",
+      "office": "Philippines / Austin",
+      "start": "2026-10-28",
+      "trillian": "IS_Jessa"
+    },
+    {
+      "id": "krystal-mae-borje",
+      "name": "Krystal Mae Borje",
+      "title": "Inside Sales Representative",
+      "ext": "1013",
+      "email": "sales02@rahaustinwest.com",
+      "office": "Philippines / Austin",
+      "start": "2026-10-28",
+      "trillian": "IS_Krystal"
+    }
+  ]
+}
