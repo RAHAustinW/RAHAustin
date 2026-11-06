@@ -80,7 +80,6 @@
   .ext{font-family:var(--mono);}
   .tri{font-family:var(--mono);font-size:12px;color:var(--ink-soft);}
   .dim{color:var(--ink-mute);}
-  .new{display:inline-block;margin-left:7px;font-family:var(--mono);font-size:10px;font-weight:700;background:var(--orange-tint);color:#B7501C;padding:2px 6px;border-radius:4px;vertical-align:1px;}
   .act-wrap{display:flex;gap:6px;}
   body:not(.edit) .col-act{display:none;}
   .empty{padding:40px 16px;text-align:center;color:var(--ink-soft);font-size:14px;}
@@ -170,7 +169,6 @@
 </main>
 
 <footer>
-  <div>Work contact details only — please don’t add personal phone numbers to this page.</div>
   <div class="mono" id="stamp"></div>
 </footer>
 
@@ -197,7 +195,7 @@
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
 <script id="fallback" type="application/json">{
-  "updated": "2026-11-06",
+  "updated": "2026-11-06T18:54:14Z",
   "people": [
     {
       "id": "edwin-young",
@@ -556,8 +554,8 @@
       "ext": "1013",
       "email": "sales02@rahaustinwest.com",
       "office": "Philippines / Austin",
-      "start": "",
-      "trillian": ""
+      "start": "2026-10-28",
+      "trillian": "IS_Krystal"
     }
   ]
 }</script>
@@ -583,7 +581,6 @@
   /* ---------- helpers ---------- */
   function tokens(office){ return (office || '').split('/').map(function(t){ return t.trim(); }).filter(Boolean); }
   function fmtDate(iso){ if(!iso) return ''; var p = iso.split('-'); return p[1] + '/' + p[2] + '/' + p[0]; }
-  function isNew(iso){ if(!iso) return false; var d = (Date.now() - new Date(iso + 'T00:00:00').getTime()) / 864e5; return d >= 0 && d <= 30; }
   function slug(n){ return n.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'') || 'person'; }
   function uniqueId(name){ var base = slug(name), id = base, i = 2; while(people.some(function(p){ return p.id === id; })) id = base + '-' + (i++); return id; }
   function toast(msg){ var t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast._t); toast._t = setTimeout(function(){ t.classList.remove('show'); }, 3200); }
@@ -651,7 +648,7 @@
     $('#rows').innerHTML = list.map(function(p){
       var dash = '<span class="dim">—</span>';
       return '<tr data-id="' + esc(p.id) + '">' +
-        '<td class="name-cell"><span class="nm">' + esc(p.name) + '</span>' + (isNew(p.start) ? '<span class="new">NEW</span>' : '') + '</td>' +
+        '<td class="name-cell"><span class="nm">' + esc(p.name) + '</span>' + '</td>' +
         '<td data-label="Title">' + (esc(p.title) || dash) + '</td>' +
         '<td data-label="Ext." class="ext">' + (esc(p.ext) || dash) + '</td>' +
         '<td data-label="Email">' + (p.email ? '<a href="mailto:' + esc(p.email) + '">' + esc(p.email) + '</a>' : dash) + '</td>' +
