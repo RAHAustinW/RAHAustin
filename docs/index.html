@@ -255,7 +255,7 @@
 
   <!-- DOCUMENTS (no tool attached) -->
   <div class="type-block" data-type="documents">
-    <div class="type-head"><h2>Documents</h2><span class="count">6 groups · reference SOPs with no dedicated tool</span></div>
+    <div class="type-head"><h2>Documents</h2><span class="count">8 groups · reference SOPs with no dedicated tool</span></div>
     <div class="sop-groups" data-searchable>
 
       <div class="sop-group">
@@ -306,6 +306,23 @@
         </ul>
       </div>
 
+      <div class="sop-group">
+        <h3>Prefixes Convention</h3>
+        <ul>
+          <li><a class="sop-btn" href="sops/prefixes-convention/Staffing_Note_Convention.pdf" target="_blank"><span>SOP — Staffing Note Convention (Quick Guide)</span><span class="arrow">›</span></a></li>
+          <li><a class="sop-btn" href="sops/prefixes-convention/Staffing_Note_Convention_Training.pdf" target="_blank"><span>SOP — Staffing Note Convention (Training)</span><span class="arrow">›</span></a></li>
+        </ul>
+      </div>
+
+      <div class="sop-group">
+        <h3>PTO &amp; Time Off</h3>
+        <ul>
+          <li><a class="sop-btn" href="https://forms.cloud.microsoft/Pages/ResponsePage.aspx?id=h37zPgmuCEugWlCof5ZSn87adItXNMBGu1O-b2pBNU9UNFlDTjZGR1JRTjJaMzhOT1JPTEY2NzJYUS4u" target="_blank"><span>Time Off Request Form — Office Staff<span class="tag ext">form</span></span><span class="arrow">›</span></a></li>
+          <li><a class="sop-btn" href="sops/pto/SOP-PTO-Requesting_Time_Off_Employee_Guide.pdf" target="_blank"><span>SOP — PTO: Requesting Time Off (Employee Guide)</span><span class="arrow">›</span></a></li>
+          <li><a class="sop-btn" href="sops/pto/PTO-System-Administrator-Guide.pdf" target="_blank"><span>SOP — PTO System Administrator Guide</span><span class="arrow">›</span></a></li>
+        </ul>
+      </div>
+
     </div>
   </div>
 
@@ -316,7 +333,6 @@
       <div class="simple-card">
         <ul>
           <li><a href="https://forms.gle/5ABHyB3oq2RV7zMb6" target="_blank"><span>Daily Visit Tracking Form<span class="desc">SVs, intros, ISPUs, intakes &amp; meetings</span></span><span class="tag ext">form</span></a></li>
-          <li><a href="https://docs.google.com/forms/d/e/1FAIpQLSc253PQTI2mlrCF8Qd14W0Ve09lig8FmFAo8VIYeXxrcNfRdw/viewform" target="_blank"><span>Time Off Request Form (TORF)<span class="desc">15 days notice · 30 days vacation · approval required</span></span><span class="tag ext">form</span></a></li>
         </ul>
       </div>
     </div>
@@ -399,7 +415,8 @@
       let blockHasMatch = q === '';
 
       rows.forEach(row => {
-        const text = row.textContent.toLowerCase();
+        const group = row.closest('.sop-group');
+        const text = (row.textContent + ' ' + (group ? group.querySelector('h3').textContent : '')).toLowerCase();
         const match = q === '' || text.includes(q);
         row.style.display = match ? '' : 'none';
         if (match) blockHasMatch = true;
