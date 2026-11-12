@@ -369,7 +369,8 @@ document.getElementById('run-btn').addEventListener('click',async()=>{
     log('Extracting payroll PDF...');const pText=await extractText(payrollFile);setProgress(60);log('Payroll extracted ✓','log-ok');
     log('Running audit rules...');
     const bResult=parseBilling(bText);
-    const pResult=parsePayroll(pText,bResult.billingMap,bResult.zeroNoteKeys);
+    const pResult=parsePayroll(pText,bResult.billingMap,bResult.zeroNoteKeys,bResult.billingClients);
+    if(pResult.skippedShifts)log(`Office filter: ${pResult.skippedShifts} payroll shifts skipped (${pResult.skippedClients.length} clients not in this billing report).`);
     const cross=crossCheck(bResult.billingMap,pResult.payrollMap);
     allFlags=[...bResult.flags,...pResult.flags,...cross.flags];
     allFlags=dedup(allFlags);
@@ -565,7 +566,7 @@ function dedup(flags){
 
 // ── PARSE BILLING ─────────────────────────────────────────────────────────────
 function parseBilling(text){
-  const flags=[],mileage=[],billingMap={},zeroNoteKeys=new Map();
+  const flags=[],mileage=[],billingMap={},zeroNoteKeys=new Map(),billingClients=new Set();
 
   // Short hourly shifts (<4 hrs, private pay). Sept 2026: these are valid but bill at the
   // short-shift tier with a 2-hour minimum. Same-day auth hours make a short PP shift count as 4+.
@@ -619,6 +620,7 @@ function parseBilling(text){
         if(client)finalizePPHourly(cgRateMap,clientAuthDays,client);
         client=F(line)[0];
         if(isRAH(client)){client=null;continue;}
+        billingClients.add(normName(client));   // office filter: payroll is only audited for clients present in this billing
         isLIClient=false;isAuthClient=false;lastCG=null;cgRateMap={};
         clientAuthDays=new Set();pendingHourly=[];longRates=new Set();continue;
       }
@@ -836,12 +838,13 @@ function parseBilling(text){
       });
     }
   }
-  return{flags,mileage,billingMap,zeroNoteKeys};
+  return{flags,mileage,billingMap,zeroNoteKeys,billingClients};
 }
 
 // ── PARSE PAYROLL ─────────────────────────────────────────────────────────────
-function parsePayroll(text,billingMap,zeroNoteKeys){
+function parsePayroll(text,billingMap,zeroNoteKeys,billingClients){
   const flags=[],payrollMap={};
+  let skippedShifts=0;const skippedClients=new Set();   // payroll shifts for clients not in the (office-filtered) billing
 
   // Payroll side of short PP hourly shifts: same VERIFY as billing (dedups to B+P). The
   // 2-hour minimum is a billing rule — CG is paid actual hours — so no ACTION here.
@@ -886,6 +889,7 @@ function parsePayroll(text,billingMap,zeroNoteKeys){
       const dateIdx=f.findIndex(x=>/^\d{1,2}\/\d{1,2}/.test(x));if(dateIdx<0)continue;
       const hasNote=f.slice(0,dateIdx).some(x=>/\bnote\b/i.test(x));
       const client=clientRaw.replace(/\s*note\s*$/i,'').trim();
+      if(billingClients&&billingClients.size&&!billingClients.has(normName(client))){skippedShifts++;skippedClients.add(client);continue;}
       const date=f[dateIdx];
       const{reg,ot}=extractHours(f,dateIdx);
       const rate=f.find(x=>/^\$[\d,]+\.?\d*\//.test(x))||'';
@@ -1009,7 +1013,7 @@ function parsePayroll(text,billingMap,zeroNoteKeys){
     processPendingHourlyP(pendingHourlyP,clientAuthDaysP);
     if(cg)finalizePPHourlyP(clientRateMap,clientAuthDaysP,cg);
   }
-  return{flags,payrollMap};
+  return{flags,payrollMap,skippedShifts,skippedClients:[...skippedClients]};
 }
 
 // ── CROSS-CHECK BILLING vs PAYROLL ────────────────────────────────────────────
