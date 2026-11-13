@@ -311,7 +311,7 @@ const TYPE_LABELS={
   livein:'Live-In',overlap:'Shift Overlap',mileage:'Mileage',
   va_rate:'VA/AAA Rate',cross:'Billing/Payroll Mismatch',
   paydontbill:'Pay Don\'t Bill',billhours:'Non-Billable w/ Hours',
-  cancel:'Cancellation Fee',tier:'Short/Long Rate Tier',visit:'Still on Visit Rate'
+  cancel:'Cancellation Fee',tier:'Short/Long Rate Tier',visit:'Still on Visit Rate',couple:'Couple Shift'
 };
 
 // Kate's CG pay guideline table (Sept 2026). Key = bill rate → expected CG pay.
@@ -372,7 +372,8 @@ document.getElementById('run-btn').addEventListener('click',async()=>{
     const pResult=parsePayroll(pText,bResult.billingMap,bResult.zeroNoteKeys,bResult.billingClients);
     if(pResult.skippedShifts)log(`Office filter: ${pResult.skippedShifts} payroll shifts skipped (${pResult.skippedClients.length} clients not in this billing report).`);
     const cross=crossCheck(bResult.billingMap,pResult.payrollMap);
-    allFlags=[...bResult.flags,...pResult.flags,...cross.flags];
+    const coupleFlags=checkCouplesBilling(pResult.couplePairs,bResult.billingShifts);
+    allFlags=[...bResult.flags,...pResult.flags,...cross.flags,...coupleFlags];
     allFlags=dedup(allFlags);
     allMileage=bResult.mileage;allGuide=cross.guide;
     setProgress(90);log(`Found ${allFlags.length} flags, ${allMileage.length} mileage entries, ${allGuide.length} pay-guideline rows.`,'log-ok');
@@ -566,7 +567,7 @@ function dedup(flags){
 
 // ── PARSE BILLING ─────────────────────────────────────────────────────────────
 function parseBilling(text){
-  const flags=[],mileage=[],billingMap={},zeroNoteKeys=new Map(),billingClients=new Set();
+  const flags=[],mileage=[],billingMap={},zeroNoteKeys=new Map(),billingClients=new Set(),billingShifts=[];
 
   // Short hourly shifts (<4 hrs, private pay). Sept 2026: these are valid but bill at the
   // short-shift tier with a 2-hour minimum. Same-day auth hours make a short PP shift count as 4+.
@@ -700,7 +701,8 @@ function parseBilling(text){
       const aKind=isGuide(client)?'guide':aType;             // 'va' | 'aaa' | 'guide' | null
 
       // Index for cross-check
-      const[start]=shiftTimes(date);
+      const[start,endT]=shiftTimes(date);
+      if(start!==null)billingShifts.push({cg:cgName,client,day:shiftDay,start,end:endT,reg,date});
       if(start!==null&&!isZero){
         const key=normName(cgName)+'|'+normName(client)+'|'+shiftDay+'|'+start;
         billingMap[key]={rt,rate,client,cg:cgName,date,auth:isAuthOrGuide,aKind,isCancel,reg};
@@ -838,13 +840,31 @@ function parseBilling(text){
       });
     }
   }
-  return{flags,mileage,billingMap,zeroNoteKeys,billingClients};
+  return{flags,mileage,billingMap,zeroNoteKeys,billingClients,billingShifts};
 }
 
 // ── PARSE PAYROLL ─────────────────────────────────────────────────────────────
 function parsePayroll(text,billingMap,zeroNoteKeys,billingClients){
   const flags=[],payrollMap={};
   let skippedShifts=0;const skippedClients=new Set();   // payroll shifts for clients not in the (office-filtered) billing
+  const couplePairs=[];   // {cg,day,zeroClient,paidClient} — for the billing-side time check
+
+  // Couple shift rule: same CG, same day, two different clients, overlapping times, one $0.00 and one paid.
+  // That is the normal setup for a couple (one profile paid, the other $0.00) → no "missing documentation" flag,
+  // but both profiles must have identical clock in/out and hours.
+  function finalizeCouples(cgName,pageShifts){
+    const zeros=pageShifts.filter(x=>x.isZero&&x.start!==null),paid=pageShifts.filter(x=>!x.isZero&&x.start!==null&&x.amt>0);
+    for(const z of zeros){
+      const partner=paid.find(pp=>pp.day===z.day&&normName(pp.client)!==normName(z.client)&&pp.start<(z.end??z.start+1)&&z.start<(pp.end??pp.start+1));
+      if(!partner)continue;
+      if(z.zeroFlag){const i=flags.indexOf(z.zeroFlag);if(i>=0)flags.splice(i,1);}   // couple → $0.00 is expected, no note needed
+      couplePairs.push({cg:cgName,day:z.day,zeroClient:z.client,paidClient:partner.client});
+      if(z.start!==partner.start||z.end!==partner.end||Math.abs(z.reg-partner.reg)>0.001){
+        flags.push({report:'Payroll',entity:cgName,counterpart:`${z.client} / ${partner.client}`,date:partner.date,type:'couple',
+          detail:`Couple shift time mismatch: ${z.client} ${z.date.replace(/^\S+\s+/,'')} (${z.reg} h, $0.00) vs ${partner.client} ${partner.date.replace(/^\S+\s+/,'')} (${partner.reg} h) — both profiles must have identical clock in/out`,severity:'action'});
+      }
+    }
+  }
 
   // Payroll side of short PP hourly shifts: same VERIFY as billing (dedups to B+P). The
   // 2-hour minimum is a billing rule — CG is paid actual hours — so no ACTION here.
@@ -872,14 +892,14 @@ function parsePayroll(text,billingMap,zeroNoteKeys,billingClients){
     let cg=null;
     let clientRateMap={};
     let clientIsLI={};
-    let clientAuthDaysP={},pendingHourlyP=[],payDontBillKeys=new Set();
+    let clientAuthDaysP={},pendingHourlyP=[],payDontBillKeys=new Set(),pageShifts=[];
 
     for(const line of lines){
       if(SKIP.test(line))continue;
       const cgH=line.match(/Payroll Report for (.+?)\s+-\s+\d{2}\/\d{2}\/\d{4}/);
-      if(cgH){processPendingHourlyP(pendingHourlyP,clientAuthDaysP);if(cg)finalizePPHourlyP(clientRateMap,clientAuthDaysP,cg);cg=cgH[1].trim();if(isRAH(cg)){cg=null;continue;}clientRateMap={};clientIsLI={};clientAuthDaysP={};pendingHourlyP=[];payDontBillKeys=new Set();continue;}
+      if(cgH){processPendingHourlyP(pendingHourlyP,clientAuthDaysP);if(cg){finalizePPHourlyP(clientRateMap,clientAuthDaysP,cg);finalizeCouples(cg,pageShifts);}cg=cgH[1].trim();if(isRAH(cg)){cg=null;continue;}clientRateMap={};clientIsLI={};clientAuthDaysP={};pendingHourlyP=[];payDontBillKeys=new Set();pageShifts=[];continue;}
       if(/^[A-Z][a-zA-Z"'-]+,\s+[A-Z]/.test(line)&&/Date/.test(line)&&/Reg/.test(line)){
-        processPendingHourlyP(pendingHourlyP,clientAuthDaysP);if(cg)finalizePPHourlyP(clientRateMap,clientAuthDaysP,cg);cg=F(line)[0];if(isRAH(cg)){cg=null;continue;}clientRateMap={};clientIsLI={};clientAuthDaysP={};pendingHourlyP=[];payDontBillKeys=new Set();continue;
+        processPendingHourlyP(pendingHourlyP,clientAuthDaysP);if(cg){finalizePPHourlyP(clientRateMap,clientAuthDaysP,cg);finalizeCouples(cg,pageShifts);}cg=F(line)[0];if(isRAH(cg)){cg=null;continue;}clientRateMap={};clientIsLI={};clientAuthDaysP={};pendingHourlyP=[];payDontBillKeys=new Set();pageShifts=[];continue;
       }
       if(!cg||!/\d{1,2}\/\d{1,2}/.test(line)||/^Travel Time:/i.test(line))continue;
       const f=F(line);if(!f.length)continue;
@@ -915,7 +935,9 @@ function parsePayroll(text,billingMap,zeroNoteKeys,billingClients){
       const isCancelPay=rt==='visit'&&Math.abs(amt-25)<0.01&&reg>0.017;  // $25/visit CG cancellation pay (food stipend is ≤1 min)
 
       // Index for cross-check
-      const[start]=shiftTimes(date);
+      const[start,endT]=shiftTimes(date);
+      const shiftRec={client,day:shiftDay,start,end:endT,reg,amt,isZero,date,zeroFlag:null};
+      if(!isLIRate)pageShifts.push(shiftRec);
       if(start!==null&&!isZero&&!isLIRate){
         const key=normName(cg)+'|'+normName(client)+'|'+shiftDay+'|'+start;
         payrollMap[key]={rt,rate,cg,client,date,isCancel:isCancelPay};
@@ -941,7 +963,8 @@ function parsePayroll(text,billingMap,zeroNoteKeys,billingClients){
         const detail=hasNote
           ?'$0.00 pay with note — verify documentation'
           :'$0.00 pay without note — missing documentation (note + tag + checkbox required)';
-        flags.push({report:'Payroll',entity:cg,counterpart:client,date,type:'zero',detail,severity:'action'});
+        const zf={report:'Payroll',entity:cg,counterpart:client,date,type:'zero',detail,severity:'action'};
+        flags.push(zf);shiftRec.zeroFlag=zf;
       }
 
       // Holiday
@@ -1011,55 +1034,32 @@ function parsePayroll(text,billingMap,zeroNoteKeys,billingClients){
       }
     }
     processPendingHourlyP(pendingHourlyP,clientAuthDaysP);
-    if(cg)finalizePPHourlyP(clientRateMap,clientAuthDaysP,cg);
+    if(cg){finalizePPHourlyP(clientRateMap,clientAuthDaysP,cg);finalizeCouples(cg,pageShifts);}
   }
-  return{flags,payrollMap,skippedShifts,skippedClients:[...skippedClients]};
+  return{flags,payrollMap,skippedShifts,skippedClients:[...skippedClients],couplePairs};
 }
 
 // ── CROSS-CHECK BILLING vs PAYROLL ────────────────────────────────────────────
+// Billing side of the couple rule: the two clients' billing lines for that CG/day must have identical times & hours
+function checkCouplesBilling(couplePairs,billingShifts){
+  const flags=[];
+  for(const cp of couplePairs){
+    const a=billingShifts.filter(x=>normName(x.cg)===normName(cp.cg)&&x.day===cp.day&&normName(x.client)===normName(cp.zeroClient));
+    const b=billingShifts.filter(x=>normName(x.cg)===normName(cp.cg)&&x.day===cp.day&&normName(x.client)===normName(cp.paidClient));
+    if(!a.length||!b.length)continue;
+    for(const x of a){
+      const y=b.find(yy=>yy.start<(x.end??x.start+1)&&x.start<(yy.end??yy.start+1));
+      if(!y)continue;
+      if(x.start!==y.start||x.end!==y.end||Math.abs(x.reg-y.reg)>0.001)
+        flags.push({report:'Billing',entity:cp.cg,counterpart:`${cp.zeroClient} / ${cp.paidClient}`,date:y.date,type:'couple',
+          detail:`Couple shift time mismatch in billing: ${cp.zeroClient} ${x.date.replace(/^\S+\s+/,'')} (${x.reg} h) vs ${cp.paidClient} ${y.date.replace(/^\S+\s+/,'')} (${y.reg} h) — both clients must be billed with identical clock in/out`,severity:'action'});
+    }
+  }
+  return flags;
+}
+
 function crossCheck(billingMap,payrollMap){
   const flags=[],guide=[];const seenPair={};
   for(const[key,b] of Object.entries(billingMap)){
     if(!(key in payrollMap))continue;
-    const p=payrollMap[key];
-    const bAmt=rateAmt(b.rate),pAmt=rateAmt(p.rate);
-
-    // 1. Bill method / pay method must match (image: "that's a flag, not something to leave as-is")
-    if(b.rt!==p.rt&&b.rt!=='livein'&&p.rt!=='livein'){
-      flags.push({report:'Billing+Payroll',entity:b.client,counterpart:b.cg,date:b.date,type:'cross',
-        detail:`Bill method is ${b.rt} (${b.rate}) but pay method is ${p.rt} (${p.rate}) — both must match`,severity:'action'});
-      continue;
-    }
-    if(b.rt==='livein'||p.rt==='livein'||bAmt<=0||pAmt<=0)continue;
-
-    // 2. Cancellation: $50 bill → $25 CG pay
-    if(b.isCancel){
-      if(Math.abs(pAmt-25)>0.01)flags.push({report:'Billing+Payroll',entity:b.client,counterpart:b.cg,date:b.date,type:'cancel',
-        detail:`Cancellation fee billed $50 but CG paid ${p.rate} — CG cancellation pay is $25`,severity:'verify'});
-      continue;
-    }
-
-    // 3. CG pay vs Kate's guideline table (hourly). Informational — goes to the Pay Guideline tab,
-    //    not to the flag list. One row per CG/client/rate combination; above and below guideline.
-    if(b.rt==='hourly'){
-      let expected=null,label='';
-      if(b.aKind==='guide')continue;   // GUIDE rate varies by area — no guideline check
-      if(b.aKind&&PAY_GUIDE_AUTH[b.aKind]!=null){expected=PAY_GUIDE_AUTH[b.aKind];label=b.aKind.toUpperCase();}
-      else if(!b.auth&&PAY_GUIDE_PP[bAmt]!=null){expected=PAY_GUIDE_PP[bAmt];label=`PP $${bAmt}`;}
-      if(expected!==null&&Math.abs(pAmt-expected)>0.01){
-        const pk=`${normName(b.cg)}|${normName(b.client)}|${pAmt}|${bAmt}`;
-        if(!seenPair[pk]){seenPair[pk]=true;
-          guide.push({client:b.client,cg:b.cg,kind:label,bill:bAmt,pay:pAmt,expected,diff:+(pAmt-expected).toFixed(2),shifts:1,firstDate:b.date});
-        }else{const g=guide.find(g=>normName(g.cg)===normName(b.cg)&&normName(g.client)===normName(b.client)&&g.pay===pAmt&&g.bill===bAmt);if(g)g.shifts++;}
-      }
-      continue;
-    }
-
-    // 4. Visit lines: all clients are hourly now — any /visit line is flagged in billing ('Still on Visit Rate').
-  }
-  guide.sort((a,b)=>b.diff-a.diff||a.client.localeCompare(b.client));
-  return{flags,guide};
-}
-</script>
-</body>
-</html>
+    con
