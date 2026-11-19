@@ -175,7 +175,18 @@ const pct = n => (n * 100).toFixed(0) + "%";
 async function readSheet(file, required) {
   const buf = await file.arrayBuffer();
   const wb = XLSX.read(new Uint8Array(buf), { type: "array" });
-  const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, raw: true, defval: null });
+  const ws = wb.Sheets[wb.SheetNames[0]];
+  // Some WellSky .xlsx exports declare a wrong sheet size (e.g. "A1:C1"), which makes the reader drop
+  // most columns/rows. Recompute the real range from the cells themselves.
+  let minR = Infinity, minC = Infinity, maxR = -1, maxC = -1;
+  for (const k in ws) {
+    if (k.charCodeAt(0) === 33) continue; // skip "!ref", "!cols", ...
+    const a = XLSX.utils.decode_cell(k);
+    if (a.r < minR) minR = a.r; if (a.c < minC) minC = a.c;
+    if (a.r > maxR) maxR = a.r; if (a.c > maxC) maxC = a.c;
+  }
+  if (maxR >= 0) ws["!ref"] = XLSX.utils.encode_range({ s: { r: minR, c: minC }, e: { r: maxR, c: maxC } });
+  const rows = XLSX.utils.sheet_to_json(ws, { header: 1, raw: true, defval: null });
   let h = rows.findIndex((r, i) => i < 15 && r.some(c => String(c || "").trim() === required[0]));
   if (h < 0) throw new Error(`"${file.name}": column "${required[0]}" not found. Is this the right report?`);
   const hdr = rows[h].map(c => String(c == null ? "" : c).trim());
