@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Apploi Application Extractor</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs" type="module"></script>
+<style>
+  /* — Tokens — compact recruiter tool, steel-blue accent, tight data display */
+  :root {
+    --bg: #f6f7f9;
+    --surface: #ffffff;
+    --border: #d4d8df;
+    --text: #1e2228;
+    --text-muted: #5f6878;
+    --accent: #2563eb;
+    --accent-hover: #1d4ed8;
+    --success: #16a34a;
+    --danger: #dc2626;
+    --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-mono: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+    color-scheme: light;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #111318;
+      --surface: #1a1d24;
+      --border: #2e333c;
+      --text: #e2e5ea;
+      --text-muted: #8b92a0;
+      --accent: #60a5fa;
+      --accent-hover: #93bbfd;
+      --success: #4ade80;
+      --danger: #f87171;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #111318;
+    --surface: #1a1d24;
+    --border: #2e333c;
+    --text: #e2e5ea;
+    --text-muted: #8b92a0;
+    --accent: #60a5fa;
+    --accent-hover: #93bbfd;
+    --success: #4ade80;
+    --danger: #f87171;
+    color-scheme: dark;
+  }
+
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-body);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  body {
+    display: flex;
+    flex-direction: column;
+    padding: 24px;
+    gap: 20px;
+    max-width: 960px;
+    margin: 0 auto;
+  }
+
+  header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  header svg { flex-shrink: 0; }
+  header h1 {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  header p {
+    color: var(--text-muted);
+    font-size: 13px;
+    margin-top: 2px;
+  }
+
+  .drop-zone {
+    border: 2px dashed var(--border);
+    border-radius: 12px;
+    padding: 32px 24px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+    position: relative;
+  }
+  .drop-zone:hover, .drop-zone.dragover {
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 6%, transparent);
+  }
+  .drop-zone input[type="file"] {
+    position: absolute; inset: 0; opacity: 0; cursor: pointer;
+  }
+  .drop-zone .icon { font-size: 28px; margin-bottom: 8px; }
+  .drop-zone .label { font-weight: 600; font-size: 15px; }
+  .drop-zone .hint { color: var(--text-muted); font-size: 13px; margin-top: 4px; }
+
+  .status-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    font-size: 13px;
+    color: var(--text-muted);
+    min-height: 32px;
+  }
+  .status-bar .count { font-weight: 600; color: var(--text); }
+  .status-bar .actions { display: flex; gap: 8px; }
+
+  button {
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    padding: 7px 16px;
+    cursor: pointer;
+    transition: background 0.12s;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .btn-primary {
+    background: var(--accent);
+    color: #fff;
+  }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-primary:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+  .btn-ghost {
+    background: transparent;
+    color: var(--accent);
+    border: 1px solid var(--border);
+  }
+  .btn-ghost:hover {
+    background: color-mix(in srgb, var(--accent) 8%, transparent);
+  }
+  .btn-danger {
+    background: transparent;
+    color: var(--danger);
+    border: 1px solid var(--border);
+  }
+  .btn-danger:hover {
+    background: color-mix(in srgb, var(--danger) 8%, transparent);
+  }
+
+  .file-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .file-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 4px 10px;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+  .file-chip .dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--accent);
+    flex-shrink: 0;
+  }
+  .file-chip .dot.done { background: var(--success); }
+  .file-chip .dot.error { background: var(--danger); }
+  .file-chip .remove {
+    cursor: pointer;
+    opacity: 0.5;
+    font-size: 14px;
+    line-height: 1;
+  }
+  .file-chip .remove:hover { opacity: 1; color: var(--danger); }
+
+  .results-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-height: 0;
+  }
+
+  .table-scroll {
+    flex: 1;
+    overflow: auto;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: var(--surface);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    font-variant-numeric: tabular-nums;
+  }
+  thead th {
+    position: sticky;
+    top: 0;
+    background: var(--surface);
+    border-bottom: 2px solid var(--border);
+    padding: 10px 14px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+    white-space: nowrap;
+  }
+  tbody td {
+    padding: 9px 14px;
+    border-bottom: 1px solid var(--border);
+    white-space: nowrap;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: color-mix(in srgb, var(--accent) 4%, transparent); }
+
+  .tsv-box {
+    position: relative;
+  }
+  .tsv-box textarea {
+    width: 100%;
+    min-height: 80px;
+    max-height: 160px;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px 14px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text);
+    resize: vertical;
+    line-height: 1.6;
+  }
+  .tsv-box textarea:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+
+  .copy-toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(60px);
+    background: var(--text);
+    color: var(--bg);
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    pointer-events: none;
+    opacity: 0;
+    transition: transform 0.25s ease, opacity 0.25s ease;
+  }
+  .copy-toast.show {
+    transform: translateX(-50%) translateY(0);
+    opacity: 1;
+  }
+
+  .spinner {
+    display: inline-block;
+    width: 14px; height: 14px;
+    border: 2px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.6s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .empty-state {
+    text-align: center;
+    padding: 48px 24px;
+    color: var(--text-muted);
+    font-size: 14px;
+  }
+
+  @media (max-width: 600px) {
+    body { padding: 16px; }
+    header h1 { font-size: 17px; }
+    .drop-zone { padding: 24px 16px; }
+    table { font-size: 12px; }
+    thead th, tbody td { padding: 8px 10px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+    <rect width="32" height="32" rx="8" fill="var(--accent)"/>
+    <path d="M10 11h12M10 16h12M10 21h8" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+  </svg>
+  <div>
+    <h1>Apploi Application Extractor</h1>
+    <p>Upload Apploi application PDFs → get a ready-to-paste contact list</p>
+  </div>
+</header>
+
+<div class="drop-zone" id="dropZone">
+  <input type="file" id="fileInput" accept=".pdf" multiple>
+  <div class="icon">📄</div>
+  <div class="label">Drop PDF files here or click to browse</div>
+  <div class="hint">Up to 10 Apploi application PDFs</div>
+</div>
+
+<div class="file-list" id="fileList"></div>
+
+<div class="status-bar" id="statusBar" style="display:none">
+  <div>
+    <span class="count" id="countLabel">0 applicants</span>
+    <span id="processingLabel"></span>
+  </div>
+  <div class="actions">
+    <button class="btn-primary" id="copyBtn" disabled onclick="copyTSV()">
+      📋 Copy TSV
+    </button>
+    <button class="btn-danger" id="clearBtn" onclick="clearAll()">Clear all</button>
+  </div>
+</div>
+
+<div class="results-wrapper" id="resultsWrapper" style="display:none">
+  <div class="table-scroll">
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Full Name</th>
+          <th>Phone</th>
+          <th>Email</th>
+          <th>City</th>
+        </tr>
+      </thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+
+  <div class="tsv-box">
+    <textarea id="tsvOutput" readonly placeholder="TSV output will appear here…"></textarea>
+  </div>
+</div>
+
+<div class="empty-state" id="emptyState">
+  Upload Apploi application PDFs to extract applicant contact info.
+</div>
+
+<div class="copy-toast" id="toast">Copied to clipboard ✓</div>
+
+<script type="module">
+import * as pdfjsLib from 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.min.mjs';
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.4.168/pdf.worker.min.mjs';
+
+const files = [];
+const results = [];
+
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+const fileList = document.getElementById('fileList');
+const statusBar = document.getElementById('statusBar');
+const countLabel = document.getElementById('countLabel');
+const processingLabel = document.getElementById('processingLabel');
+const copyBtn = document.getElementById('copyBtn');
+const tableBody = document.getElementById('tableBody');
+const tsvOutput = document.getElementById('tsvOutput');
+const resultsWrapper = document.getElementById('resultsWrapper');
+const emptyState = document.getElementById('emptyState');
+
+dropZone.addEventListener('dragover', e => {
+  e.preventDefault();
+  dropZone.classList.add('dragover');
+});
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('dragover');
+  handleFiles(e.dataTransfer.files);
+});
+fileInput.addEventListener('change', e => {
+  handleFiles(e.target.files);
+  fileInput.value = '';
+});
+
+function handleFiles(newFiles) {
+  const pdfs = Array.from(newFiles).filter(f => f.type === 'application/pdf' || f.name.endsWith('.pdf'));
+  const remaining = 10 - files.length;
+  const toAdd = pdfs.slice(0, remaining);
+
+  for (const f of toAdd) {
+    const idx = files.length;
+    files.push({ file: f, status: 'pending' });
+    renderFileChip(idx, f.name, 'pending');
+    processFile(idx, f);
+  }
+
+  updateUI();
+}
+
+function renderFileChip(idx, name, status) {
+  const short = name.length > 28 ? name.slice(0, 25) + '…' : name;
+  const chip = document.createElement('span');
+  chip.className = 'file-chip';
+  chip.id = `chip-${idx}`;
+  chip.innerHTML = `<span class="dot ${status === 'done' ? 'done' : status === 'error' ? 'error' : ''}"></span>
+    <span>${short}</span>
+    <span class="remove" onclick="window.removeFile(${idx})">×</span>`;
+  fileList.appendChild(chip);
+}
+
+function updateChipStatus(idx, status) {
+  const chip = document.getElementById(`chip-${idx}`);
+  if (!chip) return;
+  const dot = chip.querySelector('.dot');
+  dot.className = `dot ${status}`;
+}
+
+window.removeFile = function(idx) {
+  const chip = document.getElementById(`chip-${idx}`);
+  if (chip) chip.remove();
+  files[idx] = null;
+
+  // Remove matching results
+  const toRemove = results.findIndex(r => r._fileIdx === idx);
+  if (toRemove !== -1) results.splice(toRemove, 1);
+
+  renderResults();
+  updateUI();
+};
+
+async function processFile(idx, file) {
+  try {
+    const buffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: buffer }).promise;
+
+    // We only need first 2 pages typically
+    const pagesToRead = Math.min(pdf.numPages, 3);
+    let fullText = '';
+    for (let i = 1; i <= pagesToRead; i++) {
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      const lines = [];
+      let lastY = null;
+      for (const item of content.items) {
+        if (lastY !== null && Math.abs(item.transform[5] - lastY) > 2) {
+          lines.push('\n');
+        }
+        lines.push(item.str);
+        lastY = item.transform[5];
+      }
+      fullText += lines.join('') + '\n';
+    }
+
+    const data = extractInfo(fullText);
+    data._fileIdx = idx;
+    results.push(data);
+    files[idx].status = 'done';
+    updateChipStatus(idx, 'done');
+  } catch (err) {
+    console.error('Error processing', file.name, err);
+    files[idx].status = 'error';
+    updateChipStatus(idx, 'error');
+  }
+
+  renderResults();
+  updateUI();
+}
+
+function extractInfo(text) {
+  const info = { name: '', phone: '', email: '', city: '' };
+
+  // Name: first line is typically "FIRSTNAME LASTNAME - # NNNNNNNNN"
+  const nameMatch = text.match(/^([A-Z][A-Z\s.'-]+?)\s*-\s*#\s*\d+/m);
+  if (nameMatch) {
+    info.name = titleCase(nameMatch[1].trim());
+  }
+
+  // Email
+  const emailMatch = text.match(/Email\s*:\s*([^\s\n]+@[^\s\n]+)/i);
+  if (emailMatch) {
+    info.email = emailMatch[1].trim().toLowerCase();
+  }
+
+  // Phone: prefer Mobile, fall back to Home number
+  const mobileMatch = text.match(/Mobile\s*:\s*\+?([0-9\s()-]+)/i);
+  const homeMatch = text.match(/Home\s*number\s*:\s*\+?([0-9\s()-]+)/i);
+
+  if (mobileMatch && mobileMatch[1].trim() && mobileMatch[1].trim().toLowerCase() !== 'none') {
+    info.phone = formatPhone(mobileMatch[1].trim());
+  } else if (homeMatch && homeMatch[1].trim() && homeMatch[1].trim().toLowerCase() !== 'none') {
+    info.phone = formatPhone(homeMatch[1].trim());
+  }
+
+  // City: from Location field — format is typically "Address, City, ST ZIP"
+  const locMatch = text.match(/Location\s*:\s*(.+)/i);
+  if (locMatch) {
+    const locParts = locMatch[1].trim().split(',');
+    if (locParts.length >= 2) {
+      // Second part is typically the city (or city with state/zip)
+      let cityPart = locParts[1].trim();
+      // If there's a state+zip after, keep just the city name
+      // Pattern: "City" or "City ST" — we want just the city
+      // Last part usually has "ST ZIP"
+      if (locParts.length >= 3) {
+        info.city = cityPart;
+      } else {
+        // "City, ST ZIP" — extract city
+        const stateZip = cityPart.match(/^(.+?),?\s+[A-Z]{2}\s*\d{5}/);
+        if (stateZip) {
+          info.city = stateZip[1].trim();
+        } else {
+          info.city = cityPart.replace(/\s+[A-Z]{2}\s*\d{5}.*/, '').trim();
+        }
+      }
+    }
+  }
+
+  return info;
+}
+
+function titleCase(str) {
+  return str.toLowerCase().replace(/(?:^|\s)\S/g, c => c.toUpperCase());
+}
+
+function formatPhone(raw) {
+  const digits = raw.replace(/\D/g, '');
+  if (digits.length === 11 && digits.startsWith('1')) {
+    return `+1 (${digits.slice(1,4)}) ${digits.slice(4,7)}-${digits.slice(7)}`;
+  }
+  if (digits.length === 10) {
+    return `(${digits.slice(0,3)}) ${digits.slice(3,6)}-${digits.slice(6)}`;
+  }
+  return raw;
+}
+
+function renderResults() {
+  tableBody.innerHTML = '';
+  if (results.length === 0) {
+    resultsWrapper.style.display = 'none';
+    emptyState.style.display = 'block';
+    tsvOutput.value = '';
+    copyBtn.disabled = true;
+    return;
+  }
+
+  resultsWrapper.style.display = 'flex';
+  emptyState.style.display = 'none';
+
+  const tsvLines = [];
+
+  results.forEach((r, i) => {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td>${i + 1}</td><td>${esc(r.name)}</td><td>${esc(r.phone)}</td><td>${esc(r.email)}</td><td>${esc(r.city)}</td>`;
+    tableBody.appendChild(tr);
+    tsvLines.push(`${r.name}\t${r.phone}\t${r.email}\t${r.city}`);
+  });
+
+  tsvOutput.value = tsvLines.join('\n');
+  copyBtn.disabled = false;
+}
+
+function esc(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+function updateUI() {
+  const active = files.filter(f => f !== null);
+  const hasFiles = active.length > 0;
+  statusBar.style.display = hasFiles ? 'flex' : 'none';
+
+  if (!hasFiles) {
+    emptyState.style.display = 'block';
+    resultsWrapper.style.display = results.length ? 'flex' : 'none';
+  }
+
+  countLabel.textContent = `${results.length} applicant${results.length !== 1 ? 's' : ''} extracted`;
+
+  const pending = active.filter(f => f.status === 'pending').length;
+  processingLabel.innerHTML = pending > 0 ? ` · <span class="spinner"></span> Processing ${pending}…` : '';
+
+  if (active.length >= 10) {
+    dropZone.querySelector('.hint').textContent = 'Maximum 10 files reached';
+  } else {
+    dropZone.querySelector('.hint').textContent = `Up to 10 Apploi application PDFs (${10 - active.length} remaining)`;
+  }
+}
+
+window.copyTSV = function() {
+  const text = tsvOutput.value;
+  navigator.clipboard.writeText(text).then(() => {
+    const toast = document.getElementById('toast');
+    toast.classList.add('show');
+    setTimeout(() => toast.classList.remove('show'), 1800);
+  }).catch(() => {
+    tsvOutput.select();
+  });
+};
+
+window.clearAll = function() {
+  files.length = 0;
+  results.length = 0;
+  fileList.innerHTML = '';
+  renderResults();
+  updateUI();
+  emptyState.style.display = 'block';
+  statusBar.style.display = 'none';
+};
+</script>
+
+</body>
+</html>
